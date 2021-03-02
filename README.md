@@ -15,10 +15,10 @@ This short course covers trendy areas in modern geocomputing with broad geoscien
 
 
 ## Objectives
-The goal of this short course is to offer an interactive and tutorial-like hands-on to solve systems of differential equations in parallel on GPUs using the [Julia] language. [Julia] combines high-level language simplicity and low-level language performance. The resulting codes and applications are fast, short and readable. We will design and implement a numerical algorithm that predicts ice flow dynamics over mountainous topography using a high-performance computing approach.
+The goal of this short course is to offer an interactive and tutorial-like hands-on to solve systems of differential equations in parallel on GPUs using the [Julia language]. [Julia] combines high-level language simplicity and low-level language performance. The resulting codes and applications are fast, short and readable. We will design and implement a numerical algorithm that predicts ice flow dynamics over mountainous topography using a high-performance computing approach.
 
 The online course uses (remote or local) resources to run notebooks to enable best participant experience. The course consists of 2 parts:
-1. You will learn about the Julia language, parallel and distributed computing and iterative solvers.
+1. You will learn about the [Julia language], parallel and distributed computing and iterative solvers.
 2. You will implement a PDE solver to predict ice flow dynamics on real topography.
 
 By the end of this short course, you will:
@@ -29,3 +29,4 @@ By the end of this short course, you will:
 
 
 [Julia]: https://julialang.org
+[Julia language]: https://docs.julialang.org/en/v1/
