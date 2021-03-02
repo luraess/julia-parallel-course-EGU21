@@ -5,7 +5,8 @@
 Course **registration required** (Deadline April 4 2021): [Register here](https://evaluation-app1.let.ethz.ch/egu_julia)
 
 Registration is for short course planning purposes and **does not replace** the [registration to EGU's main meeting](https://egu21.eu/register.html).
----
+
+----
 This short course covers trendy areas in modern geocomputing with broad geoscientific applications. The physical processes governing natural systems' evolution are often mathematically described as systems of differential equations. A performant numerical implementation of the solving algorithm leveraging modern hardware is key and permits to tackle problems that were technically not possible a decade ago.
 
 
