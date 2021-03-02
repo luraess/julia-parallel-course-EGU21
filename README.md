@@ -4,7 +4,7 @@
 
 COURSE REGISTRATION REQUIRED (Deadline April 4 2021): [Register here](https://evaluation-app1.let.ethz.ch/egu_julia)
 
-/!\ This registration is meant for short course planning purposes and does not replace the [registration to EGU's main meeting](https://egu21.eu/register.html).
+/!\ Registration is for short course planning purposes and DOES NOT replace the [registration to EGU's main meeting](https://egu21.eu/register.html).
 
 ---
 
