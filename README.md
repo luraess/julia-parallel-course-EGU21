@@ -25,7 +25,7 @@ By the end of this short course, you will:
 - Have a GPU PDE solver that predicts ice-flow;
 - Have a Julia code that achieves similar performance than legacy codes (C, CUDA, MPI);
 - Know how the Julia language solves the "two-language problem";
-- Be able to leverage the computing power of modern GPU accelerated servers and supercomputers;
+- Be able to leverage the computing power of modern GPU accelerated servers and supercomputers.
 
 
 [Julia]: https://julialang.org
