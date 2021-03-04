@@ -1,4 +1,4 @@
-# julia-parallel-course
+# julia-parallel-course-EGU21
 
 #### [vEGU2021: SC4.6 Solving differential equations in parallel with Julia](https://meetingorganizer.copernicus.org/EGU21/session/38986)
 
