@@ -1,9 +1,9 @@
 # julia-parallel-course-EGU21
 
-#### [vEGU2021: SC4.6 Solving differential equations in parallel with Julia](https://meetingorganizer.copernicus.org/EGU21/session/38986)
+#### [vEGU2021: SC4.6 Solving differential equations in parallel with Julia | Thu, 29 Apr, 16:00–17:00 (CEST)](https://meetingorganizer.copernicus.org/EGU21/session/38986)
 
 👉 **Organisation notes:**
-- 💡 All material presented during the short course will be uploaded and available to participants 5 days prior to the event on this repository.
+- 💡 All material presented during the short course will be uploaded here and made available to participants 5 days prior to the event on this repository.
 - ⚠️ Live participation to this short course requires [registration to EGU's main meeting](https://egu21.eu/register.html).
 - Due to the time-limited course schedule (60min), an interactive overview will cover the course's [objectives](#objectives) instead of the originally planned hands-on.
 - ❓ Further interests in solving PDEs with Julia on GPUs? Sign-up (free) for a hands-on workshop at [JuliaCon2021](https://juliacon.org/2021/).
