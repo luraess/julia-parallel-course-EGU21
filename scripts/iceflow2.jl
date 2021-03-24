@@ -47,16 +47,16 @@ end
     g      = 9.81            # gravity acceleration
     npow   = 3.0             # Glen's power law exponent 
     a0     = 1.5e-24         # Glen's law enhancement term
-    grad_b = 0.01
-    z_ELA  = 1000
-    b_max  = 0.5
+    b_max  = 0.13
+    # b = min.(((1.3517 - 0.014158*82)/100*0.91).*(Z.-800),b_max); # doi: 10.1017/jog.2016.75
     # numerics
-    nx, ny = size(Zbed,1), size(Zbed,2); @assert (nx, ny) == size(Zbed) == size(Hice) == size(Mask) "Sizes don't match"
+    nx, ny = size(Zbed,1), size(Zbed,2)
+    @assert (nx, ny) == size(Zbed) == size(Hice) == size(Mask) "Sizes don't match"
     nt     = 1e5
     nout   = 200
     tolnl  = 1e-6
-    epsi   = 1e-2
-    damp   = 0.9
+    epsi   = 1e-4
+    damp   = 0.85
     ns     = 2
     # derived physics
     a      = 2.0*a0/(npow+2)*(rho_i*g)^npow*s2y
@@ -64,7 +64,8 @@ end
     # derived numerics
     xc, yc = LinRange(dx/2, lx-dx/2, nx), LinRange(dy/2, ly-dy/2, ny)
     xv, yv = 0.5*(xc[1:end-1].+xc[2:end]), 0.5*(yc[1:end-1].+yc[2:end])
-    cfl    = max(dx^2,dy^2)/8.1
+    (Xc,Yc)= ([x for x=xc,y=yc], [y for x=xc,y=yc])
+    cfl    = max(dx^2,dy^2)/4.1
     dtsc   = 1.0/3.0
     # array initialisation
     Err    = zeros(nx  , ny  )
@@ -84,6 +85,11 @@ end
     S      = zeros(nx  , ny  )
     B      = Zbed #zeros(nx  , ny  )
     H      = Hice # ones(nx  , ny  )
+    Yc2    = Yc .- minimum(Yc); Yc2 .= Yc2./maximum(Yc2)
+    grad_b = (1.3517 .- 0.014158.*(60.0.+Yc2*20.0))./100.0.*0.91
+    z_ELA  = 1500.0 .- Yc2*400.0
+    # display(heatmap(xc./1e3, reverse(yc)./1e3, reverse(grad_b, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, framestyle=:box, title="Surface"))
+    # error("stop")
     if do_visu
         H_v = fill(NaN, nx, ny)
         S_v = fill(NaN, nx, ny)
@@ -111,7 +117,8 @@ end
         qHx   .= .-av_ya(D).*diff(S[:,2:end-1], dims=1)/dx
         qHy   .= .-av_xa(D).*diff(S[2:end-1,:], dims=2)/dy
         # update ice thickness
-        dt    .= dtsc*min.(1.0, cfl./(epsi .+ av(D)))
+        # dt    .= dtsc*min.(1.0, cfl./(epsi .+ av(D)))
+        dt    .= dtsc*min.(10.0, cfl./(epsi .+ av(D)))
         ResH  .= .-(diff(qHx, dims=1)/dx .+ diff(qHy, dims=2)/dy) .+ inn(M)
         dHdt  .= dHdt.*damp .+ ResH
         H[2:end-1,2:end-1] .= max.(0.0, inn(H) .+ dt.*dHdt)
@@ -126,6 +133,9 @@ end
             @printf("it = %d, error = %1.2e \n", it, err)
             # stop criterion
             if (err<tolnl) break end
+            p1 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, framestyle=:box, title="Ice thickness")
+            p2 = heatmap(xc[2:end-1]./1e3, reverse(yc[2:end-1])./1e3, reverse(dt, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[2], xc[end-1])./1e3, ylims=(yc[end-1], yc[2])./1e3, framestyle=:box, title="Surface")
+            display(plot(p1, p2))
         end
     end
     # compute velocities
@@ -157,11 +167,15 @@ Mask, Surf, Hice, Zbed, xc, yc, dx, dy = get_data("BedMachineGreenland-2017-09-2
 # p4 = heatmap(xc,reverse(yc),reverse(Mask, dims=2)', c=:davos, title="Mask")
 # display(plot(p1, p2, p3, p4))
 
-
 H, S, M, Vx, Vy = iceflow(dx, dy, Zbed, Surf.-Zbed, Mask; do_visu=true)
 
 H_diff = Hice-H; H_diff[Mask.==0] .= NaN
+Hice[Mask.==0] .= NaN
+H[Mask.==0] .= NaN
 
-display(heatmap(xc./1e3, reverse(yc)./1e3, reverse(H_diff, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, framestyle=:box, title="Hdata-Hmodel"))
+p1 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(Hice, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, framestyle=:box, title="Hdata")
+p2 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, framestyle=:box, title="Hmodel")
+p3 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H_diff, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, framestyle=:box, title="Hdata-Hmodel")
+display(plot(p1, p2, p3, layout=(1, 3)))
 
 println("... done.")
