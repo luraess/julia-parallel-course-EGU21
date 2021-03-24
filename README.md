@@ -14,6 +14,10 @@ This short course covers trendy areas in modern geocomputing with broad geoscien
 
 ## Content
 * [Objectives](#objectives)
+* [Getting started](#getting-started)
+* [Short course - Part 1](#short-course-part-1)
+* [Step 1](#step-1)
+* [Short course - Part 2](#short-course-part-2)
 
 
 ## Objectives
@@ -30,6 +34,14 @@ By the end of this short course, you will:
 - Have a Julia code that achieves similar performance than legacy codes (C, CUDA, MPI);
 - Know how the Julia language solves the "two-language problem";
 - Be able to leverage the computing power of modern GPU accelerated servers and supercomputers.
+
+## Getting started
+
+## Short course - Part 1
+
+### Step 1
+
+## Short course - Part 2
 
 
 [Julia]: https://julialang.org
