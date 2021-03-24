@@ -45,11 +45,18 @@ The course repository lists following folders and items:
 - the [data](data) folder contains various low resolution Greenland input data (bedrock topography, surface elevation, ice thickness, masks, ...) downscaled from [BedMachine Greenland v3];
 - the [docs](docs) folder contains documentation linked in the [README](README.md);
 - the [output](output) folder contains the various code output, mainly figures in png format;
-- the [`Manifest.toml`](Manifest.toml) and [`Project.toml`](Project.toml) files are Julia project files tracking the used packages and enabling a reproducible environment;
 - the [scripts](scripts) folder contains the scripts this course is about 🎉
+- the [`Manifest.toml`](Manifest.toml) and [`Project.toml`](Project.toml) files are Julia project files tracking the used packages and enabling a reproducible environment.
 
 
 ## Getting started
+The here detailed directions will get you started with setting up your local [Julia] environment. Two configurations are presented: 
+- running Julia from the [terminal with an external text editor](#Terminal-+-external-editor)
+- running Julia from [VS code](#vs-code)
+
+### Terminal + external editor
+
+### VS code
 
 
 ## Short course - Part 1
