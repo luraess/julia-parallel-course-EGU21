@@ -51,7 +51,7 @@ The course repository lists following folders and items:
 
 ## Getting started
 The here detailed directions will get you started with setting up your local [Julia] environment. Two configurations are presented: 
-- running Julia from the [terminal with an external text editor](#Terminal-+-external-editor)
+- running Julia from the [terminal with an external text editor](#terminal--external-editor)
 - running Julia from [VS code](#vs-code)
 
 ### Terminal + external editor
