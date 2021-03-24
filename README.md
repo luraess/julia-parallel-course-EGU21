@@ -5,7 +5,7 @@
 👉 **Organisation notes:**
 - 💡 All material presented during the short course will be uploaded here and made available to participants 5 days prior to the event on this repository.
 - ⚠️ Live participation to this short course requires [registration to EGU's main meeting](https://egu21.eu/register.html).
-- Due to the time-limited course schedule (60min), an interactive overview will cover the course's [objectives](#objectives) replacing an extensive hands-on.
+- Due to the time-limited course schedule (60 min), an interactive overview will cover the course's [objectives](#objectives) replacing an extensive hands-on.
 - Further interests in solving PDEs with Julia on GPUs❓Sign-up (free) for a hands-on workshop at [JuliaCon2021](https://juliacon.org/2021/).
 
 ----
@@ -14,6 +14,7 @@ This short course covers trendy areas in modern geocomputing with broad geoscien
 
 ## Content
 * [Objectives](#objectives)
+* [Structure of the repo](#structure-of-the-repo)
 * [Getting started](#getting-started)
 * [Short course - Part 1](#short-course-part-1)
     * [Step 1](#step-1)
@@ -38,6 +39,16 @@ By the end of this short course, you will:
 - Know how the Julia language solves the "two-language problem";
 - Be able to leverage the computing power of modern GPU accelerated servers and supercomputers.
 
+
+## Structure of the repo
+The course repository lists following folders and items:
+- the [data](data) folder contains various low resolution Greenland input data (bedrock topography, surface elevation, ice thickness, masks, ...) downscaled from [BedMachine Greenland v3];
+- the [docs](docs) folder contains documentation linked in the [README](README.md);
+- the [output](output) folder contains the various code output, mainly figures in png format;
+- the [`Manifest.toml`](Manifest.toml) and [`Project.toml`](Project.toml) files are Julia project files tracking the used packages and enabling a reproducible environment;
+- the [scripts](scripts) folder contains the scripts this course is about 🎉
+
+
 ## Getting started
 
 
@@ -57,3 +68,5 @@ By the end of this short course, you will:
 
 [Julia]: https://julialang.org
 [Julia language]: https://docs.julialang.org/en/v1/
+
+[BedMachine Greenland v3]: https://sites.uci.edu/morlighem/dataproducts/bedmachine-greenland/
