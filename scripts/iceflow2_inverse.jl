@@ -11,7 +11,7 @@ using NCDatasets, Plots, Printf
     return
 end
 
-@views function get_data(url, downscale=30)
+@views function getdata(url, downscale=30)
     # Download BedMachine v3
     !ispath("../data") && mkdir("../data")
     !ispath("../output") && mkdir("../output")
@@ -202,7 +202,7 @@ end
 
 # ------------------------------------------------------------------------------
 
-Mask, Surf, Hice, Zbed, xc, yc, dx, dy = get_data("BedMachineGreenland-2017-09-20.nc", 100)
+Mask, Surf, Hice, Zbed, xc, yc, dx, dy = getdata("BedMachineGreenland-2017-09-20.nc", 100)
 # xc, yc = xc./1e3, yc./1e3
 # xv, yv = 0.5*(xc[1:end-1].+xc[2:end]), 0.5*(yc[1:end-1].+yc[2:end])
 # p1 = heatmap(xc,reverse(yc),reverse(Surf, dims=2)', c=:davos, title="Surf")
@@ -217,15 +217,14 @@ for is=1:ns
     smooth!(Zbed)
     smooth!(Hice)
 end
-Hice2 = deepcopy(Hice)
 
 H, S, M, Vx, Vy = iceflow(dx, dy, Zbed, Hice, Mask; do_visu=true)
 
-H_diff = Hice2-H; H_diff[Mask.==0] .= NaN
-Hice2[Mask.==0] .= NaN
+H_diff = Hice-H; H_diff[Mask.==0] .= NaN
+Hice[Mask.==0] .= NaN
 H[Mask.==0] .= NaN
 
-p1 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(Hice2, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, framestyle=:box, title="Hdata")
+p1 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(Hice, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, framestyle=:box, title="Hdata")
 p2 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, framestyle=:box, title="Hmodel")
 p3 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H_diff, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, framestyle=:box, title="Hdata-Hmodel")
 display(plot(p1, p2, p3, layout=(1, 3)))

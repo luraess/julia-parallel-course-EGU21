@@ -5,7 +5,13 @@ using NCDatasets, Plots, Printf
 @views av_ya(A) = 0.5.*(A[:,1:end-1].+A[:,2:end])
 @views inn(A)   = A[2:end-1,2:end-1]
 
-@views function get_data(url, downscale=30)
+@views function smooth!(A)
+    A[2:end-1,2:end-1] .= A[2:end-1,2:end-1] .+ 1.0./4.1.*(diff(diff(A[:,2:end-1], dims=1), dims=1) .+ diff(diff(A[2:end-1,:], dims=2), dims=2))
+    A[1,:]=A[2,:]; A[end,:]=A[end-1,:]; A[:,1]=A[:,2]; A[:,end]=A[:,end-1]
+    return
+end
+
+@views function getdata(url, downscale=30)
     # Download BedMachine v3
     !ispath("../data") && mkdir("../data")
     !ispath("../output") && mkdir("../output")
@@ -42,52 +48,52 @@ end
 @views function iceflow(dx, dy, Zbed, Hice, Mask=zero(Zbed); do_visu=false)
     print("Starting ice flow model ... ")
     # physics
-    s2y    = 3600*24*365.25  # seconds to years
-    rho_i  = 910.0           # ice density
-    g      = 9.81            # gravity acceleration
-    npow   = 3.0             # Glen's power law exponent 
-    a0     = 1.5e-24         # Glen's law enhancement term
-    b_max  = 0.13
-    # b = min.(((1.3517 - 0.014158*82)/100*0.91).*(Z.-800),b_max); # doi: 10.1017/jog.2016.75
+    s2y      = 3600*24*365.25  # seconds to years
+    rho_i    = 910.0           # ice density
+    g        = 9.81            # gravity acceleration
+    npow     = 3.0             # Glen's power law exponent 
+    a0       = 1.5e-24         # Glen's law enhancement term
+    b_max    = 0.15
     # numerics
-    nx, ny = size(Zbed,1), size(Zbed,2)
+    nx, ny   = size(Zbed,1), size(Zbed,2)
     @assert (nx, ny) == size(Zbed) == size(Hice) == size(Mask) "Sizes don't match"
-    nt     = 1e5
-    nout   = 200
-    tolnl  = 1e-6
-    epsi   = 1e-4
-    damp   = 0.85
-    ns     = 2
+    nt       = 1e5
+    nout     = 200
+    tolnl    = 1e-6
+    epsi     = 1e-4
+    damp     = 0.85
+    ns       = 2
     # derived physics
-    a      = 2.0*a0/(npow+2)*(rho_i*g)^npow*s2y
-    lx, ly = nx*dx, ny*dy
+    a        = 2.0*a0/(npow+2)*(rho_i*g)^npow*s2y
+    lx, ly   = nx*dx, ny*dy
     # derived numerics
-    xc, yc = LinRange(dx/2, lx-dx/2, nx), LinRange(dy/2, ly-dy/2, ny)
-    xv, yv = 0.5*(xc[1:end-1].+xc[2:end]), 0.5*(yc[1:end-1].+yc[2:end])
-    (Xc,Yc)= ([x for x=xc,y=yc], [y for x=xc,y=yc])
-    cfl    = max(dx^2,dy^2)/4.1
-    dtsc   = 1.0/3.0
+    xc, yc   = LinRange(dx/2, lx-dx/2, nx), LinRange(dy/2, ly-dy/2, ny)
+    xv, yv   = 0.5*(xc[1:end-1].+xc[2:end]), 0.5*(yc[1:end-1].+yc[2:end])
+    (Xc,Yc)  = ([x for x=xc,y=yc], [y for x=xc,y=yc])
+    cfl      = max(dx^2,dy^2)/4.1
+    dtsc     = 1.0/3.0
     # array initialisation
-    Err    = zeros(nx  , ny  )
-    dSdx   = zeros(nx-1, ny  )
-    dSdy   = zeros(nx  , ny-1)
-    gradS  = zeros(nx-1, ny-1)
-    D      = zeros(nx-1, ny-1)
-    qHx    = zeros(nx-1, ny-2)
-    qHy    = zeros(nx-2, ny-1)
-    dt     = zeros(nx-2, ny-2)
-    ResH   = zeros(nx-2, ny-2)
-    dHdt   = zeros(nx-2, ny-2)
-    Vx     = zeros(nx-1, ny-1)
-    Vy     = zeros(nx-1, ny-1)
-    M      = zeros(nx  , ny  )
+    Err      = zeros(nx  , ny  )
+    dSdx     = zeros(nx-1, ny  )
+    dSdy     = zeros(nx  , ny-1)
+    gradS    = zeros(nx-1, ny-1)
+    D        = zeros(nx-1, ny-1)
+    qHx      = zeros(nx-1, ny-2)
+    qHy      = zeros(nx-2, ny-1)
+    dt       = zeros(nx-2, ny-2)
+    ResH     = zeros(nx-2, ny-2)
+    dHdt     = zeros(nx-2, ny-2)
+    Vx       = zeros(nx-1, ny-1)
+    Vy       = zeros(nx-1, ny-1)
+    M        = zeros(nx  , ny  )
     # initial condition
-    S      = zeros(nx  , ny  )
-    B      = Zbed #zeros(nx  , ny  )
-    H      = Hice # ones(nx  , ny  )
-    Yc2    = Yc .- minimum(Yc); Yc2 .= Yc2./maximum(Yc2)
-    grad_b = (1.3517 .- 0.014158.*(60.0.+Yc2*20.0))./100.0.*0.91
-    z_ELA  = 1500.0 .- Yc2*400.0
+    S        = zeros(nx  , ny  )
+    B        = deepcopy(Zbed)
+    H        = deepcopy(Hice)
+    Yc2      = Yc .- minimum(Yc); Yc2 .= Yc2./maximum(Yc2)
+    grad_b   = (1.3517 .- 0.014158.*(60.0.+Yc2*20.0))./100.0.*0.91 # doi: 10.1017/jog.2016.75
+    z_ELA    = 1300.0 .- Yc2*300.0
+    S       .= B .+ H
     # display(heatmap(xc./1e3, reverse(yc)./1e3, reverse(grad_b, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, framestyle=:box, title="Surface"))
     # error("stop")
     if do_visu
@@ -96,18 +102,12 @@ end
         M_v = fill(NaN, nx, ny)
         V_v = fill(NaN, nx-2, ny-2)
     end
-    # smoothing (Mahaffy, 1976)
-    for is=1:ns
-        B[2:end-1,2:end-1] .= B[2:end-1,2:end-1] .+ 1.0./4.1.*(diff(diff(B[:,2:end-1], dims=1), dims=1) .+ diff(diff(B[2:end-1,:], dims=2), dims=2))
-        H[2:end-1,2:end-1] .= H[2:end-1,2:end-1] .+ 1.0./4.1.*(diff(diff(H[:,2:end-1], dims=1), dims=1) .+ diff(diff(H[2:end-1,:], dims=2), dims=2))
-    end
-    S     .= B .+ H
     println("time loop:")
     # time loop
     for it = 1:nt
         Err   .= H
         # mass balance
-        M     .= min.(grad_b.*(S.-z_ELA), b_max)
+        M     .= min.(grad_b.*(S .- z_ELA), b_max)
         # compute diffusivity
         dSdx  .= diff(S, dims=1)/dx
         dSdy  .= diff(S, dims=2)/dy
@@ -158,7 +158,7 @@ end
 
 # ------------------------------------------------------------------------------
 
-Mask, Surf, Hice, Zbed, xc, yc, dx, dy = get_data("BedMachineGreenland-2017-09-20.nc", 60)
+Mask, Surf, Hice, Zbed, xc, yc, dx, dy = getdata("BedMachineGreenland-2017-09-20.nc", 60)
 # xc, yc = xc./1e3, yc./1e3
 # xv, yv = 0.5*(xc[1:end-1].+xc[2:end]), 0.5*(yc[1:end-1].+yc[2:end])
 # p1 = heatmap(xc,reverse(yc),reverse(Surf, dims=2)', c=:davos, title="Surf")
@@ -167,15 +167,22 @@ Mask, Surf, Hice, Zbed, xc, yc, dx, dy = get_data("BedMachineGreenland-2017-09-2
 # p4 = heatmap(xc,reverse(yc),reverse(Mask, dims=2)', c=:davos, title="Mask")
 # display(plot(p1, p2, p3, p4))
 
-H, S, M, Vx, Vy = iceflow(dx, dy, Zbed, Surf.-Zbed, Mask; do_visu=true)
+# smoothing the data (Mahaffy, 1976)
+ns = 2
+for is=1:ns
+    smooth!(Zbed)
+    smooth!(Hice)
+end
+
+H, S, M, Vx, Vy = iceflow(dx, dy, Zbed, Hice, Mask; do_visu=true)
 
 H_diff = Hice-H; H_diff[Mask.==0] .= NaN
 Hice[Mask.==0] .= NaN
 H[Mask.==0] .= NaN
 
-p1 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(Hice, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, framestyle=:box, title="Hdata")
-p2 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, framestyle=:box, title="Hmodel")
-p3 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H_diff, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, framestyle=:box, title="Hdata-Hmodel")
-display(plot(p1, p2, p3, layout=(1, 3)))
+# p1 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(Hice, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, framestyle=:box, title="Hdata")
+# p2 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, framestyle=:box, title="Hmodel")
+# p3 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H_diff, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, framestyle=:box, title="Hdata-Hmodel")
+# display(plot(p1, p2, p3, layout=(1, 3)))
 
 println("... done.")
