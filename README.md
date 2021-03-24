@@ -39,6 +39,7 @@ By the end of this short course, you will:
 - Know how the Julia language solves the "two-language problem";
 - Be able to leverage the computing power of modern GPU accelerated servers and supercomputers.
 
+[_back to content_](#content)
 
 ## Structure of the repo
 The course repository lists following folders and items:
@@ -48,6 +49,7 @@ The course repository lists following folders and items:
 - the [scripts](scripts) folder contains the scripts this course is about 🎉
 - the [`Manifest.toml`](Manifest.toml) and [`Project.toml`](Project.toml) files are Julia project files tracking the used packages and enabling a reproducible environment.
 
+[_back to content_](#content)
 
 ## Getting started
 The here detailed directions will get you started with setting up your local [Julia] environment. Two configurations are presented: 
@@ -59,12 +61,16 @@ The here detailed directions will get you started with setting up your local [Ju
 ### VS code
 
 
+[_back to content_](#content)
+
 ## Short course - Part 1
 
 ### Step 1
 
 ### Step 2
 
+
+[_back to content_](#content)
 
 ## Short course - Part 2
 
