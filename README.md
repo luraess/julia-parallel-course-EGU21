@@ -16,8 +16,11 @@ This short course covers trendy areas in modern geocomputing with broad geoscien
 * [Objectives](#objectives)
 * [Getting started](#getting-started)
 * [Short course - Part 1](#short-course-part-1)
-* [Step 1](#step-1)
+    * [Step 1](#step-1)
+    * [Step 2](#step-2)
 * [Short course - Part 2](#short-course-part-2)
+    * [Step 1](#step-1)
+    * [Step 2](#step-2)
 
 
 ## Objectives
@@ -37,11 +40,19 @@ By the end of this short course, you will:
 
 ## Getting started
 
+
 ## Short course - Part 1
 
 ### Step 1
 
+### Step 2
+
+
 ## Short course - Part 2
+
+### Step 1
+
+### Step 2
 
 
 [Julia]: https://julialang.org
