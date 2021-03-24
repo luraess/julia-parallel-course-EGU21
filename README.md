@@ -22,6 +22,8 @@ This short course covers trendy areas in modern geocomputing with broad geoscien
 * [Short course - Part 2](#short-course-part-2)
     * [Step 1](#step-1)
     * [Step 2](#step-2)
+* [Extras](#extras)
+* [References](#references)
 
 
 ## Objectives
@@ -78,6 +80,15 @@ The here detailed directions will get you started with setting up your local [Ju
 
 ### Step 2
 
+
+[_back to content_](#content)
+
+## Extras
+
+
+[_back to content_](#content)
+
+## References
 
 [_back to content_](#content)
 
