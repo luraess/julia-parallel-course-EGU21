@@ -43,7 +43,7 @@ By the end of this short course, you will:
 
 ## Structure of the repo
 The course repository lists following folders and items:
-- the [data](data) folder contains various low resolution Greenland input data (bedrock topography, surface elevation, ice thickness, masks, ...) downscaled from [BedMachine Greenland v3];
+- the [data](data) folder contains various low resolution Greenland input data (bedrock topography, surface elevation, ice thickness, masks, ...) downscaled from [BedMachine Greenland v3] - note the filenames include grid resolution information `(nx, ny)`;
 - the [docs](docs) folder contains documentation linked in the [README](README.md);
 - the [output](output) folder contains the various code output, mainly figures in png format;
 - the [scripts](scripts) folder contains the scripts this course is about 🎉
