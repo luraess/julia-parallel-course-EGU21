@@ -143,25 +143,36 @@ You should then see two figures saved in a newly created output folder, the seco
 This section lists the material discussed within this 60 min. short course:
 * [Part 1 - Julia, parallel computing, iterative solvers](#part-1---julia-parallel-computing-iterative-solvers)
     * [Why Julia](#why-julia)
-    * [Parallel GPU computing](#parallel-gpu-computing)
     * [Diffusion process](#diffusion-process)
     * [Iterative solvers](#iterative-solvers)
+    * [Parallel GPU computing](#parallel-gpu-computing)
 * [Part 2 - solving PDEs to predict ice flow](#part-2---solving-pdes-to-predict-ice-flow)
     * [SIA equation](#sia-equation)
     * [Step 4](#step-4)
+
+In this course we will implement a 2D nonlinear diffusion equation in Julia using the finite-difference method and an itertive solving apporach to resolve a the shallow ice approximation (SIA) and predict ice flow over Greenland.
 
 ### Part 1 - Julia, parallel computing, iterative solvers
 
 #### Why Julia
 _by M. Werder_
-
-#### Parallel GPU computing
-
+- the cool Julia ecosystem
+- git integration
+- modern code dev and CI
+- ...
 
 #### Diffusion process
+Let's implement a simple 1D linear diffusion example to understand what's all about and use it as example to compare the serial CPU vs the parallel GPU implementation. The diffusion of a quantity `H` over time `t` can be described as (1) a diffusive flux and (2) an update rule:
+```md
+qH    = -D*∂H/∂x  (1)
+dH/dt = -∂qH/∂x   (2)
+```
 
 
 #### Iterative solvers
+
+
+#### Parallel GPU computing
 
 
 ⤴️ [_back to course material_](#short-course-material)
