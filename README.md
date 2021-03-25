@@ -50,10 +50,10 @@ The course repository lists following folders and items:
 ⤴️ [_back to content_](#content)
 
 ## Getting started
-> ⚠️ Due to the time limitation, the short course will not walk through the [Getting started](#getting-started) steps. These are meant to provide directions to the participant willing to actively participate and try out the examples during the short course. It is warmly recommended to perform the [Getting started](#getting-started) steps before the beginning of the workshop.
+> ⚠️ Due to the time limitation, the short course will not cover the [Getting started](#getting-started) steps. These are meant to provide directions to the participant willing to actively try out the examples during the short course. It is warmly recommended to perform the [Getting started](#getting-started) steps before the beginning of the workshop.
 
 The provided directions will get you started with:
-1. [Installing Julia](#installing-julia); Two configurations are presented:
+1. [Installing Julia](#installing-julia) - 2 configurations are suggested:
 - running Julia from the [terminal with an external text editor](#terminal--external-editor)
 - running Julia from [VS Code](#vs-code)
 
@@ -94,8 +94,10 @@ To get started with the course,
 ```sh
 git clone https://github.com/luraess/julia-parallel-course-EGU21.git
 ```
-2. Navigate to `julia-parallel-course-EGU21` (`cd julia-parallel-course-EGU21`)
-
+2. Navigate to `julia-parallel-course-EGU21`
+```sh
+cd julia-parallel-course-EGU21
+```
 3. From the terminal, launch Julia with the `--project` flag to read-in project environment related informations such as used packages
 ```sh
 julia --project
@@ -121,7 +123,7 @@ Status `~/julia-parallel-course-EGU21/Project.toml`
 
 julia>
 ```
-To test your install, go to the [scripts](scripts) folder and run the [`iceflow.jl`](scripts/iceflow.jl) code. Note that you can execute shell commands from within the repl first typing `;`. From within the
+To test your install, go to the [scripts](scripts) folder and run the [`iceflow.jl`](scripts/iceflow.jl) code. Note that you can execute shell commands from within the [Julia REPL] first typing `;`:
 ```julia-repl
 julia> ;
 
