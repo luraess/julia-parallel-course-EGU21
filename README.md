@@ -143,7 +143,7 @@ You should then see two figures saved in a newly created output folder, the seco
 This section lists the material discussed within this 60 min. short course:
 * [Part 1 - Julia, parallel computing, iterative solvers](#part-1---julia-parallel-computing-iterative-solvers)
     * [Why Julia](#why-julia)
-    * [Diffusion process](#diffusion-process)
+    * [Diffusion processes](#diffusion-processes)
     * [Iterative solvers](#iterative-solvers)
     * [Parallel GPU computing](#parallel-gpu-computing)
     * [Performance metric](#performance-metric)
@@ -162,7 +162,7 @@ _by M. Werder_
 - modern code dev and CI
 - ...
 
-#### Diffusion process
+#### Diffusion processes
 Let's implement a simple 1D linear diffusion example to understand what's all about and use it as example to compare the serial CPU vs the parallel GPU implementation. The diffusion of a quantity `H` over time `t` can be described as (1a) a diffusive flux, (1b) a balance of flux and (1c) an update rule:
 ```md
 qH    = -D*dH/dx  (1a)
@@ -185,7 +185,7 @@ It seems to work, but the iteration count seems to be pretty high (`niter>1000`)
 
 ![](docs/diffusion_damp.png)
 
-#### Parallel GPU computing
+#### Parallel GPU computing 🎉
 
 
 #### Performance metric

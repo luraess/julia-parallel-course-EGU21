@@ -2,14 +2,14 @@ using Plots, Printf
 
 @views function diffusion_1D()
     # Physics
-    lx   = 10.0
-    D    = 1.0
-    ttot = 0.6
+    lx   = 10.0        # domain size
+    D    = 1.0         # diffusion coefficient
+    ttot = 0.6         # total simulation time
     # Numerics
-    nx   = 128
+    nx   = 128         # numerical grid resolution
     # Derived numerics
-    dx   = lx/nx
-    dt   = dx^2/D/2.1
+    dx   = lx/nx       # gird size
+    dt   = dx^2/D/2.1  # time step
     xc   = LinRange(dx/2, lx-dx/2, nx)
     # Array allocation
     qH   = zeros(nx-1)
