@@ -146,11 +146,12 @@ This section lists the material discussed within this 60 min. short course:
     * [Diffusion process](#diffusion-process)
     * [Iterative solvers](#iterative-solvers)
     * [Parallel GPU computing](#parallel-gpu-computing)
+    * [Performance metric](#performance-metric)
 * [Part 2 - solving PDEs to predict ice flow](#part-2---solving-pdes-to-predict-ice-flow)
     * [SIA equation](#sia-equation)
     * [Step 4](#step-4)
 
-In this course we will implement a 2D nonlinear diffusion equation in Julia using the finite-difference method and an itertive solving apporach to resolve a the shallow ice approximation (SIA) and predict ice flow over Greenland.
+In this course we will implement a 2D nonlinear diffusion equation in Julia using the finite-difference method and an iterative solving approach to resolve a the shallow ice approximation (SIA) and predict ice flow over Greenland.
 
 ### Part 1 - Julia, parallel computing, iterative solvers
 
@@ -162,17 +163,29 @@ _by M. Werder_
 - ...
 
 #### Diffusion process
-Let's implement a simple 1D linear diffusion example to understand what's all about and use it as example to compare the serial CPU vs the parallel GPU implementation. The diffusion of a quantity `H` over time `t` can be described as (1) a diffusive flux and (2) an update rule:
+Let's implement a simple 1D linear diffusion example to understand what's all about and use it as example to compare the serial CPU vs the parallel GPU implementation. The diffusion of a quantity `H` over time `t` can be described as (1a) a diffusive flux, (1b) a balance of flux and (1c) an update rule:
 ```md
-qH    = -D*∂H/∂x  (1)
-dH/dt = -∂qH/∂x   (2)
+qH    = -D*dH/dx  (1a)
+dHdt  =  -dqH/dx  (1b)
+dH/dt = dHdt      (1c)
 ```
+The [`diffusion_1D_expl.jl`](script/diffusion_1D_expl.jl) code implements an iterative and explicit solution to eq. (1). 
 
+![](docs/diffusion_expl.png)
+
+How to go with an implicit solution AND keeping it iterative ?
 
 #### Iterative solvers
 
+The [`diffusion_1D_impl.jl`](script/diffusion_1D_impl.jl) code implements an iterative implicit solution to eq. (1). How ? We add the physical time derivative to the rate of change `dHdt` and iterate until the values of `dHdt` drop below a defined tolerance level.
+
+It seems to work, but the iteration count seems to be pretty high (`niter>1000`). There is a simple way to circumvent this by adding "damping" to the rate-of-change, analogous to adding friction to the rate of change to enable faster convergence. The [`diffusion_1D_damp.jl`](script/diffusion_1D_damp.jl) code implements a damped iterative implicit solution to eq. (1). The iteration count dropped to `niter<100`.
+
 
 #### Parallel GPU computing
+
+
+#### Performance metric
 
 
 ⤴️ [_back to course material_](#short-course-material)
