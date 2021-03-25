@@ -119,8 +119,8 @@ end
 # ------------------------------------------------------------------------------
 # load the data
 print("Loading the data ... ")
-# data = load("../data/BedMachineGreenland_96_184.jld") # ultra low res data
-data = load("../data/BedMachineGreenland_160_304.jld") # low res data
+data = load("../data/BedMachineGreenland_96_184.jld") # ultra low res data
+# data = load("../data/BedMachineGreenland_160_304.jld") # low res data
 Hice, Mask, Zbed = data["Hice"], data["Mask"], data["Zbed"]
 xc, yc, dx, dy   = data["xc"], data["yc"], data["dx"], data["dy"]
 println("done.")

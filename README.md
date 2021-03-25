@@ -106,7 +106,7 @@ julia --project
 
 --
 Now that you launched Julia, you should be in the [Julia REPL]. We now need to ensure all the packages we need to be installed before using them. To do so, enter the [Pkg mode](https://docs.julialang.org/en/v1/stdlib/REPL/#Pkg-mode) by typing `]`. Then, instantiate the project which should trigger the download of the packages. Exit the Pkg mode with CRTL+C:
-```sh
+```julia-repl
 julia> 
 
 (julia-parallel-course-EGU21) pkg> st
@@ -123,7 +123,17 @@ Status `~/Desktop/test/julia-parallel-course-EGU21/Project.toml`
 
 julia> 
 ```
-To test your install, go to the [scripts](scripts) folder and run the [`iceflow.jl`](scripts/iceflow.jl) code. You should 
+To test your install, go to the [scripts](scripts) folder and run the [`iceflow.jl`](scripts/iceflow.jl) code. Note that you can execute shell commands from within the repl first typing `;`. From within the 
+```julia-repl
+julia> ;
+
+shell> cd scripts/
+
+julia> include("iceflow.jl")
+```
+You should then see two figures saved in a newly created output folder, the second being the comparison between modelled and observed ice thickness distribution over Greenland:
+
+![Greenland ice cap](docs/iceflow_out2.png)
 
 ⤴️ [_back to content_](#content)
 
