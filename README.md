@@ -198,7 +198,8 @@ qH         .= -D*diff(H)/dx
 dHdt       .= -(H[2:end-1].-Hold[2:end-1])/dt .-diff(qH)/dx .+ damp*dHdt
 H[2:end-1] .= H[2:end-1] .+ dtau*dHdt
 ```
-2. Split the calculations into separate functions (or kernels)
+
+2. Split the calculations into separate functions (or kernels). The [`diffusion_1D_damp_fun.jl`](scripts/diffusion_1D_damp_fun.jl) implements those modifications.
 ```julia
 function compute_flux!(qH, H, D, dx, nx)
     Threads.@threads for ix=1:nx
@@ -221,7 +222,8 @@ function compute_update!(H, dHdt, dtau, nx)
     return
 end
 ```
-3. Replace the (multi-threaded) loop by a vectorised index 
+
+3. Replace the (multi-threaded) loop by a vectorised index. The [`diffusion_1D_damp_gpu.jl`](scripts/diffusion_1D_damp_gpu.jl) implements those modifications to run on GPUs.
 ```julia
 function compute_flux!(qH, H, D, dx, nx)
     ix = (blockIdx().x-1) * blockDim().x + threadIdx().x
