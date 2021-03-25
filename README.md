@@ -63,7 +63,7 @@ The provided directions will get you started with:
 
 2. [Running the scripts](#running-the-scripts) from the course repository.
 
-👉 _Note: This course relies on Julia v1.5.X. The install configuration are tested on a MacBook Pro running macOS 10.15.7 and a Linux GPU server running Ubuntu 20.04 LTS._
+> 👉 _Note: This course relies on Julia v1.5.X. The install configuration are tested on a MacBook Pro running macOS 10.15.7 and a Linux GPU server running Ubuntu 20.04 LTS._
 
 ### Installing Julia
 Check you have an active internet connexion, head to https://julialang.org/downloads/ and download Julia v1.5.4 for your platform following the install directions provided under [help] if needed.
