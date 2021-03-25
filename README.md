@@ -14,7 +14,7 @@ This short course covers trendy areas in modern geocomputing with broad geoscien
 
 ## Content
 * [Objectives](#objectives)
-* [Structure of the repo](#structure-of-the-repo)
+* [Structure of the repository](#structure-of-the-repository)
 * [Getting started](#getting-started)
 * [Short course - Part 1](#short-course-part-1)
     * [Step 1](#step-1)
@@ -43,7 +43,7 @@ By the end of this short course, you will:
 
 ⤴️ [_back to content_](#content)
 
-## Structure of the repo
+## Structure of the repository
 The course repository lists following folders and items:
 - the [data](data) folder contains various low resolution Greenland input data (bedrock topography, surface elevation, ice thickness, masks, ...) downscaled from [BedMachine Greenland v3] - note the filenames include grid resolution information `(nx, ny)`;
 - the [docs](docs) folder contains documentation linked in the [README](README.md);
@@ -110,7 +110,7 @@ Now that you launched Julia, you should be in the [Julia REPL]. We now need to e
 julia> 
 
 (julia-parallel-course-EGU21) pkg> st
-Status `~/Desktop/test/julia-parallel-course-EGU21/Project.toml`
+Status `~/julia-parallel-course-EGU21/Project.toml`
   [4138dd39] JLD
   [85f8d34a] NCDatasets
   [91a5bcdd] Plots
