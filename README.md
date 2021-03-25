@@ -142,23 +142,35 @@ You should then see two figures saved in a newly created output folder, the seco
 ## Short course material
 This section lists the material discussed within this 60 min. short course:
 * [Part 1 - Julia, parallel computing, iterative solvers](#part-1---julia-parallel-computing-iterative-solvers)
-    * [Step 1](#step-1)
-    * [Step 2](#step-2)
+    * [Why Julia](#why-julia)
+    * [Parallel GPU computing](#parallel-gpu-computing)
+    * [Diffusion process](#diffusion-process)
+    * [Iterative solvers](#iterative-solvers)
 * [Part 2 - solving PDEs to predict ice flow](#part-2---solving-pdes-to-predict-ice-flow)
-    * [Step 3](#step-3)
+    * [SIA equation](#sia-equation)
     * [Step 4](#step-4)
 
 ### Part 1 - Julia, parallel computing, iterative solvers
 
-#### Step 1
+#### Why Julia
+_by M. Werder_
 
-#### Step 2
+#### Parallel GPU computing
+
+
+#### Diffusion process
+
+
+#### Iterative solvers
+
 
 ⤴️ [_back to course material_](#short-course-material)
 
 ### Part 2 - solving PDEs to predict ice flow
 
-#### Step 3
+#### SIA equation
+
+
 
 #### Step 4
 
