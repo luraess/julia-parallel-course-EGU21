@@ -54,14 +54,74 @@ The course repository lists following folders and items:
 ⤴️ [_back to content_](#content)
 
 ## Getting started
-The here detailed directions will get you started with setting up your local [Julia] environment. Two configurations are presented: 
+The provided directions will get you started with:
+1. [Installing Julia](#installing-julia); Two configurations are presented: 
 - running Julia from the [terminal with an external text editor](#terminal--external-editor)
-- running Julia from [VS code](#vs-code)
+- running Julia from [VS Code](#vs-code)
 
-### Terminal + external editor
+2. [Running the scripts](#running-the-scripts) from the course repository.
 
-### VS code
+👉 _Note: This course relies on Julia v1.5.4. The install configuration are tested on a MacBook Pro running macOS 10.15.7 and a Linux GPU server running Ubuntu 20.04 LTS._
 
+### Installing Julia
+Check you have an active internet connexion, head to https://julialang.org/downloads/ and download Julia v1.5.4 for your platform following the install directions provided under [help] if needed.
+
+Alternatively, open a terminal and download the binaries (select the one for your platform):
+```sh
+wget https://julialang-s3.julialang.org/bin/winnt/x64/1.5/julia-1.5.4-win64.exe # Windows
+wget https://julialang-s3.julialang.org/bin/mac/x64/1.5/julia-1.5.4-mac64.dmg # macOS
+wget https://julialang-s3.julialang.org/bin/linux/x64/1.5/julia-1.5.4-linux-x86_64.tar.gz # Linux x86
+tar -xzf julia-1.5.4-<win64, mac64, linux-x86_64>.tar.gz # selecting your platform
+```
+Then add following lines in your `.bashrc`, `.profile`, or `config` file:
+```sh
+vim ~/.bashrc
+PATH=<path-to>/julia-1.5.4/bin/:$PATH
+export JULIA_CUDA_USE_BINARYBUILDER=false
+```
+
+#### Terminal + external editor
+Ensure you have a text editor with syntax highlighting support for Julia. From within the terminal, type
+```sh
+julia
+```
+and you should be all set.
+
+#### VS Code
+If you'd enjoy a more IDE type of environment, [check out VS Code](https://code.visualstudio.com). Follow the [installation directions](https://github.com/julia-vscode/julia-vscode#getting-started) for the [Julia VS Code extension](https://www.julia-vscode.org).
+
+### Running the scripts
+To get started with the course,
+1. clone (or download the ZIP archive) the course repository ([help here](https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository))
+```sh
+git clone https://github.com/luraess/julia-parallel-course-EGU21.git
+```
+2. Navigate to `julia-parallel-course-EGU21` (`cd julia-parallel-course-EGU21`)
+
+3. From the terminal, launch Julia with the `--project` flag to read-in project environment related informations such as used packages
+```sh
+julia --project
+```
+3. From VS Code, follow the [instructions from the documentation](https://www.julia-vscode.org/docs/stable/gettingstarted/) to get started.
+
+Now that you launched Julia, you should be in the [Julia REPL]. We now need to ensure all the packages we need to be installed before using them. To do so, enter the [Pkg mode](https://docs.julialang.org/en/v1/stdlib/REPL/#Pkg-mode) by typing `]`. Then, instantiate the project which should trigger the download of the packages. Exit the Pkg mode with CRTL+C:
+```sh
+julia> 
+
+(julia-parallel-course-EGU21) pkg> st
+Status `~/Desktop/test/julia-parallel-course-EGU21/Project.toml`
+  [4138dd39] JLD
+  [85f8d34a] NCDatasets
+  [91a5bcdd] Plots
+  [de0858da] Printf
+
+(julia-parallel-course-EGU21) pkg> instantiate
+   Updating registry at `~/.julia/registries/General`
+   Updating git-repo `https://github.com/JuliaRegistries/General.git`
+   # [...]
+
+julia> 
+```
 
 ⤴️ [_back to content_](#content)
 
@@ -95,5 +155,6 @@ The here detailed directions will get you started with setting up your local [Ju
 
 [Julia]: https://julialang.org
 [Julia language]: https://docs.julialang.org/en/v1/
+[Julia REPL]: https://docs.julialang.org/en/v1/stdlib/REPL/
 
 [BedMachine Greenland v3]: https://sites.uci.edu/morlighem/dataproducts/bedmachine-greenland/
