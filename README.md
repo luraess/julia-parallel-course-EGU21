@@ -190,9 +190,9 @@ It seems to work, but the iteration count seems to be pretty high (`niter>1000`)
 ![](docs/diffusion_damp.png)
 
 #### Parallel GPU computing
-So now we have a cool iterative and implicit solver in about 30 lines of code 🎉. Good enough for low resolution and 1D calculations. What if we need more - 2D, 3D and 6K resolution to capture highly local physics ? Parallel and GPU computing makes it possible. Let's take the [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) code and port it to GPU (with some intermediate steps). We
+So now we have a cool iterative and implicit solver in about 30 lines of code 🎉. Good enough for low resolution and 1D calculations. What if we need more - 2D, 3D and 6K resolution to capture highly local physics ? Parallel and GPU computing makes it possible. Let's take the [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) code and port it to GPU (with some intermediate steps).
 
-1. Extract the physics calculations
+1. Extract the physics calculations from [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl)
 ```julia
 qH         .= -D*diff(H)/dx
 dHdt       .= -(H[2:end-1].-Hold[2:end-1])/dt .-diff(qH)/dx .+ damp*dHdt
