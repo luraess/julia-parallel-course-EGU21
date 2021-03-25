@@ -59,12 +59,6 @@ end
     grad_b   = (1.3517 .- 0.014158.*(60.0.+Yc2*20.0))./100.0.*0.91 # Mass Bal. gradient, from doi: 10.1017/jog.2016.75
     z_ELA    = 1300.0 .- Yc2*300.0                                 # Educated guess for ELA altitude
     S       .= B .+ H
-    if do_visu
-        H_v = fill(NaN, nx, ny)
-        S_v = fill(NaN, nx, ny)
-        M_v = fill(NaN, nx, ny)
-        V_v = fill(NaN, nx-2, ny-2)
-    end
     println(" starting time loop:")
     # time loop
     for it = 1:nt
@@ -99,21 +93,6 @@ end
     # compute velocities
     Vx .= -D./(av(H) .+ epsi).*av_ya(dSdx)
     Vy .= -D./(av(H) .+ epsi).*av_xa(dSdy)
-    # visualisation
-    if do_visu
-        FS  = 7
-        H_v.=H; H_v[Mask.==0].=NaN
-        S_v.=S; S_v[Mask.==0].=NaN
-        M_v.=M; M_v[Mask.==0].=NaN
-        V_v.=sqrt.(av(Vx).^2 .+ av(Vy).^2); V_v[inn(H).==0].=NaN
-        p1 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(S_v, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, ticks=nothing, framestyle=:box, title="Surface elev. [m]", titlefontsize=FS, titlefont="Courier")
-        p2 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H_v, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, ticks=nothing, framestyle=:box, title="Ice thickness [m]", titlefontsize=FS, titlefont="Courier")
-        p3 = heatmap(xc[2:end-1]./1e3, reverse(yc[2:end-1])./1e3, reverse(log10.(V_v), dims=2)', c=:batlow, aspect_ratio=1, xlims=(xc[2], xc[end-1])./1e3, ylims=(yc[end-1], yc[2])./1e3, clims=(0.1, 2.0), ticks=nothing, framestyle=:box, title="log10(vel) [m/yr]", titlefontsize=FS, titlefont="Courier")
-        p4 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(M_v, dims=2)', c=:devon, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, ticks=nothing, framestyle=:box, title="Mass Bal. rate [m/yr]", titlefontsize=FS, titlefont="Courier")
-        # display(plot(p1, p2, p3, p4, size=(400,400)))
-        plot(p1, p2, p3, p4, size=(400,400), dpi=200) #background_color=:transparent, foreground_color=:white
-        savefig("../output/iceflow_out1.png")
-    end
     return H, S, M, Vx, Vy
 end
 # ------------------------------------------------------------------------------
@@ -124,10 +103,6 @@ data = load("../data/BedMachineGreenland_96_184.jld") # ultra low res data
 Hice, Mask, Zbed = data["Hice"], data["Mask"], data["Zbed"]
 xc, yc, dx, dy   = data["xc"], data["yc"], data["dx"], data["dy"]
 println("done.")
-
-# handle visualisation
-do_visu = true
-!ispath("../output") && mkdir("../output")
 
 # apply some smoothing
 print("Applying some smoothing ... ")
@@ -141,7 +116,32 @@ println("done.")
 # run the SIA flow model
 H, S, M, Vx, Vy = iceflow(dx, dy, Zbed, Hice, Mask; do_visu)
 
+# handle visualisation
+do_visu = true
 if do_visu
+    !ispath("../output") && mkdir("../output")
+
+    nx, ny   = size(H)
+    H_v = fill(NaN, nx, ny)
+    S_v = fill(NaN, nx, ny)
+    M_v = fill(NaN, nx, ny)
+    V_v = fill(NaN, nx-2, ny-2)
+
+    # outputs
+    FS  = 7
+    H_v.=H; H_v[Mask.==0].=NaN
+    S_v.=S; S_v[Mask.==0].=NaN
+    M_v.=M; M_v[Mask.==0].=NaN
+    V_v.=sqrt.(av(Vx).^2 .+ av(Vy).^2); V_v[inn(H).==0].=NaN
+    p1 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(S_v, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, ticks=nothing, framestyle=:box, title="Surface elev. [m]", titlefontsize=FS, titlefont="Courier")
+    p2 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H_v, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, ticks=nothing, framestyle=:box, title="Ice thickness [m]", titlefontsize=FS, titlefont="Courier")
+    p3 = heatmap(xc[2:end-1]./1e3, reverse(yc[2:end-1])./1e3, reverse(log10.(V_v), dims=2)', c=:batlow, aspect_ratio=1, xlims=(xc[2], xc[end-1])./1e3, ylims=(yc[end-1], yc[2])./1e3, clims=(0.1, 2.0), ticks=nothing, framestyle=:box, title="log10(vel) [m/yr]", titlefontsize=FS, titlefont="Courier")
+    p4 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(M_v, dims=2)', c=:devon, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, ticks=nothing, framestyle=:box, title="Mass Bal. rate [m/yr]", titlefontsize=FS, titlefont="Courier")
+    # display(plot(p1, p2, p3, p4, size=(400,400)))
+    plot(p1, p2, p3, p4, size=(400,400), dpi=200) #background_color=:transparent, foreground_color=:white
+    savefig("../output/iceflow_out1.png")
+
+    # error
     H_diff = Hice.-H; H_diff[Mask.==0] .= NaN
     Hice[Mask.==0] .= NaN
     H[Mask.==0]    .= NaN
