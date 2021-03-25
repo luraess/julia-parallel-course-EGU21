@@ -176,7 +176,6 @@ The [`diffusion_1D_expl.jl`](scripts/diffusion_1D_expl.jl) code implements an it
 How to go with an implicit solution _**and**_ keeping it iterative ?
 
 #### Iterative solvers
-
 The [`diffusion_1D_impl.jl`](scripts/diffusion_1D_impl.jl) code implements an iterative implicit solution to eq. (1). How ? We add the physical time derivative to the rate of change `dHdt` and iterate until the values of `dHdt` drop below a defined tolerance level `epsi`.
 
 ![](docs/diffusion_impl.png)
@@ -186,7 +185,7 @@ It seems to work, but the iteration count seems to be pretty high (`niter>1000`)
 ![](docs/diffusion_damp.png)
 
 #### Parallel GPU computing 🎉
-
+So now we have a cool iterative and implicit solver in about 30 lines of code. Good enough for low resolution and 1D calculations. What if we need more - 2D, 3D and 6K resolution to capture highly local physics ? Parallel and GPU computing makes it possible. Let's take the [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) code and port it to GPU.
 
 #### Performance metric
 
@@ -227,6 +226,7 @@ It seems to work, but the iteration count seems to be pretty high (`niter>1000`)
 [Julia REPL]: https://docs.julialang.org/en/v1/stdlib/REPL/
 
 [BedMachine Greenland v3]: https://sites.uci.edu/morlighem/dataproducts/bedmachine-greenland/
+
 [JuliaCon20a]: https://www.youtube.com/watch?v=vPsfZUqI4_0
 [JuliaCon20b]: https://www.youtube.com/watch?v=1t1AKnnGRqA
 [JuliaCon19]: https://www.youtube.com/watch?v=b90qqbYJ58Q
