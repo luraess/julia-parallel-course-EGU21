@@ -169,7 +169,7 @@ qH    = -D*dH/dx  (1a)
 dHdt  =  -dqH/dx  (1b)
 dH/dt = dHdt      (1c)
 ```
-The [`diffusion_1D_expl.jl`](script/diffusion_1D_expl.jl) code implements an iterative and explicit solution to eq. (1). 
+The [`diffusion_1D_expl.jl`](scripts/diffusion_1D_expl.jl) code implements an iterative and explicit solution to eq. (1). 
 
 ![](docs/diffusion_expl.png)
 
@@ -177,9 +177,9 @@ How to go with an implicit solution AND keeping it iterative ?
 
 #### Iterative solvers
 
-The [`diffusion_1D_impl.jl`](script/diffusion_1D_impl.jl) code implements an iterative implicit solution to eq. (1). How ? We add the physical time derivative to the rate of change `dHdt` and iterate until the values of `dHdt` drop below a defined tolerance level.
+The [`diffusion_1D_impl.jl`](scripts/diffusion_1D_impl.jl) code implements an iterative implicit solution to eq. (1). How ? We add the physical time derivative to the rate of change `dHdt` and iterate until the values of `dHdt` drop below a defined tolerance level `epsi`.
 
-It seems to work, but the iteration count seems to be pretty high (`niter>1000`). There is a simple way to circumvent this by adding "damping" to the rate-of-change, analogous to adding friction to the rate of change to enable faster convergence. The [`diffusion_1D_damp.jl`](script/diffusion_1D_damp.jl) code implements a damped iterative implicit solution to eq. (1). The iteration count dropped to `niter<100`.
+It seems to work, but the iteration count seems to be pretty high (`niter>1000`). There is a simple way to circumvent this by adding "damping" to the rate-of-change, analogous to adding friction to the rate of change to enable faster convergence. The [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) code implements a damped iterative implicit solution to eq. (1). The iteration count dropped to `niter<100`.
 
 
 #### Parallel GPU computing
