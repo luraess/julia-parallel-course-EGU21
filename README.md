@@ -23,7 +23,7 @@ This short course covers trendy areas in modern geocomputing with broad geoscien
     * [Step 1](#step-1)
     * [Step 2](#step-2)
 * [Extras](#extras)
-* [References](#references)
+* [Further reading](#further-reading)
 
 
 ## Objectives
@@ -160,7 +160,15 @@ You should then see two figures saved in a newly created output folder, the seco
 
 ⤴️ [_back to content_](#content)
 
-## References
+
+## Further reading
+\[1\] [Omlin, S., Räss, L., Kwasniewski, G., Malvoisin, B., & Podladchikov, Y. Y. (2020). Solving Nonlinear Multi-Physics on GPU Supercomputers with Julia. JuliaCon Conference, virtual.][JuliaCon20a]
+
+\[2\] [Räss, L., Reuber, G., Omlin, S. (2020). Multi-Physics 3-D Inversion on GPU Supercomputers with Julia. JuliaCon Conference, virtual.][JuliaCon20b]
+
+\[3\] [Räss, L., Omlin, S., & Podladchikov, Y. Y. (2019). Porting a Massively Parallel Multi-GPU Application to Julia: a 3-D Nonlinear Multi-Physics Flow Solver. JuliaCon Conference, Baltimore, USA.][JuliaCon19]
+
+\[4\] [Frankel, S. P. (1950). Convergence rates of iterative treatments of partial differential equations, Mathe. Tables Other Aids Comput., 4, 65–75.][Frankel50]
 
 ⤴️ [_back to content_](#content)
 
@@ -170,3 +178,7 @@ You should then see two figures saved in a newly created output folder, the seco
 [Julia REPL]: https://docs.julialang.org/en/v1/stdlib/REPL/
 
 [BedMachine Greenland v3]: https://sites.uci.edu/morlighem/dataproducts/bedmachine-greenland/
+[JuliaCon20a]: https://www.youtube.com/watch?v=vPsfZUqI4_0
+[JuliaCon20b]: https://www.youtube.com/watch?v=1t1AKnnGRqA
+[JuliaCon19]: https://www.youtube.com/watch?v=b90qqbYJ58Q
+[Frankel50]: /docs/frankel_1950.pdf
