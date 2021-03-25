@@ -1,3 +1,4 @@
+
 # julia-parallel-course-EGU21
 
 #### [vEGU2021: SC4.6 Solving differential equations in parallel with Julia | Thu, 29 Apr, 16:00–17:00 (CEST)](https://meetingorganizer.copernicus.org/EGU21/session/38986)
@@ -44,7 +45,7 @@ The course repository lists following folders and items:
 - the [docs](docs) folder contains documentation linked in the [README](README.md);
 - the output folder _will_ contain the various code output, mainly figures in png format;
 - the [scripts](scripts) folder contains the scripts this course is about 🎉
-- the [`Manifest.toml`](Manifest.toml) and [`Project.toml`](Project.toml) files are Julia project files tracking the used packages and enabling a reproducible environment.
+- the [`Project.toml`](Project.toml) file is a Julia project file, tracking the used packages and enabling a reproducible environment.
 
 ⤴️ [_back to content_](#content)
 
@@ -52,7 +53,7 @@ The course repository lists following folders and items:
 > ⚠️ Due to the time limitation, the short course will not walk through the [Getting started](#getting-started) steps. These are meant to provide directions to the participant willing to actively participate and try out the examples during the short course. It is warmly recommended to perform the [Getting started](#getting-started) steps before the beginning of the workshop.
 
 The provided directions will get you started with:
-1. [Installing Julia](#installing-julia); Two configurations are presented: 
+1. [Installing Julia](#installing-julia); Two configurations are presented:
 - running Julia from the [terminal with an external text editor](#terminal--external-editor)
 - running Julia from [VS Code](#vs-code)
 
@@ -104,7 +105,7 @@ julia --project
 --
 Now that you launched Julia, you should be in the [Julia REPL]. We now need to ensure all the packages we need to be installed before using them. To do so, enter the [Pkg mode](https://docs.julialang.org/en/v1/stdlib/REPL/#Pkg-mode) by typing `]`. Then, instantiate the project which should trigger the download of the packages. Exit the Pkg mode with CRTL+C:
 ```julia-repl
-julia> 
+julia> ]
 
 (julia-parallel-course-EGU21) pkg> st
 Status `~/julia-parallel-course-EGU21/Project.toml`
@@ -118,9 +119,9 @@ Status `~/julia-parallel-course-EGU21/Project.toml`
    Updating git-repo `https://github.com/JuliaRegistries/General.git`
    # [...]
 
-julia> 
+julia>
 ```
-To test your install, go to the [scripts](scripts) folder and run the [`iceflow.jl`](scripts/iceflow.jl) code. Note that you can execute shell commands from within the repl first typing `;`. From within the 
+To test your install, go to the [scripts](scripts) folder and run the [`iceflow.jl`](scripts/iceflow.jl) code. Note that you can execute shell commands from within the repl first typing `;`. From within the
 ```julia-repl
 julia> ;
 
@@ -128,6 +129,8 @@ shell> cd scripts/
 
 julia> include("iceflow.jl")
 ```
+Running this the first time will (pre-)complie the various installed packages and will take some time.  Subsequent runs, by executing `include("iceflow.jl")`, should take around 10s.
+
 You should then see two figures saved in a newly created output folder, the second being the comparison between modelled and observed ice thickness distribution over Greenland:
 
 ![Greenland ice cap](docs/iceflow_out2.png)
