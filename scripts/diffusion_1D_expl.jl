@@ -27,7 +27,7 @@ using Plots, Printf
     end
     @printf("Total time = %1.2f, it tot = %d \n", round(ttot, sigdigits=2), it)
     # Visualise
-    plot(xc, H0, linewidth=3); display(plot!(xc, H, legend=false, framestyle=:box, linewidth=3, xlabel="lx", ylabel="H", title="explicit diffusion (niter=$it)"))
+    plot(xc, H0, linewidth=3); display(plot!(xc, H, legend=false, framestyle=:box, linewidth=3, xlabel="lx", ylabel="H", title="explicit diffusion (nt=$it)"))
     return
 end
 
