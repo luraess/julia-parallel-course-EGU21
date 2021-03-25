@@ -54,6 +54,8 @@ The course repository lists following folders and items:
 ⤴️ [_back to content_](#content)
 
 ## Getting started
+⚠️ Due to the time limitation, the short course will not walk through the [Getting started](#getting-started) steps. These are meant to provide directions to the participant willing to actively participate and try out the examples during the short course. It is warmly recommended to perform the [Getting started](#getting-started) steps before the beginning of the workshop.
+
 The provided directions will get you started with:
 1. [Installing Julia](#installing-julia); Two configurations are presented: 
 - running Julia from the [terminal with an external text editor](#terminal--external-editor)
