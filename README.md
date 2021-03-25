@@ -135,15 +135,30 @@ You should then see two figures saved in a newly created output folder, the seco
 ⤴️ [_back to content_](#content)
 
 ## Short course material
+This section lists the material discussed within this 60 min. short course:
+* [Part 1 - Julia, parallel computing, iterative solvers](#part-1---julia-parallel-computing-iterative-solvers)
+    * [Step 1](#step-1)
+    * [Step 2](#step-2)
+* [Part 2 - solving PDEs to predict ice flow](#part-2---solving-pdes-to-predict-ice-flow)
+    * [Step 3](#step-3)
+    * [Step 4](#step-4)
 
 ### Part 1 - Julia, parallel computing, iterative solvers
+
+#### Step 1
+
+#### Step 2
 
 ⤴️ [_back to course material_](#short-course-material)
 
 ### Part 2 - solving PDEs to predict ice flow
 
+#### Step 3
+
+#### Step 4
 
 ⤴️ [_back to course material_](#short-course-material)
+
 
 ## Extras
 
