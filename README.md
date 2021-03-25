@@ -47,7 +47,7 @@ By the end of this short course, you will:
 The course repository lists following folders and items:
 - the [data](data) folder contains various low resolution Greenland input data (bedrock topography, surface elevation, ice thickness, masks, ...) downscaled from [BedMachine Greenland v3] - note the filenames include grid resolution information `(nx, ny)`;
 - the [docs](docs) folder contains documentation linked in the [README](README.md);
-- the [output](output) folder contains the various code output, mainly figures in png format;
+- the output folder _will_ contain the various code output, mainly figures in png format;
 - the [scripts](scripts) folder contains the scripts this course is about 🎉
 - the [`Manifest.toml`](Manifest.toml) and [`Project.toml`](Project.toml) files are Julia project files tracking the used packages and enabling a reproducible environment.
 
@@ -61,7 +61,7 @@ The provided directions will get you started with:
 
 2. [Running the scripts](#running-the-scripts) from the course repository.
 
-👉 _Note: This course relies on Julia v1.5.4. The install configuration are tested on a MacBook Pro running macOS 10.15.7 and a Linux GPU server running Ubuntu 20.04 LTS._
+👉 _Note: This course relies on Julia v1.5.X. The install configuration are tested on a MacBook Pro running macOS 10.15.7 and a Linux GPU server running Ubuntu 20.04 LTS._
 
 ### Installing Julia
 Check you have an active internet connexion, head to https://julialang.org/downloads/ and download Julia v1.5.4 for your platform following the install directions provided under [help] if needed.
@@ -104,6 +104,7 @@ julia --project
 ```
 3. From VS Code, follow the [instructions from the documentation](https://www.julia-vscode.org/docs/stable/gettingstarted/) to get started.
 
+--
 Now that you launched Julia, you should be in the [Julia REPL]. We now need to ensure all the packages we need to be installed before using them. To do so, enter the [Pkg mode](https://docs.julialang.org/en/v1/stdlib/REPL/#Pkg-mode) by typing `]`. Then, instantiate the project which should trigger the download of the packages. Exit the Pkg mode with CRTL+C:
 ```sh
 julia> 
@@ -122,6 +123,7 @@ Status `~/Desktop/test/julia-parallel-course-EGU21/Project.toml`
 
 julia> 
 ```
+To test your install, go to the [scripts](scripts) folder and run the [`iceflow.jl`](scripts/iceflow.jl) code. You should 
 
 ⤴️ [_back to content_](#content)
 
