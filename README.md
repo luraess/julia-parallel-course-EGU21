@@ -15,7 +15,7 @@ This short course covers trendy areas in modern geocomputing with broad geoscien
 ## Content
 * [Objectives](#objectives)
 * [Structure of the repository](#structure-of-the-repository)
-* [Getting started](#getting-started)
+* [Getting started](#getting-started) (_not part of the live course_)
 * [Short course - Part 1](#short-course-part-1)
     * [Step 1](#step-1)
     * [Step 2](#step-2)
