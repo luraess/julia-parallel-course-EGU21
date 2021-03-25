@@ -16,12 +16,7 @@ This short course covers trendy areas in modern geocomputing with broad geoscien
 * [Objectives](#objectives)
 * [Structure of the repository](#structure-of-the-repository)
 * [Getting started](#getting-started) (_not part of the live course_)
-* [Short course - Part 1](#short-course-part-1)
-    * [Step 1](#step-1)
-    * [Step 2](#step-2)
-* [Short course - Part 2](#short-course-part-2)
-    * [Step 1](#step-1)
-    * [Step 2](#step-2)
+* [Short course material](#short-course-material)
 * [Extras](#extras)
 * [Further reading](#further-reading)
 
@@ -139,23 +134,16 @@ You should then see two figures saved in a newly created output folder, the seco
 
 ⤴️ [_back to content_](#content)
 
-## Short course - Part 1
+## Short course material
 
-### Step 1
+### Part 1 - Julia, parallel computing, iterative solvers
 
-### Step 2
+⤴️ [_back to course material_](#short-course-material)
 
-
-⤴️ [_back to content_](#content)
-
-## Short course - Part 2
-
-### Step 1
-
-### Step 2
+### Part 2 - solving PDEs to predict ice flow
 
 
-⤴️ [_back to content_](#content)
+⤴️ [_back to course material_](#short-course-material)
 
 ## Extras
 
