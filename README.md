@@ -105,6 +105,7 @@ julia --project
 3. From VS Code, follow the [instructions from the documentation](https://www.julia-vscode.org/docs/stable/gettingstarted/) to get started.
 
 --
+
 Now that you launched Julia, you should be in the [Julia REPL]. We now need to ensure all the packages we need to be installed before using them. To do so, enter the [Pkg mode](https://docs.julialang.org/en/v1/stdlib/REPL/#Pkg-mode) by typing `]`. Then, instantiate the project which should trigger the download of the packages. Exit the Pkg mode with CRTL+C:
 ```julia-repl
 julia> ]
@@ -136,6 +137,10 @@ Running this the first time will (pre-)complie the various installed packages an
 You should then see two figures saved in a newly created output folder, the second being the comparison between modelled and observed ice thickness distribution over Greenland:
 
 ![Greenland ice cap](docs/iceflow_out2.png)
+
+### Running on GPUs
+
+Some infos on Nvidia CUDA and JuliaGPU and CUDA.jl here.
 
 ⤴️ [_back to content_](#content)
 
@@ -185,7 +190,58 @@ It seems to work, but the iteration count seems to be pretty high (`niter>1000`)
 ![](docs/diffusion_damp.png)
 
 #### Parallel GPU computing
-So now we have a cool iterative and implicit solver in about 30 lines of code 🎉. Good enough for low resolution and 1D calculations. What if we need more - 2D, 3D and 6K resolution to capture highly local physics ? Parallel and GPU computing makes it possible. Let's take the [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) code and port it to GPU.
+So now we have a cool iterative and implicit solver in about 30 lines of code 🎉. Good enough for low resolution and 1D calculations. What if we need more - 2D, 3D and 6K resolution to capture highly local physics ? Parallel and GPU computing makes it possible. Let's take the [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) code and port it to GPU (with some intermediate steps). We
+
+1. Extract the physics calculations
+```julia
+qH         .= -D*diff(H)/dx
+dHdt       .= -(H[2:end-1].-Hold[2:end-1])/dt .-diff(qH)/dx .+ damp*dHdt
+H[2:end-1] .= H[2:end-1] .+ dtau*dHdt
+```
+2. Split the calculations into separate functions (or kernels)
+```julia
+function compute_flux!(qH, H, D, dx, nx)
+    Threads.@threads for ix=1:nx
+        if (ix<=nx-1)  qH[ix] = -D*(H[ix+1]-H[ix])/dx  end
+    end
+    return
+end
+
+function compute_rate!(dHdt, H, Hold, qH, dt, damp, dx, nx)
+    Threads.@threads for ix=1:nx
+        if (2<=ix<=nx-1)  dHdt[ix-1] = -(H[ix] - Hold[ix])/dt -(qH[ix]-qH[ix-1])/dx + damp*dHdt[ix-1]  end
+    end
+    return
+end
+
+function compute_update!(H, dHdt, dtau, nx)
+    Threads.@threads for ix=1:nx
+        if (2<=ix<=nx-1)  H[ix] = H[ix] + dtau*dHdt[ix-1]  end
+    end
+    return
+end
+```
+3. Replace the (multi-threaded) loop by a vectorised index 
+```julia
+function compute_flux!(qH, H, D, dx, nx)
+    ix = (blockIdx().x-1) * blockDim().x + threadIdx().x
+    if (ix<=nx-1)  qH[ix] = -D*(H[ix+1]-H[ix])/dx  end
+    return
+end
+
+function compute_rate!(dHdt, H, Hold, qH, dt, damp, dx, nx)
+    ix = (blockIdx().x-1) * blockDim().x + threadIdx().x
+    if (2<=ix<=nx-1)  dHdt[ix-1] = -(H[ix] - Hold[ix])/dt -(qH[ix]-qH[ix-1])/dx + damp*dHdt[ix-1]  end
+    return
+end
+
+function compute_update!(H, dHdt, dtau, nx)
+    ix = (blockIdx().x-1) * blockDim().x + threadIdx().x
+    if (2<=ix<=nx-1)  H[ix] = H[ix] + dtau*dHdt[ix-1]  end
+    return
+end
+```
+
 
 #### Performance metric
 
