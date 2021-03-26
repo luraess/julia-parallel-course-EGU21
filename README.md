@@ -153,6 +153,7 @@ This section lists the material discussed within this 60 min. short course:
     * [Diffusion processes](#diffusion-processes)
     * [Iterative solvers](#iterative-solvers)
     * [Parallel GPU computing](#parallel-gpu-computing)
+    * [XPU computing](#xpu-computing)
 * [Part 2 - solving PDEs to predict ice flow](#part-2---solving-pdes-to-predict-ice-flow)
     * [SIA equation](#sia-equation)
     * [Step 4](#step-4)
@@ -263,9 +264,42 @@ synchronize()
 @cuda blocks=cublocks threads=cuthreads compute_update!(H, dHdt, dtau, nx)
 synchronize()
 ```
-Note that `@cuda blocks=cublocks threads=cuthreads` is used to launch the GPU function on the appropriate number of threads, i.e. "parallel workers".
+We use `@cuda blocks=cublocks threads=cuthreads` to launch the GPU function on the appropriate number of threads, i.e. "parallel workers".
 
+⤴️ [_back to course material_](#short-course-material)
 
+### XPU computing
+Wouldn't it be great to be able to combine the multi-thread CPU and GPU implementations into a single "XPU" code to be able to run on various hardware with only changing a `USE_GPU` switch ? Using [ParallelStencil.jl] enables this, as well more other cool features. The [`diffusion_1D_damp_xpu.jl`](scripts/diffusion_1D_damp_xpu.jl) uses [ParallelStencil.jl] for an XPU implementation allowing various backends:
+
+```julia
+const USE_GPU = false
+using ParallelStencil
+using ParallelStencil.FiniteDifferences1D
+@static if USE_GPU
+    @init_parallel_stencil(CUDA, Float64, 1)
+else
+    @init_parallel_stencil(Threads, Float64, 1)
+end
+# [...] skipped lines
+@parallel function compute_flux!(qH, H, D, dx)
+    @all(qH) = -D*@d(H)/dx
+    return
+end
+
+@parallel function compute_rate!(dHdt, H, Hold, qH, dt, damp, dx)
+    @all(dHdt) = -(@all(H) - @all(Hold))/dt -@d(qH)/dx + damp*@all(dHdt)
+    return
+end
+
+@parallel function compute_update!(H, dHdt, dtau)
+    @inn(H) = @inn(H) + dtau*@all(dHdt)
+    return
+end
+# [...] skipped lines
+@parallel compute_flux!(qH, H, D, dx)
+@parallel compute_rate!(dHdt, H, Hold, qH, dt, damp, dx)
+@parallel compute_update!(H, dHdt, dtau)
+```
 
 
 ⤴️ [_back to course material_](#short-course-material)
@@ -312,6 +346,7 @@ Note that `@cuda blocks=cublocks threads=cuthreads` is used to launch the GPU fu
 [JULIA_NUM_THREADS]:https://docs.julialang.org/en/v1.0.0/manual/environment-variables/#JULIA_NUM_THREADS-1
 [CUDA.jl]: https://github.com/JuliaGPU/CUDA.jl
 [JuliaGPU]: https://juliagpu.org
+[ParallelStencil.jl]: https://github.com/omlins/ParallelStencil.jl
 
 [BedMachine Greenland v3]: https://sites.uci.edu/morlighem/dataproducts/bedmachine-greenland/
 
