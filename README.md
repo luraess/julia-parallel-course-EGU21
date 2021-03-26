@@ -353,7 +353,63 @@ S     .= B .+ H
 🚧 Needs some words on iteration count and time to solution on specific resolution.
 
 #### XPU SIA implementation
-Applying what we learned from the 1D diffusion equation, we can now instrument the [`iceflow.jl`](scripts/iceflow.jl) code to make it XPU compatible using [ParallelStencil.jl].
+Applying what we learned from the 1D diffusion equation, we can now instrument the [`iceflow.jl`](scripts/iceflow.jl) code to make it XPU compatible using [ParallelStencil.jl]:
+```julia
+const USE_GPU = false
+using ParallelStencil
+using ParallelStencil.FiniteDifferences2D
+@static if USE_GPU
+    @init_parallel_stencil(CUDA, Float64, 2)
+    macro pow(args...)  esc(:(CUDA.pow($(args...)))) end
+else
+    @init_parallel_stencil(Threads, Float64, 2)
+    pow(x,y) = x^y
+    macro pow(args...)  esc(:(pow($(args...)))) end
+end
+# [...] skipped lines
+@parallel function compute_M_dS!(M, dSdx, dSdy, S, z_ELA, grad_b, b_max, dx, dy)
+    @all(M)    = min(@all(grad_b)*(@all(S) - @all(z_ELA)), b_max)
+    @all(dSdx) = @d_xa(S)/dx
+    @all(dSdy) = @d_ya(S)/dy
+    return
+end
+
+@parallel function compute_D!(D, H, dSdx, dSdy, a, npow)
+    @all(D) = a*@pow(@av(H), (npow+2)) * @pow(sqrt(@av_ya(dSdx)*@av_ya(dSdx) + @av_xa(dSdy)*@av_xa(dSdy)), npow-1)
+    return
+end
+
+@parallel function compute_qH_dt!(qHx, qHy, dt, D, S, dtsc, cfl, epsi, dx, dy)
+    @all(qHx) = -@av_ya(D)*@d_xi(S)/dx
+    @all(qHy) = -@av_xa(D)*@d_yi(S)/dy
+    @all(dt)  = dtsc*min(10.0, cfl/(epsi + @av(D)))
+    return
+end
+
+@parallel function compute_dHdt!(ResH, dHdt, qHx, qHy, M, damp, dx, dy)
+    @all(ResH) = -(@d_xa(qHx)/dx + @d_ya(qHy)/dy) + @inn(M)
+    @all(dHdt) = @all(dHdt)*damp + @all(ResH)
+    return
+end
+
+@parallel function compute_H!(H, dHdt, dt)
+    @inn(H) = max(0.0, @inn(H) + @all(dt)*@all(dHdt))
+    return
+end
+
+@parallel_indices (ix,iy) function compute_Mask_S!(H, S, B, Mask)
+    if (ix<=size(H,1) && iy<=size(H,2)) if (Mask[ix,iy]==0) H[ix,iy] = 0.0 end end
+    if (ix<=size(H,1) && iy<=size(H,2)) S[ix,iy] = B[ix,iy] + H[ix,iy] end    
+    return
+end
+# [...] skipped lines
+@parallel compute_M_dS!(M, dSdx, dSdy, S, z_ELA, grad_b, b_max, dx, dy)
+@parallel compute_D!(D, H, dSdx, dSdy, a, npow)
+@parallel compute_qH_dt!(qHx, qHy, dt, D, S, dtsc, cfl, epsi, dx, dy)
+@parallel compute_dHdt!(ResH, dHdt, qHx, qHy, M, damp, dx, dy)
+@parallel compute_H!(H, dHdt, dt)
+@parallel compute_Mask_S!(H, S, B, Mask)
+```
 
 
 #### Step 4
