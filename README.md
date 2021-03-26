@@ -104,7 +104,7 @@ julia --project
 ```
 3. From VS Code, follow the [instructions from the documentation](https://www.julia-vscode.org/docs/stable/gettingstarted/) to get started.
 
---
+---
 
 Now that you launched Julia, you should be in the [Julia REPL]. We now need to ensure all the packages we need to be installed before using them. To do so, enter the [Pkg mode](https://docs.julialang.org/en/v1/stdlib/REPL/#Pkg-mode) by typing `]`. Then, instantiate the project which should trigger the download of the packages. Exit the Pkg mode with CRTL+C:
 ```julia-repl
@@ -161,6 +161,8 @@ This section lists the material discussed within this 60 min. short course:
 💡 In this course we will implement a 2D nonlinear diffusion equation on GPUs in Julia using the finite-difference method and an iterative solving approach. The goal is to resolve the shallow ice approximation (SIA) and predict ice flow over Greenland.
 
 ⤴️ [_back to content_](#content)
+
+---
 
 ### Part 1 - Julia, parallel computing, iterative solvers
 
