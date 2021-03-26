@@ -138,9 +138,11 @@ You should then see two figures saved in a newly created output folder, the seco
 
 ![Greenland ice cap](docs/iceflow_out2.png)
 
-### Running on GPUs
+### Multi-threading on CPUs
+On the CPU, multi-threading is made accessible via [Base.Threads] and the environment variable [JULIA_NUM_THREADS] can be used to define the number of cores to use on the CPU, e.g. `export JULIA_NUM_THREADS=2` to enable 2 threads (2 CPU cores).
 
-Some infos on Nvidia CUDA and JuliaGPU and CUDA.jl here.
+### Running on GPUs
+The [CUDA.jl] module permits to launch compute kernels on Nvidia GPUs natively from within [Julia]. [JuliaGPU] provides further reading and [introductory material](https://juliagpu.gitlab.io/CUDA.jl/tutorials/introduction/) about GPU ecosystem within Julia.
 
 ⤴️ [_back to content_](#content)
 
@@ -294,6 +296,8 @@ end
 [Julia]: https://julialang.org
 [Julia language]: https://docs.julialang.org/en/v1/
 [Julia REPL]: https://docs.julialang.org/en/v1/stdlib/REPL/
+[Base.Threads]: https://docs.julialang.org/en/v1/base/multi-threading/
+[JULIA_NUM_THREADS]:https://docs.julialang.org/en/v1.0.0/manual/environment-variables/#JULIA_NUM_THREADS-1
 
 [BedMachine Greenland v3]: https://sites.uci.edu/morlighem/dataproducts/bedmachine-greenland/
 
