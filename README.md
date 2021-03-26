@@ -7,7 +7,9 @@
 - 💡 All material presented during the short course will be uploaded here and made available to participants 5 days prior to the event on this repository.
 - ⚠️ Live participation to this short course requires [registration to EGU's main meeting](https://egu21.eu/register.html).
 - Due to the time-limited course schedule (60 min), an interactive overview will cover the course's [objectives](#objectives) replacing an extensive hands-on.
-- Further interests in solving PDEs with Julia on GPUs❓Sign-up (free) for a hands-on workshop at [JuliaCon2021](https://juliacon.org/2021/).
+- Further interests in solving PDEs with Julia on GPUs❓
+    - Sign-up (free) for a hands-on workshop at [JuliaCon2021](https://juliacon.org/2021/)
+    - Check out this [online geo-HPC tutorial](https://github.com/luraess/geo-hpc-course)
 
 ----
 This short course covers trendy areas in modern geocomputing with broad geoscientific applications. The physical processes governing natural systems' evolution are often mathematically described as systems of differential equations. A performant numerical implementation of the solving algorithm leveraging modern hardware is key and permits to tackle problems that were technically not possible a decade ago.
