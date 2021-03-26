@@ -156,7 +156,7 @@ This section lists the material discussed within this 60 min. short course:
     * [SIA equation](#sia-equation)
     * [Step 4](#step-4)
 
-In this course we will implement a 2D nonlinear diffusion equation in Julia using the finite-difference method and an iterative solving approach to resolve a the shallow ice approximation (SIA) and predict ice flow over Greenland.
+💡 In this course we will implement a 2D nonlinear diffusion equation on GPUs in Julia using the finite-difference method and an iterative solving approach. The goal is to resolve the shallow ice approximation (SIA) and predict ice flow over Greenland.
 
 ### Part 1 - Julia, parallel computing, iterative solvers
 
@@ -167,30 +167,36 @@ _by M. Werder_
 - modern code dev and CI
 - ...
 
+⤴️ [_back to course material_](#short-course-material)
+
 #### Diffusion processes
-Let's implement a simple 1D linear diffusion example to understand what's all about and use it as example to compare the serial CPU vs the parallel GPU implementation. The diffusion of a quantity `H` over time `t` can be described as (1a) a diffusive flux, (1b) a balance of flux and (1c) an update rule:
+Let's start with a simple 1D linear diffusion example to (1) see the difference between explicit and implicit and (2) to compare the serial CPU vs the parallel GPU implementations. The diffusion of a quantity `H` over time `t` can be described as (1a) a diffusive flux, (1b) a flux balance and (1c) an update rule:
 ```md
 qH    = -D*dH/dx  (1a)
 dHdt  =  -dqH/dx  (1b)
 dH/dt = dHdt      (1c)
 ```
-The [`diffusion_1D_expl.jl`](scripts/diffusion_1D_expl.jl) code implements an iterative and explicit solution to eq. (1). 
+The [`diffusion_1D_expl.jl`](scripts/diffusion_1D_expl.jl) code implements an iterative and explicit solution of eq. (1). 
 
 ![](docs/diffusion_expl.png)
 
-How to go with an implicit solution _**and**_ keeping it iterative ?
+How to go with an implicit solution _**and**_ keeping it "matrix-free" ?
+
+⤴️ [_back to course material_](#short-course-material)
 
 #### Iterative solvers
-The [`diffusion_1D_impl.jl`](scripts/diffusion_1D_impl.jl) code implements an iterative implicit solution to eq. (1). How ? We add the physical time derivative to the rate of change `dHdt` and iterate until the values of `dHdt` drop below a defined tolerance level `epsi`.
+The [`diffusion_1D_impl.jl`](scripts/diffusion_1D_impl.jl) code implements an iterative implicit solution of eq. (1). How ? We add the physical time derivative `dh/dt=(H-Hold)/dt` to the rate of change `dHdt` and iterate until the values of `dHdt` drop below a defined tolerance level `epsi`.
 
 ![](docs/diffusion_impl.png)
 
-It seems to work, but the iteration count seems to be pretty high (`niter>1000`). There is a simple way to circumvent this by adding "damping" to the rate-of-change, analogous to adding friction to the rate of change to enable faster convergence. The [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) code implements a damped iterative implicit solution to eq. (1). The iteration count dropped to `niter<100`.
+It works, but the iteration count seems to be pretty high (`niter>1000`). There is a simple way to circumvent this by adding "damping" to the rate-of-change `dHdt`, analogous to adding friction to enable faster convergence. The [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) code implements a damped iterative implicit solution of eq. (1). The iteration count drops to `niter<100`.
 
 ![](docs/diffusion_damp.png)
 
+⤴️ [_back to course material_](#short-course-material)
+
 #### Parallel GPU computing
-So now we have a cool iterative and implicit solver in about 30 lines of code 🎉. Good enough for low resolution and 1D calculations. What if we need more - 2D, 3D and 6K resolution to capture highly local physics ? Parallel and GPU computing makes it possible. Let's take the [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) code and port it to GPU (with some intermediate steps).
+So now we have a cool iterative and implicit solver in about 30 lines of code 🎉. Good enough for low resolution 1D calculations. What if we need more - 2D, 3D and high resolution to capture local and nonlinear physics ? Parallel and GPU computing makes it possible. Let's start from the [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) code and port it to GPU (with some intermediate steps).
 
 1. Extract the physics calculations from [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl)
 ```julia
@@ -244,6 +250,7 @@ function compute_update!(H, dHdt, dtau, nx)
 end
 ```
 
+⤴️ [_back to course material_](#short-course-material)
 
 #### Performance metric
 
