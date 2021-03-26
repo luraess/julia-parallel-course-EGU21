@@ -316,9 +316,17 @@ dH/dt = dHdt                      (2d)
 ```
 where `B` is the bedrock elevation, `H` the ice thickness, `M` the mass balance (accumulation, ablation). The diffusion coefficient `D` is nonlinear and function of surface elevation `B+H` and the power-law exponent `n`:
 ```md
-D     = a*H^(npow+2)*sqrt((d(B+H)/dx)^2 + (d(B+H)/dy)^2)^(npow-1)
+D = a*H^(npow+2)*sqrt((d(B+H)/dx)^2 + (d(B+H)/dy)^2)^(npow-1)
 ```
-
+We implement climate forcing using a simple mass balance (accumulation, ablation) `M` formulation:
+```md
+M  = min(grad_b*(B+H - z_ELA), b_max)
+```
+as function of the surface elevation `B+H` and capped by the maximal accumulation rate `b_max`. The mass balance gradient `grad_b` is defined as
+```md
+grad_b = (1.3517 - 0.014158*LAT)/100.0*0.91
+```
+where `LAT` is the latitude (taken from \[[5][Machgut16]\]). The equilibrium line altitude (where accumulation = ablation) `z_ELA` is latitude dependent, ranging from 1300m (South) to 1000m (North) as suggsted by \[[5][Machgut16]\].
 
 
 #### Step 4
@@ -347,6 +355,8 @@ D     = a*H^(npow+2)*sqrt((d(B+H)/dx)^2 + (d(B+H)/dy)^2)^(npow-1)
 
 \[4\] [Frankel, S. P. (1950). Convergence rates of iterative treatments of partial differential equations, Mathe. Tables Other Aids Comput., 4, 65–75.][Frankel50]
 
+\[5\] [Machgut, H. et al. (2016). Greenland surface mass-balance observations from the ice-sheet ablation area and local glaciers. Journal of Glaciology, 62(235), 861-887][Machgut16]
+
 ⤴️ [_back to content_](#content)
 
 
@@ -365,3 +375,4 @@ D     = a*H^(npow+2)*sqrt((d(B+H)/dx)^2 + (d(B+H)/dy)^2)^(npow-1)
 [JuliaCon20b]: https://www.youtube.com/watch?v=1t1AKnnGRqA
 [JuliaCon19]: https://www.youtube.com/watch?v=b90qqbYJ58Q
 [Frankel50]: /docs/frankel_1950.pdf
+[Machgut16]: https://doi.org/10.1017/jog.2016.75
