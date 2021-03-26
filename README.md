@@ -153,10 +153,10 @@ This section lists the material discussed within this 60 min. short course:
     * [Diffusion processes](#diffusion-processes)
     * [Iterative solvers](#iterative-solvers)
     * [Parallel GPU computing](#parallel-gpu-computing)
-    * [Performance metric](#performance-metric)
 * [Part 2 - solving PDEs to predict ice flow](#part-2---solving-pdes-to-predict-ice-flow)
     * [SIA equation](#sia-equation)
     * [Step 4](#step-4)
+    * [Performance metric](#performance-metric)
 
 💡 In this course we will implement a 2D nonlinear diffusion equation on GPUs in Julia using the finite-difference method and an iterative solving approach. The goal is to resolve the shallow ice approximation (SIA) and predict ice flow over Greenland.
 
@@ -229,14 +229,14 @@ function compute_update!(H, dHdt, dtau, nx)
     end
     return
 end
-# [...]
+# [...] skipped lines
 compute_flux!(qH, H, D, dx, nx)
 compute_rate!(dHdt, H, Hold, qH, dt, damp, dx, nx)
 compute_update!(H, dHdt, dtau, nx)
 ```
 > 💡 Julia enables multi-threading capabilities by simply adding `Threads.@threads` to the outermost loop (here over `ix`).
 
-3. The last step is to replace the (multi-threaded) loop by a vectorised index. The [`diffusion_1D_damp_gpu.jl`](scripts/diffusion_1D_damp_gpu.jl) implements those modifications to run on GPUs.
+3. The last step is to replace the (multi-threaded) loop by a vectorised index `ix = (blockIdx().x-1) * blockDim().x + threadIdx().x` specific to GPU execution. Each `ix` is executed concurrently on a different GPU thread. The [`diffusion_1D_damp_gpu.jl`](scripts/diffusion_1D_damp_gpu.jl) implements those modifications to run on GPUs:
 ```julia
 function compute_flux!(qH, H, D, dx, nx)
     ix = (blockIdx().x-1) * blockDim().x + threadIdx().x
@@ -255,11 +255,17 @@ function compute_update!(H, dHdt, dtau, nx)
     if (2<=ix<=nx-1)  H[ix] = H[ix] + dtau*dHdt[ix-1]  end
     return
 end
+# [...] skipped lines
+@cuda blocks=cublocks threads=cuthreads compute_flux!(qH, H, D, dx, nx)
+synchronize()
+@cuda blocks=cublocks threads=cuthreads compute_rate!(dHdt, H, Hold, qH, dt, damp, dx, nx)
+synchronize()
+@cuda blocks=cublocks threads=cuthreads compute_update!(H, dHdt, dtau, nx)
+synchronize()
 ```
+Note that `@cuda blocks=cublocks threads=cuthreads` is used to launch the GPU function on the appropriate number of threads, i.e. "parallel workers".
 
-⤴️ [_back to course material_](#short-course-material)
 
-#### Performance metric
 
 
 ⤴️ [_back to course material_](#short-course-material)
@@ -271,6 +277,12 @@ end
 
 
 #### Step 4
+
+⤴️ [_back to course material_](#short-course-material)
+
+
+#### Performance metric
+
 
 ⤴️ [_back to course material_](#short-course-material)
 
