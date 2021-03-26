@@ -299,6 +299,7 @@ end
 [Base.Threads]: https://docs.julialang.org/en/v1/base/multi-threading/
 [JULIA_NUM_THREADS]:https://docs.julialang.org/en/v1.0.0/manual/environment-variables/#JULIA_NUM_THREADS-1
 [CUDA.jl]: https://github.com/JuliaGPU/CUDA.jl
+[JuliaGPU]: https://juliagpu.org
 
 [BedMachine Greenland v3]: https://sites.uci.edu/morlighem/dataproducts/bedmachine-greenland/
 
