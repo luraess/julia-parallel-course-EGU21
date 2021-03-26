@@ -350,8 +350,10 @@ H[Mask.==0] .= 0.0
 # update surface
 S     .= B .+ H
 ```
+🚧 Needs some words on iteration count and time to solution on specific resolution.
 
 #### XPU SIA implementation
+Applying what we learned from the 1D diffusion equation, we can now instrument the [`iceflow.jl`](scripts/iceflow.jl) code to make it XPU compatible using [ParallelStencil.jl].
 
 
 #### Step 4
