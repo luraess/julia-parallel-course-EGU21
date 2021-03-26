@@ -269,7 +269,7 @@ We use `@cuda blocks=cublocks threads=cuthreads` to launch the GPU function on t
 ⤴️ [_back to course material_](#short-course-material)
 
 ### XPU computing
-Wouldn't it be great to be able to combine the multi-thread CPU and GPU implementations into a single "XPU" code to be able to run on various hardware with only changing a `USE_GPU` switch ? Using [ParallelStencil.jl] enables this, as well more other cool features. The [`diffusion_1D_damp_xpu.jl`](scripts/diffusion_1D_damp_xpu.jl) uses [ParallelStencil.jl] for an XPU implementation allowing various backends:
+Wouldn't it be great to be able to combine the multi-thread CPU and GPU implementations into a single "XPU" code to be able to run on various hardware with only changing a `USE_GPU` switch ? Using [ParallelStencil.jl] enables this, as well more other cool features. The [`diffusion_1D_damp_xpu.jl`](scripts/diffusion_1D_damp_xpu.jl) uses [ParallelStencil.jl] for an XPU implementation on various backends:
 
 ```julia
 const USE_GPU = false
@@ -300,7 +300,7 @@ end
 @parallel compute_rate!(dHdt, H, Hold, qH, dt, damp, dx)
 @parallel compute_update!(H, dHdt, dtau)
 ```
-
+Various macros `@(...)` permit to deal with the low-level technicalities and the `USE_GPU` flag enables to switch between CPU and GPU backend. The resulting code is short and readable and solves the "two-language problem"; development and production code implementations are regrouped into a single code. 
 
 ⤴️ [_back to course material_](#short-course-material)
 
