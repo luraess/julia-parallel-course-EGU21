@@ -115,8 +115,9 @@ end
     M        = @zeros(nx  , ny  )
     # initial condition
     S        = @zeros(nx  , ny  )
-    B        =  @ones(nx  , ny  ).*Zbed
-    H        =  @ones(nx  , ny  ).*Hice
+    B        = Data.Array( Zbed )
+    H        = Data.Array( Hice )
+    Mask     = Data.Array( Mask )
     Yc2      = Yc .- minimum(Yc); Yc2 .= Yc2./maximum(Yc2)
     grad_b   = Data.Array( (1.3517 .- 0.014158.*(60.0.+Yc2*20.0))./100.0.*0.91 )# Mass Bal. gradient, from doi: 10.1017/jog.2016.75
     z_ELA    = Data.Array( 1300.0 .- Yc2*300.0 )                                # Educated guess for ELA altitude

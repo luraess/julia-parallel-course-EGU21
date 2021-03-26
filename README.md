@@ -350,10 +350,10 @@ H[Mask.==0] .= 0.0
 # update surface
 S     .= B .+ H
 ```
-🚧 Needs some words on iteration count and time to solution on specific resolution.
+🚧 Add output figure and some words on iteration count and time to solution on specific resolution (low res, slow).
 
 #### XPU SIA implementation
-Applying what we learned from the 1D diffusion equation, we can now instrument the [`iceflow.jl`](scripts/iceflow.jl) code to make it XPU compatible using [ParallelStencil.jl]:
+Applying what we learned from the 1D diffusion equation, we can now instrument the [`iceflow.jl`](scripts/iceflow.jl) code (see code snippet just above) to make it XPU compatible using [ParallelStencil.jl]; the [`iceflow_xpu.jl`](scripts/iceflow_xpu.jl) code:
 ```julia
 const USE_GPU = false
 using ParallelStencil
@@ -410,20 +410,18 @@ end
 @parallel compute_H!(H, dHdt, dt)
 @parallel compute_Mask_S!(H, S, B, Mask)
 ```
-
-
-#### Step 4
-
-⤴️ [_back to course material_](#short-course-material)
-
-
-#### Performance metric
+🚧 Needs some words on high res example and maybe zoomed in figure into specific location.
 
 
 ⤴️ [_back to course material_](#short-course-material)
-
 
 ## Extras
+
+### Performance metric
+
+### Multi-XPU implementation
+
+### Simple inversion
 
 
 ⤴️ [_back to content_](#content)
