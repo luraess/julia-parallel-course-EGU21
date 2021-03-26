@@ -307,6 +307,17 @@ Various macros `@(...)` permit to deal with the low-level technicalities and the
 ### Part 2 - solving PDEs to predict ice flow
 
 #### SIA equation
+Let's move from the simple 1D linear diffusion example to the SIA equation, a 2D nonlinear diffusion equation:
+```md
+qHx   = -D*d(B+H)/dx              (2a)
+qHy   = -D*d(B+H)/dy              (2b)
+dHdt  = -(dqHx/dx + dqHy/dy) + M  (2c)
+dH/dt = dHdt                      (2d)
+```
+where `B` is the bedrock elevation, `H` the ice thickness, `M` the mass balance (accumulation, ablation). The diffusion coefficient `D` is nonlinear and function of surface elevation `B+H` and the power-law exponent `n`:
+```md
+D     = a*H^(npow+2)*sqrt((d(B+H)/dx)^2 + (d(B+H)/dy)^2)^(npow-1)
+```
 
 
 
