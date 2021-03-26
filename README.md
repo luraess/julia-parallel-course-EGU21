@@ -168,6 +168,9 @@ This section lists the material discussed within this 60 min. short course:
 
 #### Why Julia
 _by M. Werder_
+
+🚧 WIP
+
 - the cool Julia ecosystem
 - git integration
 - modern code dev and CI
@@ -419,6 +422,8 @@ end
 ⤴️ [_back to course material_](#short-course-material)
 
 ## Extras
+
+🚧 WIP
 
 ### Performance metric
 
