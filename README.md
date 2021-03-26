@@ -157,9 +157,10 @@ This section lists the material discussed within this 60 min. short course:
 * [Part 2 - solving PDEs to predict ice flow](#part-2---solving-pdes-to-predict-ice-flow)
     * [SIA equation](#sia-equation)
     * [XPU SIA implementation](#xpu-sia-implementation)
-    * [Performance metric](#performance-metric)
 
 💡 In this course we will implement a 2D nonlinear diffusion equation on GPUs in Julia using the finite-difference method and an iterative solving approach. The goal is to resolve the shallow ice approximation (SIA) and predict ice flow over Greenland.
+
+⤴️ [_back to content_](#content)
 
 ### Part 1 - Julia, parallel computing, iterative solvers
 
