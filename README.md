@@ -156,7 +156,7 @@ This section lists the material discussed within this 60 min. short course:
     * [XPU computing](#xpu-computing)
 * [Part 2 - solving PDEs to predict ice flow](#part-2---solving-pdes-to-predict-ice-flow)
     * [SIA equation](#sia-equation)
-    * [Step 4](#step-4)
+    * [XPU SIA implementation](#xpu-sia-implementation)
     * [Performance metric](#performance-metric)
 
 💡 In this course we will implement a 2D nonlinear diffusion equation on GPUs in Julia using the finite-difference method and an iterative solving approach. The goal is to resolve the shallow ice approximation (SIA) and predict ice flow over Greenland.
@@ -328,6 +328,31 @@ grad_b = (1.3517 - 0.014158*LAT)/100.0*0.91
 ```
 where `LAT` is the latitude (taken from \[[5][Machgut16]\]). The equilibrium line altitude (where accumulation = ablation) `z_ELA` is latitude dependent, ranging from 1300m (South) to 1000m (North) as suggsted by \[[5][Machgut16]\].
 
+The [`iceflow.jl`](scripts/iceflow.jl) code implements the 2D SIA equations using the iterative implicit damped formulation as in [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl). The calculation of the PDE resumes in these 13 lines of Julia code:
+```julia
+# mass balance
+M     .= min.(grad_b.*(S .- z_ELA), b_max)
+# compute diffusivity
+dSdx  .= diff(S, dims=1)/dx
+dSdy  .= diff(S, dims=2)/dy
+gradS .= sqrt.(av_ya(dSdx).^2 .+ av_xa(dSdy).^2)
+D     .= a*av(H).^(npow+2) .* gradS.^(npow-1)
+# compute flux
+qHx   .= .-av_ya(D).*diff(S[:,2:end-1], dims=1)/dx
+qHy   .= .-av_xa(D).*diff(S[2:end-1,:], dims=2)/dy
+# update ice thickness
+dt    .= dtsc*min.(10.0, cfl./(epsi .+ av(D)))
+ResH  .= .-(diff(qHx, dims=1)/dx .+ diff(qHy, dims=2)/dy) .+ inn(M)
+dHdt  .= dHdt.*damp .+ ResH
+H[2:end-1,2:end-1] .= max.(0.0, inn(H) .+ dt.*dHdt)
+# apply mask
+H[Mask.==0] .= 0.0
+# update surface
+S     .= B .+ H
+```
+
+#### XPU SIA implementation
+
 
 #### Step 4
 
@@ -355,7 +380,7 @@ where `LAT` is the latitude (taken from \[[5][Machgut16]\]). The equilibrium lin
 
 \[4\] [Frankel, S. P. (1950). Convergence rates of iterative treatments of partial differential equations, Mathe. Tables Other Aids Comput., 4, 65–75.][Frankel50]
 
-\[5\] [Machgut, H. et al. (2016). Greenland surface mass-balance observations from the ice-sheet ablation area and local glaciers. Journal of Glaciology, 62(235), 861-887][Machgut16]
+\[5\] [Machgut, H. et al. (2016). Greenland surface mass-balance observations from the ice-sheet ablation area and local glaciers. Journal of Glaciology, 62(235), 861-887.][Machgut16]
 
 ⤴️ [_back to content_](#content)
 
