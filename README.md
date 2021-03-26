@@ -428,8 +428,10 @@ end
 🚧 WIP
 
 ### Performance metric
+Curious about relevant performance metric for memory-bounded applications? Check out the [performance metric section](https://github.com/omlins/ParallelStencil.jl#performance-metric) from the [ParallelStencil.jl] module and this [JuliaCon2020][JuliaCon20a] presentation \[[1][JuliaCon20a]\].
 
 ### Multi-XPU implementation
+
 
 ### Simple inversion
 
