@@ -55,13 +55,13 @@ The course repository lists following folders and items:
 > ⚠️ Due to the time limitation, the short course will not cover the [Getting started](#getting-started) steps. These are meant to provide directions to the participant willing to actively try out the examples during the short course. It is warmly recommended to perform the [Getting started](#getting-started) steps before the beginning of the workshop.
 
 The provided directions will get you started with:
-1. [Installing Julia v1.5.4](#installing-julia-v1.5.4) - 2 configurations are suggested:
+1. [Installing Julia v1.5.4](#installing-julia-v154) - 2 configurations are suggested:
 - running Julia from the [terminal with an external text editor](#terminal--external-editor)
 - running Julia from [VS Code](#vs-code)
 
 2. [Running the scripts](#running-the-scripts) from the course repository.
 
-> 👉 _Note: This course relies on Julia v1.5.4. The install configuration are tested on a MacBook Pro running macOS 10.15.7 and a Linux GPU server running Ubuntu 20.04 LTS._
+> 👉 _**Note: This course relies on Julia v1.5.4**. The install configuration are tested on a MacBook Pro running macOS 10.15.7, a Linux GPU server running Ubuntu 20.04 LTS and a Linux GPU server running CentOS 8._
 
 ### Installing Julia v1.5.4
 Check you have an active internet connexion, head to https://julialang.org/downloads/oldreleases/#v154_march_11_2021 and download Julia v1.5.4 for your platform following the install directions provided under [help] if needed.
