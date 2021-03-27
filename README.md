@@ -180,13 +180,16 @@ _by M. Werder_
 ⤴️ [_back to course material_](#short-course-material)
 
 #### Diffusion processes
-Let's start with a simple 1D linear diffusion example to (1) see the difference between explicit and implicit and (2) to compare the serial CPU vs the parallel GPU implementations. The diffusion of a quantity `H` over time `t` can be described as (1a) a diffusive flux, (1b) a flux balance and (1c) an update rule:
+Let's start with a simple 1D linear diffusion example to (i) see the difference between explicit and implicit and (ii) to compare the serial CPU vs the parallel GPU implementations. The diffusion of a quantity `H` over time `t` can be described as (1a) a diffusive flux, (1b) a flux balance and (1c) an update rule:
 ```md
 qH    = -D*dH/dx  (1a)
 dHdt  =  -dqH/dx  (1b)
 dH/dt = dHdt      (1c)
 ```
-The [`diffusion_1D_expl.jl`](scripts/diffusion_1D_expl.jl) code implements an iterative and explicit solution of eq. (1). 
+The [`diffusion_1D_expl.jl`](scripts/diffusion_1D_expl.jl) code implements an iterative and explicit solution of eq. (1) for an initial Gaussian profile
+```md
+H = exp(-(x-lx/2.0)^2)
+```
 
 ![](docs/diffusion_expl.png)
 
