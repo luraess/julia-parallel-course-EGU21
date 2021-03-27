@@ -206,7 +206,7 @@ and iterate until the values of `dHdt` (the residual of the eq. (1)) drop below 
 
 ![](docs/diffusion_impl.png)
 
-It works, but the iteration count seems to be pretty high (`niter>1000`). There is a simple way to circumvent this by adding "damping" to the rate-of-change `dHdt`, analogous to adding friction to enable faster convergence
+It works, but the iteration count seems to be pretty high (`niter>1000`). There is a simple way to circumvent this by adding "damping" (`damp`) to the rate-of-change `dHdt`, analogous to adding friction to enable faster convergence
 ```md
 dHdt = -(H-Hold)/dt -dqH/dx + damp*dHdt
 ```
