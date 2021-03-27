@@ -221,9 +221,11 @@ So now we have a cool iterative and implicit solver in about 30 lines of code �
 
 1. Extract the physics calculations from [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl), i.e. the time loop:
 ```julia
+# [...] skipped lines
 qH         .= -D*diff(H)/dx
 dHdt       .= -(H[2:end-1].-Hold[2:end-1])/dt .-diff(qH)/dx .+ damp*dHdt
 H[2:end-1] .= H[2:end-1] .+ dtau*dHdt
+# [...] skipped lines
 ```
 
 2. Split the calculations into separate functions (or kernels) and call those functions within the time loop. The [`diffusion_1D_damp_fun.jl`](scripts/diffusion_1D_damp_fun.jl) implements those modifications:
@@ -252,11 +254,14 @@ end
 compute_flux!(qH, H, D, dx, nx)
 compute_rate!(dHdt, H, Hold, qH, dt, damp, dx, nx)
 compute_update!(H, dHdt, dtau, nx)
+# [...] skipped lines
 ```
 > 💡 Julia enables multi-threading capabilities by simply adding `Threads.@threads` to the outermost loop (here over `ix`).
 
 3. The last step is to replace the (multi-threaded) loop by a vectorised index `ix = (blockIdx().x-1) * blockDim().x + threadIdx().x` specific to GPU execution. Each `ix` is executed concurrently on a different GPU thread. The [`diffusion_1D_damp_gpu.jl`](scripts/diffusion_1D_damp_gpu.jl) implements those modifications to run on GPUs:
 ```julia
+using CUDA
+# [...] skipped lines
 function compute_flux!(qH, H, D, dx, nx)
     ix = (blockIdx().x-1) * blockDim().x + threadIdx().x
     if (ix<=nx-1)  qH[ix] = -D*(H[ix+1]-H[ix])/dx  end
@@ -281,8 +286,9 @@ synchronize()
 synchronize()
 @cuda blocks=cublocks threads=cuthreads compute_update!(H, dHdt, dtau, nx)
 synchronize()
+# [...] skipped lines
 ```
-We use `@cuda blocks=cublocks threads=cuthreads` to launch the GPU function on the appropriate number of threads, i.e. "parallel workers".
+> 💡 We use `@cuda blocks=cublocks threads=cuthreads` to launch the GPU function on the appropriate number of threads, i.e. "parallel workers". The numerical grid resolution `nx` must now be chosen accordingly to the number of workers `nx=cublocks*cuthreads`.
 
 ⤴️ [_back to course material_](#short-course-material)
 
@@ -317,6 +323,7 @@ end
 @parallel compute_flux!(qH, H, D, dx)
 @parallel compute_rate!(dHdt, H, Hold, qH, dt, damp, dx)
 @parallel compute_update!(H, dHdt, dtau)
+# [...] skipped lines
 ```
 Various macros `@(...)` permit to deal with the low-level technicalities and the `USE_GPU` flag enables to switch between CPU and GPU backend. The resulting code is short and readable and solves the "two-language problem"; development and production code implementations are regrouped into a single code. 
 
