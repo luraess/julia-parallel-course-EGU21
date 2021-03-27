@@ -198,11 +198,19 @@ How to go with an implicit solution _**and**_ keeping it "matrix-free" ?
 ⤴️ [_back to course material_](#short-course-material)
 
 #### Iterative solvers
-The [`diffusion_1D_impl.jl`](scripts/diffusion_1D_impl.jl) code implements an iterative implicit solution of eq. (1). How ? We add the physical time derivative `dh/dt=(H-Hold)/dt` to the rate of change `dHdt` and iterate until the values of `dHdt` drop below a defined tolerance level `epsi`.
+The [`diffusion_1D_impl.jl`](scripts/diffusion_1D_impl.jl) code implements an iterative implicit solution of eq. (1). How ? We add the physical time derivative `dh/dt=(H-Hold)/dt` to the rate of change `dHdt` 
+```md
+dHdt = -(H-Hold)/dt -dqH/dx
+```
+and iterate until the values of `dHdt` (the residual of the eq. (1)) drop below a defined tolerance level `epsi`.
 
 ![](docs/diffusion_impl.png)
 
-It works, but the iteration count seems to be pretty high (`niter>1000`). There is a simple way to circumvent this by adding "damping" to the rate-of-change `dHdt`, analogous to adding friction to enable faster convergence. The [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) code implements a damped iterative implicit solution of eq. (1). The iteration count drops to `niter<100`.
+It works, but the iteration count seems to be pretty high (`niter>1000`). There is a simple way to circumvent this by adding "damping" to the rate-of-change `dHdt`, analogous to adding friction to enable faster convergence
+```md
+dHdt = -(H-Hold)/dt -dqH/dx + damp*dHdt
+```
+The [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) code implements a damped iterative implicit solution of eq. (1). The iteration count drops to `niter<100`.
 
 ![](docs/diffusion_damp.png)
 
