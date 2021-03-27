@@ -64,7 +64,7 @@ The provided directions will get you started with:
 > 👉 _**Note: This course relies on Julia v1.5.4**. The install configuration are tested on a MacBook Pro running macOS 10.15.7, a Linux GPU server running Ubuntu 20.04 LTS and a Linux GPU server running CentOS 8._
 
 ### Installing Julia v1.5.4
-Check you have an active internet connexion, head to https://julialang.org/downloads/oldreleases and [download Julia v1.5.4](https://julialang.org/downloads/oldreleases/#v154_march_11_2021) for your platform following the install directions provided under [help] if needed.
+Check you have an active internet connexion and [download Julia v1.5.4](https://julialang.org/downloads/oldreleases/#v154_march_11_2021) for your platform following the install directions provided under [help] if needed.
 
 Alternatively, open a terminal and download the binaries (select the one for your platform):
 ```sh
