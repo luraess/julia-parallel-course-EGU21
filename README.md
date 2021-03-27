@@ -353,7 +353,7 @@ grad_b = (1.3517 - 0.014158*LAT)/100.0*0.91
 ```
 where `LAT` is the latitude (taken from \[[5][Machgut16]\]). The equilibrium line altitude (where accumulation = ablation) `z_ELA` is latitude dependent, ranging from 1300m (South) to 1000m (North) as suggsted by \[[5][Machgut16]\].
 
-The [`iceflow.jl`](scripts/iceflow.jl) code implements the 2D SIA equations using the iterative implicit damped formulation as in [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl). The calculation of the PDE resumes in these 13 lines of Julia code:
+The [`iceflow.jl`](scripts/iceflow.jl) code implements the 2D SIA equations using the iterative implicit damped formulation as in [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl). The calculation of the SIA PDEs resumes in these 13 lines of Julia code:
 ```julia
 # mass balance
 M     .= min.(grad_b.*(S .- z_ELA), b_max)
