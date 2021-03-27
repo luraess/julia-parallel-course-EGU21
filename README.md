@@ -375,7 +375,10 @@ H[Mask.==0] .= 0.0
 # update surface
 S     .= B .+ H
 ```
-🚧 Add output figure and some words on iteration count and time to solution on specific resolution (low res, slow).
+🚧 WIP - to add:
+- output figure
+- some words on iteration count and time to solution on specific resolution (low res, slow)
+- physical time derivative to be able to switch from steady state to specific time-span
 
 #### XPU SIA implementation
 Applying what we learned from the 1D diffusion equation, we can now instrument the [`iceflow.jl`](scripts/iceflow.jl) code (see code snippet just above) to make it XPU compatible using [ParallelStencil.jl]; the [`iceflow_xpu.jl`](scripts/iceflow_xpu.jl) code:
@@ -446,6 +449,8 @@ end
 
 ### Performance metric
 Curious about relevant performance metric for memory-bounded applications? Check out the [performance metric section](https://github.com/omlins/ParallelStencil.jl#performance-metric) from the [ParallelStencil.jl] module and this [JuliaCon2020][JuliaCon20a] presentation \[[1][JuliaCon20a]\].
+
+Add a graph showing iteration count, time to solution, as fn of resolution ?...
 
 ### Multi-XPU implementation
 
