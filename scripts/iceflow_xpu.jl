@@ -14,13 +14,25 @@ using JLD, Plots, Printf
 # CPU functions
 @views av(A)  = 0.25*(A[1:end-1,1:end-1].+A[2:end,1:end-1].+A[1:end-1,2:end].+A[2:end,2:end])
 @views inn(A) = A[2:end-1,2:end-1]
-@views function smooth!(A)
-    A[2:end-1,2:end-1] .= A[2:end-1,2:end-1] .+ 1.0./4.1.*(diff(diff(A[:,2:end-1], dims=1), dims=1) .+ diff(diff(A[2:end-1,:], dims=2), dims=2))
-    A[1,:]=A[2,:]; A[end,:]=A[end-1,:]; A[:,1]=A[:,2]; A[:,end]=A[:,end-1]
+
+# GPU function
+@parallel function smooth!(A)
+    @inn(A) = @inn(A) + 1.0./4.1.*(@d2_xi(A) + @d2_yi(A))
     return
 end
 
-# GPU function
+@parallel_indices (iy) function bc_x!(A::Data.Array)
+    A[1  , iy] = A[2    , iy]
+    A[end, iy] = A[end-1, iy]
+    return
+end
+
+@parallel_indices (ix) function bc_y!(A::Data.Array)
+    A[ix, 1  ] = A[ix, 2    ]
+    A[ix, end] = A[ix, end-1]
+    return
+end
+
 @parallel function compute_Err1!(Err, H)
     @all(Err) = @all(H)
     return
@@ -148,7 +160,7 @@ end
 print("Loading the data ... ")
 data = load("../data/BedMachineGreenland_96_184.jld") # ultra low res data
 # data = load("../data/BedMachineGreenland_160_304.jld") # low res data
-Hice, Mask, Zbed = data["Hice"], data["Mask"], data["Zbed"]
+Hice, Mask, Zbed = Data.Array(data["Hice"]), Data.Array(data["Mask"]), Data.Array(data["Zbed"])
 xc, yc, dx, dy   = data["xc"], data["yc"], data["dx"], data["dy"]
 println("done.")
 
@@ -156,8 +168,12 @@ println("done.")
 print("Applying some smoothing ... ")
 ns = 2
 for is=1:ns
-    smooth!(Zbed)
-    smooth!(Hice)
+    @parallel smooth!(Zbed)
+    @parallel smooth!(Hice)
+    @parallel (1:size(Zbed,2)) bc_x!(Zbed)
+    @parallel (1:size(Zbed,1)) bc_y!(Zbed)
+    @parallel (1:size(Hice,2)) bc_x!(Hice)
+    @parallel (1:size(Hice,1)) bc_y!(Hice)
 end
 println("done.")
 
@@ -169,12 +185,15 @@ do_visu = true
 if do_visu
     !ispath("../output") && mkdir("../output")
 
-    nx, ny   = size(H)
+    nx, ny = size(H)
     H_v = fill(NaN, nx, ny)
     S_v = fill(NaN, nx, ny)
     M_v = fill(NaN, nx, ny)
     V_v = fill(NaN, nx-2, ny-2)
 
+    # data back to CPU
+    Hice, Mask, Zbed = Array(Hice), Array(Mask), Array(Zbed)
+    
     # outputs
     FS  = 7
     H_v.=H; H_v[Mask.==0].=NaN
