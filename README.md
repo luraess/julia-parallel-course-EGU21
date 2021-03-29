@@ -296,7 +296,7 @@ synchronize()
 
 ⤴️ [_back to course material_](#short-course-material)
 
-### XPU computing
+#### XPU computing
 Wouldn't it be great to be able to combine the multi-thread CPU and GPU implementations into a single "XPU" code to be able to run on various hardware with only changing a `USE_GPU` switch ? Using [ParallelStencil.jl] enables this, as well more other cool features. The [`diffusion_1D_damp_xpu.jl`](scripts/diffusion_1D_damp_xpu.jl) uses [ParallelStencil.jl] for an XPU implementation on various backends:
 
 ```julia
@@ -357,6 +357,8 @@ grad_b = (1.3517 - 0.014158*LAT)/100.0*0.91
 ```
 where `LAT` is the latitude (taken from \[[5][Machgut16]\]). The equilibrium line altitude (where accumulation = ablation) `z_ELA` is latitude dependent, ranging from 1300m (South) to 1000m (North) as suggested by \[[5][Machgut16]\].
 
+⤴️ [_back to course material_](#short-course-material)
+
 #### SIA implementation
 The [`iceflow.jl`](scripts/iceflow.jl) code implements the 2D SIA equations using the iterative implicit damped formulation as in [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl). The calculation of the SIA PDEs resumes in these 13 lines of Julia code:
 ```julia
@@ -385,6 +387,8 @@ S     .= B .+ H
 🚧 WIP - to add:
 - output figure
 - some words on iteration count and time to solution on specific resolution (low res, slow)
+
+⤴️ [_back to course material_](#short-course-material)
 
 #### XPU SIA implementation
 Applying what we learned from the 1D diffusion equation, we can now instrument the [`iceflow.jl`](scripts/iceflow.jl) code (see code snippet just above) to make it XPU compatible using [ParallelStencil.jl]; the [`iceflow_xpu.jl`](scripts/iceflow_xpu.jl) code:
@@ -446,6 +450,8 @@ end
 ```
 🚧 WIP:
 - needs some words on high resolution example and maybe zoomed in figure into specific location.
+
+⤴️ [_back to course material_](#short-course-material)
 
 #### Exercise
 
