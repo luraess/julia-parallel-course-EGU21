@@ -1,5 +1,10 @@
 using Plots, Printf
 
+@views av(A)    = 0.25*(A[1:end-1,1:end-1].+A[2:end,1:end-1].+A[1:end-1,2:end].+A[2:end,2:end])
+@views av_xa(A) = 0.5.*(A[1:end-1,:].+A[2:end,:])
+@views av_ya(A) = 0.5.*(A[:,1:end-1].+A[:,2:end])
+@views inn(A)   = A[2:end-1,2:end-1]
+
 @views function iceflow()
     # physics
     s2y      = 3600*24*365.25  # seconds to years
@@ -9,13 +14,13 @@ using Plots, Printf
     npow     = 3.0             # Glen's power law exponent 
     a0       = 1.5e-24         # Glen's law enhancement term
     # numerics
-    nx, ny   = 100, 100
-    nt       = 1e5
-    nout     = 200
-    tolnl    = 1e-6
-    epsi     = 1e-4
-    damp     = 0.85
-    dtsc     = 1.0/2.0
+    nx, ny   = 100, 100        # numerical grid resolution
+    itMax    = 1e5             # number of iteration steps
+    nout     = 200             # error check frequency
+    tolnl    = 1e-6            # nonlinear tolerance
+    epsi     = 1e-4            # small number
+    damp     = 0.85            # convergence acceleration
+    dtsc     = 1.0/2.0         # iterative dt scaling
     # derived physics
     a        = 2.0*a0/(npow+2)*(rho_i*g)^npow*s2y
     # derived numerics
@@ -48,8 +53,9 @@ using Plots, Printf
     # smoothing (Mahaffy, 1976)
     B[2:end-1,2:end-1] .= B[2:end-1,2:end-1] .+ 1.0./4.1.*(diff(diff(B[:,2:end-1], dims=1), dims=1) .+ diff(diff(B[2:end-1,:], dims=2), dims=2))
     S       .= B .+ H
-    # time loop
-    for it = 1:nt
+    # iteration loop
+    it = 1; err = 2*tolnl
+    while err>tolnl && it<itMax
         Err   .= H
         # compute diffusivity
         dSdx  .= diff(S, dims=1)/dx
@@ -71,8 +77,9 @@ using Plots, Printf
             Err  .= Err .- H
             err   = (sum(abs.(Err))./nx./ny)
             @printf("it = %d, error = %1.2e \n", it, err)
-            if (err<tolnl) break end # stop criterion
+            if isnan(err) error("NaNs") end # safeguard
         end
+        it += 1
     end
     # compute velocities
     Vx .= -D./(av(H) .+ epsi).*av_ya(dSdx)
@@ -86,6 +93,7 @@ using Plots, Printf
     p2 = heatmap(xc, yc, H' , aspect_ratio=1, xaxis=xax, yaxis=yax, c=:davos, title="Ice thickness [m]", titlefont="Courier", titlefontsize=FS)
     # display(plot(p1, p2, size=(400,160), dpi=200))
     plot(p1, p2, size=(400,160), dpi=200)
+    !ispath("../output") && mkdir("../output")
     savefig("../output/iceflow_bench_out.png")
     return
 end

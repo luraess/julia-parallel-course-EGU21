@@ -11,7 +11,7 @@ using JLD, Plots, Printf
     return
 end
 
-@views function iceflow(dx, dy, Zbed, Hice, Mask=zero(Zbed); do_visu=false)
+@views function iceflow(dx, dy, Zbed, Hice, Mask=zero(Zbed))
     println("Initialising ice flow model ... ")
     # physics
     s2y      = 3600*24*365.25  # seconds to years
@@ -21,14 +21,14 @@ end
     a0       = 1.5e-24         # Glen's law enhancement term
     b_max    = 0.15            # max. Mass balance rate
     # numerics
-    nx, ny   = size(Zbed,1), size(Zbed,2)
+    nx, ny   = size(Zbed,1), size(Zbed,2) # numerical grid resolution
     @assert (nx, ny) == size(Zbed) == size(Hice) == size(Mask) "Sizes don't match"
-    nt       = 1e5
-    nout     = 200
-    tolnl    = 1e-6
-    epsi     = 1e-4
-    damp     = 0.85
-    dtsc     = 1.0/3.0
+    itMax    = 1e5             # number of iteration (max)
+    nout     = 200             # error check frequency
+    tolnl    = 1e-6            # nonlinear tolerance
+    epsi     = 1e-4            # small number
+    damp     = 0.85            # convergence accelerator
+    dtsc     = 1.0/3.0         # iterative dt scaling
     # derived physics
     a        = 2.0*a0/(npow+2)*(rho_i*g)^npow*s2y
     lx, ly   = nx*dx, ny*dy
@@ -60,8 +60,9 @@ end
     z_ELA    = 1300.0 .- Yc2*300.0                                 # Educated guess for ELA altitude
     S       .= B .+ H
     println(" starting time loop:")
-    # time loop
-    for it = 1:nt
+    # iteration loop
+    it = 1; err = 2*tolnl
+    while err>tolnl && it<itMax
         Err   .= H
         # mass balance
         M     .= min.(grad_b.*(S .- z_ELA), b_max)
@@ -87,8 +88,9 @@ end
             Err .= Err .- H
             err  = (sum(abs.(Err))./nx./ny)
             @printf(" it = %d, error = %1.2e \n", it, err)
-            if (err<tolnl) break end # stop criterion
+            if isnan(err) error("NaNs") end # safeguard
         end
+        it += 1
     end
     # compute velocities
     Vx .= -D./(av(H) .+ epsi).*av_ya(dSdx)
@@ -114,7 +116,7 @@ end
 println("done.")
 
 # run the SIA flow model
-H, S, M, Vx, Vy = iceflow(dx, dy, Zbed, Hice, Mask; do_visu)
+H, S, M, Vx, Vy = iceflow(dx, dy, Zbed, Hice, Mask)
 
 # handle visualisation
 do_visu = true
@@ -133,10 +135,10 @@ if do_visu
     S_v.=S; S_v[Mask.==0].=NaN
     M_v.=M; M_v[Mask.==0].=NaN
     V_v.=sqrt.(av(Vx).^2 .+ av(Vy).^2); V_v[inn(H).==0].=NaN
-    p1 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(S_v, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, ticks=nothing, framestyle=:box, title="Surface elev. [m]", titlefontsize=FS, titlefont="Courier")
-    p2 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H_v, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, ticks=nothing, framestyle=:box, title="Ice thickness [m]", titlefontsize=FS, titlefont="Courier")
-    p3 = heatmap(xc[2:end-1]./1e3, reverse(yc[2:end-1])./1e3, reverse(log10.(V_v), dims=2)', c=:batlow, aspect_ratio=1, xlims=(xc[2], xc[end-1])./1e3, ylims=(yc[end-1], yc[2])./1e3, clims=(0.1, 2.0), ticks=nothing, framestyle=:box, title="log10(vel) [m/yr]", titlefontsize=FS, titlefont="Courier")
-    p4 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(M_v, dims=2)', c=:devon, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, ticks=nothing, framestyle=:box, title="Mass Bal. rate [m/yr]", titlefontsize=FS, titlefont="Courier")
+    p1 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(S_v, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="Surface elev. [m]", titlefontsize=FS, titlefont="Courier")
+    p2 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H_v, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="Ice thickness [m]", titlefontsize=FS, titlefont="Courier")
+    p3 = heatmap(xc[2:end-1]./1e3, reverse(yc[2:end-1])./1e3, reverse(log10.(V_v), dims=2)', c=:batlow, aspect_ratio=1, xlims=(xc[2], xc[end-1])./1e3, ylims=(yc[end-1], yc[2])./1e3, clims=(0.1, 2.0), yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="log10(vel) [m/yr]", titlefontsize=FS, titlefont="Courier")
+    p4 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(M_v, dims=2)', c=:devon, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="Mass Bal. rate [m/yr]", titlefontsize=FS, titlefont="Courier")
     # display(plot(p1, p2, p3, p4, size=(400,400)))
     plot(p1, p2, p3, p4, size=(400,400), dpi=200) #background_color=:transparent, foreground_color=:white
     savefig("../output/iceflow_out1.png")
@@ -146,9 +148,9 @@ if do_visu
     Hice[Mask.==0] .= NaN
     H[Mask.==0]    .= NaN
     FS = 7
-    p1 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(Hice, dims=2)'  , c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, ticks=nothing, framestyle=:box, title="H data [m]", titlefontsize=FS, titlefont="Courier")
-    p2 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H, dims=2)'     , c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, ticks=nothing, framestyle=:box, title="H model [m]", titlefontsize=FS, titlefont="Courier")
-    p3 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H_diff, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, ticks=nothing, framestyle=:box, title="H (data-model) [m]", titlefontsize=FS, titlefont="Courier")
+    p1 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(Hice, dims=2)'  , c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="H data [m]", titlefontsize=FS, titlefont="Courier")
+    p2 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H, dims=2)'     , c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="H model [m]", titlefontsize=FS, titlefont="Courier")
+    p3 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H_diff, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="H (data-model) [m]", titlefontsize=FS, titlefont="Courier")
     # display(plot(p1, p2, p3, layout=(1, 3), size=(500,160)))
     plot(p1, p2, p3, layout=(1, 3), size=(500,160), dpi=200) #background_color=:transparent, foreground_color=:white
     savefig("../output/iceflow_out2.png")
