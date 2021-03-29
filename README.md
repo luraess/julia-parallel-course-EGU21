@@ -159,6 +159,7 @@ This section lists the material discussed within this 60 min. short course:
     * [XPU computing](#xpu-computing)
 * [Part 2 - solving PDEs to predict ice flow](#part-2---solving-pdes-to-predict-ice-flow)
     * [SIA equation](#sia-equation)
+    * [SIA implementation](#sia-implementation)
     * [XPU SIA implementation](#xpu-sia-implementation)
     * [Exercise](#exercise)
 
@@ -209,7 +210,7 @@ and iterate until the values of `dHdt` (the residual of the eq. (1)) drop below 
 
 ![](docs/diffusion_impl.png)
 
-It works, but the iteration count seems to be pretty high (`niter>1000`). There is a simple way to circumvent this by adding "damping" (`damp`) to the rate-of-change `dHdt`, analogous to adding friction to enable faster convergence
+It works, but the iteration count seems to be pretty high (`niter>1000`). There is a simple way to circumvent this by adding "damping" (`damp`) to the rate-of-change `dHdt`, analogous to adding friction to enable faster convergence \[[4][Frankel50]\]
 ```md
 dHdt = -(H-Hold)/dt -dqH/dx + damp*dHdt
 ```
@@ -354,8 +355,9 @@ as function of the surface elevation `B+H` and capped by the maximal accumulatio
 ```md
 grad_b = (1.3517 - 0.014158*LAT)/100.0*0.91
 ```
-where `LAT` is the latitude (taken from \[[5][Machgut16]\]). The equilibrium line altitude (where accumulation = ablation) `z_ELA` is latitude dependent, ranging from 1300m (South) to 1000m (North) as suggsted by \[[5][Machgut16]\].
+where `LAT` is the latitude (taken from \[[5][Machgut16]\]). The equilibrium line altitude (where accumulation = ablation) `z_ELA` is latitude dependent, ranging from 1300m (South) to 1000m (North) as suggested by \[[5][Machgut16]\].
 
+#### SIA implementation
 The [`iceflow.jl`](scripts/iceflow.jl) code implements the 2D SIA equations using the iterative implicit damped formulation as in [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl). The calculation of the SIA PDEs resumes in these 13 lines of Julia code:
 ```julia
 # mass balance
@@ -378,6 +380,8 @@ H[Mask.==0] .= 0.0
 # update surface
 S     .= B .+ H
 ```
+> 💡 Note that the here discussed SIA codes do not implement any flux limiter scheme to circumvent known accuracy and stability issues. Check out  \[[6][Jarosch13], [7][Visnjevic18]\] for further references (the [`iceflow_bench.jl`](scripts/iceflow_bench.jl) script implements the benchmark \[[6][Jarosch13]\] that reflects this issue).
+
 🚧 WIP - to add:
 - output figure
 - some words on iteration count and time to solution on specific resolution (low res, slow)
@@ -454,7 +458,7 @@ end
 🚧 WIP
 
 ### Simple inversion
-Using the inversion approach proposed by \[[6][Visnjevic18]\], our ice flow solver [`iceflow.jl`](scripts/iceflow.jl) can be embedded into an inversion framework to retrieve spatially variable maximum accumulation rate `b_max` in order to constrain ice thickness distribution over Greenland. The following animation depicts the evolution of the inversion procedure as function of the 30 inversion steps and was produced using the [`iceflow_inverse.jl`](scripts/iceflow_inverse.jl) code. `Gam` represents the misfit between the observed `Hice` and the calculated `H` ice thickness, `B_max` represents the spatially variable maximal accumulation.
+Using the inversion approach proposed by \[[7][Visnjevic18]\], our ice flow solver [`iceflow.jl`](scripts/iceflow.jl) can be embedded into an inversion framework to retrieve spatially variable maximum accumulation rate `b_max` in order to constrain ice thickness distribution over Greenland. The following animation depicts the evolution of the inversion procedure as function of the 30 inversion steps and was produced using the [`iceflow_inverse.jl`](scripts/iceflow_inverse.jl) code. `Gam` represents the misfit between the observed `Hice` and the calculated `H` ice thickness, `B_max` represents the spatially variable maximal accumulation.
 
 ![](docs/iceflow_inv_160x304.gif)
 
@@ -486,6 +490,10 @@ Add a graph showing iteration count, time to solution, as fn of resolution ?...
 
 \[5\] [Machgut, H. et al. (2016). Greenland surface mass-balance observations from the ice-sheet ablation area and local glaciers. Journal of Glaciology, 62(235), 861-887.][Machgut16]
 
+\[6\] [Jarosch, A. H., Schoof, C. G., and Anslow, F. S. (2013). Restoring mass conservation to shallow ice flow models over complex terrain, The Cryosphere, 7, 229–240,][Jarosch13]
+
+\[7\] [Visnjevic, V., Herman, F., & Podladchikov, Y. (2018). Reconstructing spatially variable mass balances from past ice extents by inverse modeling. Journal of Glaciology, 64(248), 957-968.][Visnjevic18]
+
 ⤴️ [_back to content_](#content)
 
 
@@ -505,3 +513,5 @@ Add a graph showing iteration count, time to solution, as fn of resolution ?...
 [JuliaCon19]: https://www.youtube.com/watch?v=b90qqbYJ58Q
 [Frankel50]: /docs/frankel_1950.pdf
 [Machgut16]: https://doi.org/10.1017/jog.2016.75
+[Jarosch13]: https://doi.org/10.5194/tc-7-229-2013
+[Visnjevic18]: https://doi.org/10.1017/jog.2018.82
