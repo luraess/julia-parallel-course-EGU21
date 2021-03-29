@@ -2,21 +2,21 @@ using Plots, Printf
 
 @views function diffusion_1D()
     # Physics
-    lx   = 10.0        # domain size
-    D    = 1.0         # diffusion coefficient
-    ttot = 0.6         # total simulation time
+    lx    = 10.0        # domain size
+    D     = 1.0         # diffusion coefficient
+    ttot  = 0.6         # total simulation time
     # Numerics
-    nx   = 128         # numerical grid resolution
+    nx    = 128         # numerical grid resolution
     # Derived numerics
-    dx   = lx/nx       # gird size
-    dt   = dx^2/D/2.1  # time step
-    xc   = LinRange(dx/2, lx-dx/2, nx)
+    dx    = lx/nx       # gird size
+    dt    = dx^2/D/2.1  # time step
+    xc    = LinRange(dx/2, lx-dx/2, nx)
     # Array allocation
-    qH   = zeros(nx-1)
-    dHdt = zeros(nx-2)
+    qH    = zeros(nx-1)
+    dHdt  = zeros(nx-2)
     # Initial condition
-    H    = exp.(.-(xc.-lx./2.0).^2)
-    H0   = copy(H)
+    H     = exp.(.-(xc.-lx./2.0).^2)
+    H0    = copy(H)
     t = 0.0; it = 1
     # Time loop
     while t<ttot

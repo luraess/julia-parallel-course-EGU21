@@ -20,31 +20,32 @@ end
 
 @views function diffusion_1D()
     # Physics
-    lx   = 10.0       # domain size
-    D    = 1.0        # diffusion coefficient
-    dt   = 0.6        # physical time step (ttot)
+    lx    = 10.0       # domain size
+    D     = 1.0        # diffusion coefficient
+    dt    = 0.6        # physical time step (ttot)
     # Numerics
-    BLOC = 16
-    GRID = 8
-    nx   = BLOC*GRID  # numerical grid resolution
-    epsi = 1e-6       # tolerance
-    damp = 0.86       # damping
+    BLOC  = 16
+    GRID  = 8
+    nx    = BLOC*GRID  # numerical grid resolution
+    tol   = 1e-6       # tolerance
+    itMax = 1e4        # max number of iterations
+    damp  = 0.86       # damping
     # Derived numerics
-    dx   = lx/nx      # grid size
-    dtau = (1.0/(dx^2/D/2.1) + 1.0/dt)^-1 # iterative timestep
-    xc   = LinRange(dx/2, lx-dx/2, nx)
+    dx    = lx/nx      # grid size
+    dtau  = (1.0/(dx^2/D/2.1) + 1.0/dt)^-1 # iterative timestep
+    xc    = LinRange(dx/2, lx-dx/2, nx)
     cuthreads = BLOC
     cublocks  = GRID
     # Array allocation
-    qH   = CUDA.zeros(nx-1)
-    dHdt = CUDA.zeros(nx-2)
+    qH    = CUDA.zeros(nx-1)
+    dHdt  = CUDA.zeros(nx-2)
     # Initial condition
-    H    = CuArray( exp.(.-(xc.-lx./2.0).^2) )
-    Hold = copy(H)
-    H0   = copy(H)
-    it = 1; err = 2*epsi
+    H     = CuArray( exp.(.-(xc.-lx./2.0).^2) )
+    Hold  = copy(H)
+    H0    = copy(H)
+    it = 1; err = 2*tol
     # Time loop
-    while err>epsi
+    while err>tol && it<itMax
         @cuda blocks=cublocks threads=cuthreads compute_flux!(qH, H, D, dx, nx)
         synchronize()
         @cuda blocks=cublocks threads=cuthreads compute_rate!(dHdt, H, Hold, qH, dt, damp, dx, nx)
