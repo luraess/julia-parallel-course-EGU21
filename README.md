@@ -202,7 +202,7 @@ The [`diffusion_1D_impl.jl`](scripts/diffusion_1D_impl.jl) code implements an it
 ```md
 dHdt = -(H-Hold)/dt -dqH/dx
 ```
-and iterate until the values of `dHdt` (the residual of the eq. (1)) drop below a defined tolerance level `epsi`.
+and iterate until the values of `dHdt` (the residual of the eq. (1)) drop below a defined tolerance level `tol`.
 
 ![](docs/diffusion_impl.png)
 
