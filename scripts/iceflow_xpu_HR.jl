@@ -9,14 +9,7 @@ else
     pow(x,y) = x^y
     macro pow(args...)  esc(:(pow($(args...)))) end
 end
-using JLD, Plots, Printf
-
-## user defined macros
-import ParallelStencil: INDICES
-ix,  iy  = INDICES[1], INDICES[2]
-ixi, iyi = :($ix+1), :($iy+1) 
-macro minloc(A) esc(:( min( min( min($A[$ixi-1,$iyi  ], $A[$ixi+1,$iyi  ])  , $A[$ixi  ,$iyi  ] ),
-                                 min($A[$ixi  ,$iyi-1], $A[$ixi  ,$iyi+1]) ) )) end
+using JLD, Plots, Printf, LinearAlgebra
 
 # CPU functions
 @views av(A)  = 0.25*(A[1:end-1,1:end-1].+A[2:end,1:end-1].+A[1:end-1,2:end].+A[2:end,2:end])
@@ -111,7 +104,7 @@ end
     @assert (nx, ny) == size(Zbed) == size(Hice) == size(Mask) "Sizes don't match"
     itMax    = 1e6             # number of iteration (max)
     nout     = 500             # error check frequency
-    tolnl    = 1e-5            # nonlinear tolerance
+    tolnl    = 1e-6            # nonlinear tolerance
     damp     = 0.85            # convergence accelerator
     dtsc     = 1.0/4.0         # iterative dt scaling
     ntloc    = 1               # local min iterations
@@ -168,7 +161,7 @@ end
         # error check
         if mod(it, nout)==0
             @parallel compute_Err2!(Err, H)
-            err = (sum(abs.(Err))./nx./ny)
+            err = norm(Err)/length(Err) # err = (sum(abs.(Err))./nx./ny)
             @printf(" it = %d, error = %1.2e \n", it, err)
             if isnan(err) error("NaNs") end # safeguard
         end
@@ -180,12 +173,15 @@ end
 # ------------------------------------------------------------------------------
 # load the data
 print("Loading the data ... ")
-# data = load("../data/BedMachineGreenland_96_184.jld")
-data = load("../data/BedMachineGreenland_160_304.jld")
-# data = load("../data/BedMachineGreenland_320_608.jld")
-# data = load("../data/BedMachineGreenland_992_1832.jld")
-# data = load("../data/BedMachineGreenland_5088_9168.jld")
-# data = load("../data/BedMachineGreenland_10208_18344.jld") # no ds - too big for 1 GPU
+# data = load("../data/BedMachineGreenland_96_184_ds100.jld")
+# data = load("../data/BedMachineGreenland_160_304_ds60.jld")
+data = load("../data/BedMachineGreenland_320_608_ds30.jld")
+# data = load("../data/BedMachineGreenland_992_1832_ds10.jld")
+# data = load("../data/BedMachineGreenland_2016_3664_ds5.jld")
+# data = load("../data/BedMachineGreenland_2528_4584_ds4.jld")
+# data = load("../data/BedMachineGreenland_3392_6112_ds3.jld")
+# data = load("../data/BedMachineGreenland_5088_9168_ds2.jld")
+# data = load("../data/BedMachineGreenland_10208_18344_ds1.jld") # no ds - too big for 1 GPU
 Hice, Mask, Zbed = Data.Array(data["Hice"]), Data.Array(data["Mask"]), Data.Array(data["Zbed"])
 xc, yc, dx, dy   = data["xc"], data["yc"], data["dx"], data["dy"]
 println("done.")
@@ -206,8 +202,10 @@ println("done.")
 # run the SIA flow model
 H, S, M, Vx, Vy = iceflow(dx, dy, Zbed, Hice, Mask)
 
-# handle visualisation
-do_visu = true
+# handle output
+do_visu = false
+do_save = false
+
 if do_visu
     !ispath("../output") && mkdir("../output")
 
@@ -245,6 +243,17 @@ if do_visu
     # display(plot(p1, p2, p3, layout=(1, 3), size=(500,160)))
     plot(p1, p2, p3, layout=(1, 3), size=(500,160), dpi=200) #background_color=:transparent, foreground_color=:white
     savefig("../output/iceflow_out2_xpu_HR_$(nx)x$(ny).png")
+end
+
+if do_save
+    save("../output/iceflow_xpu_HR_$(nx)x$(ny).jld", "Hice", convert(Matrix{Float32}, Hice),
+                                                     "Mask", convert(Matrix{Float32}, Mask),
+                                                     "H"   , convert(Matrix{Float32}, H),
+                                                     "S"   , convert(Matrix{Float32}, S),
+                                                     "M"   , convert(Matrix{Float32}, M),
+                                                     "Vx"  , convert(Matrix{Float32}, Vx),
+                                                     "Vy"  , convert(Matrix{Float32}, Vy),
+                                                     "xc", xc, "yc", yc)
 end
 
 println("... done.")
