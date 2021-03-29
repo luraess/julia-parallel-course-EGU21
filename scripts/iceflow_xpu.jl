@@ -9,7 +9,7 @@ else
     pow(x,y) = x^y
     macro pow(args...)  esc(:(pow($(args...)))) end
 end
-using JLD, Plots, Printf
+using JLD, Plots, Printf, LinearAlgebra
 
 # CPU functions
 @views av(A)  = 0.25*(A[1:end-1,1:end-1].+A[2:end,1:end-1].+A[1:end-1,2:end].+A[2:end,2:end])
@@ -148,7 +148,7 @@ end
         # error check
         if mod(it, nout)==0
             @parallel compute_Err2!(Err, H)
-            err = (sum(abs.(Err))./nx./ny)
+            err = norm(Err)/length(Err)
             @printf(" it = %d, error = %1.2e \n", it, err)
             if isnan(err) error("NaNs") end # safeguard
         end
@@ -182,8 +182,10 @@ println("done.")
 # run the SIA flow model
 H, S, M, Vx, Vy = iceflow(dx, dy, Zbed, Hice, Mask)
 
-# handle visualisation
+# handle output
 do_visu = true
+do_save = true
+
 if do_visu
     !ispath("../output") && mkdir("../output")
 
@@ -221,6 +223,17 @@ if do_visu
     # display(plot(p1, p2, p3, layout=(1, 3), size=(500,160)))
     plot(p1, p2, p3, layout=(1, 3), size=(500,160), dpi=200) #background_color=:transparent, foreground_color=:white
     savefig("../output/iceflow_out2_xpu_$(nx)x$(ny).png")
+end
+
+if do_save
+    save("../output/iceflow_xpu_HR_$(nx)x$(ny).jld", "Hice", convert(Matrix{Float32}, Hice),
+                                                     "Mask", convert(Matrix{Float32}, Mask),
+                                                     "H"   , convert(Matrix{Float32}, H),
+                                                     "S"   , convert(Matrix{Float32}, S),
+                                                     "M"   , convert(Matrix{Float32}, M),
+                                                     "Vx"  , convert(Matrix{Float32}, Vx),
+                                                     "Vy"  , convert(Matrix{Float32}, Vy),
+                                                     "xc", xc, "yc", yc)
 end
 
 println("... done.")
