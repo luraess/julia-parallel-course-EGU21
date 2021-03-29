@@ -134,7 +134,7 @@ end
     grad_b   = Data.Array( (1.3517 .- 0.014158.*(60.0.+Yc2*20.0))./100.0.*0.91 )# Mass Bal. gradient, from doi: 10.1017/jog.2016.75
     z_ELA    = Data.Array( 1300.0 .- Yc2*300.0 )                                # Educated guess for ELA altitude
     S       .= B .+ H
-    println(" starting time loop:")
+    println(" starting iteration loop:")
     # iteration loop
     it = 1; err = 2*tolnl
     while err>tolnl && it<itMax
@@ -226,14 +226,14 @@ if do_visu
 end
 
 if do_save
-    save("../output/iceflow_xpu_HR_$(nx)x$(ny).jld", "Hice", convert(Matrix{Float32}, Hice),
-                                                     "Mask", convert(Matrix{Float32}, Mask),
-                                                     "H"   , convert(Matrix{Float32}, H),
-                                                     "S"   , convert(Matrix{Float32}, S),
-                                                     "M"   , convert(Matrix{Float32}, M),
-                                                     "Vx"  , convert(Matrix{Float32}, Vx),
-                                                     "Vy"  , convert(Matrix{Float32}, Vy),
-                                                     "xc", xc, "yc", yc)
+    save("../output/iceflow_xpu_$(nx)x$(ny).jld", "Hice", convert(Matrix{Float32}, Hice),
+                                                  "Mask", convert(Matrix{Float32}, Mask),
+                                                  "H"   , convert(Matrix{Float32}, H),
+                                                  "S"   , convert(Matrix{Float32}, S),
+                                                  "M"   , convert(Matrix{Float32}, M),
+                                                  "Vx"  , convert(Matrix{Float32}, Vx),
+                                                  "Vy"  , convert(Matrix{Float32}, Vy),
+                                                  "xc", xc, "yc", yc)
 end
 
 println("... done.")

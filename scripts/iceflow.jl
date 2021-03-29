@@ -53,13 +53,13 @@ end
     M        = zeros(nx  , ny  )
     # initial condition
     S        = zeros(nx  , ny  )
-    B        = deepcopy(Zbed)
-    H        = deepcopy(Hice)
+    B        = copy(Zbed)
+    H        = copy(Hice)
     Yc2      = Yc .- minimum(Yc); Yc2 .= Yc2./maximum(Yc2)
     grad_b   = (1.3517 .- 0.014158.*(60.0.+Yc2*20.0))./100.0.*0.91 # Mass Bal. gradient, from doi: 10.1017/jog.2016.75
     z_ELA    = 1300.0 .- Yc2*300.0                                 # Educated guess for ELA altitude
     S       .= B .+ H
-    println(" starting time loop:")
+    println(" starting iteration loop:")
     # iteration loop
     it = 1; err = 2*tolnl
     while err>tolnl && it<itMax
@@ -100,8 +100,8 @@ end
 # ------------------------------------------------------------------------------
 # load the data
 print("Loading the data ... ")
-data = load("../data/BedMachineGreenland_96_184.jld") # ultra low res data
-# data = load("../data/BedMachineGreenland_160_304.jld") # low res data
+data = load("../data/BedMachineGreenland_96_184_ds100.jld")
+# data = load("../data/BedMachineGreenland_160_304_ds60.jld")
 Hice, Mask, Zbed = data["Hice"], data["Mask"], data["Zbed"]
 xc, yc, dx, dy   = data["xc"], data["yc"], data["dx"], data["dy"]
 println("done.")
@@ -159,14 +159,14 @@ if do_visu
 end
 
 if do_save
-    save("../output/iceflow_xpu_HR_$(nx)x$(ny).jld", "Hice", convert(Matrix{Float32}, Hice),
-                                                     "Mask", convert(Matrix{Float32}, Mask),
-                                                     "H"   , convert(Matrix{Float32}, H),
-                                                     "S"   , convert(Matrix{Float32}, S),
-                                                     "M"   , convert(Matrix{Float32}, M),
-                                                     "Vx"  , convert(Matrix{Float32}, Vx),
-                                                     "Vy"  , convert(Matrix{Float32}, Vy),
-                                                     "xc", xc, "yc", yc)
+    save("../output/iceflow_$(nx)x$(ny).jld", "Hice", convert(Matrix{Float32}, Hice),
+                                              "Mask", convert(Matrix{Float32}, Mask),
+                                              "H"   , convert(Matrix{Float32}, H),
+                                              "S"   , convert(Matrix{Float32}, S),
+                                              "M"   , convert(Matrix{Float32}, M),
+                                              "Vx"  , convert(Matrix{Float32}, Vx),
+                                              "Vy"  , convert(Matrix{Float32}, Vy),
+                                              "xc", xc, "yc", yc)
 end
 
 println("... done.")
