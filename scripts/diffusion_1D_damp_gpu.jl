@@ -1,4 +1,4 @@
-using CUDA, Plots, Printf
+using CUDA, Plots, Printf, LinearAlgebra
 
 function compute_flux!(qH, H, D, dx, nx)
     ix = (blockIdx().x-1) * blockDim().x + threadIdx().x
@@ -29,7 +29,7 @@ end
     nx    = BLOC*GRID  # numerical grid resolution
     tol   = 1e-6       # tolerance
     itMax = 1e4        # max number of iterations
-    damp  = 0.86       # damping
+    damp  = 0.87       # damping
     # Derived numerics
     dx    = lx/nx      # grid size
     dtau  = (1.0/(dx^2/D/2.1) + 1.0/dt)^-1 # iterative timestep
@@ -52,7 +52,7 @@ end
         synchronize()
         @cuda blocks=cublocks threads=cuthreads compute_update!(H, dHdt, dtau, nx)
         synchronize()
-        it += 1; err = maximum(dHdt)
+        it += 1; err = norm(dHdt)/length(dHdt)
     end
     @printf("Total time = %1.2f, it tot = %d \n", round(dt, sigdigits=2), it)
     # Visualise

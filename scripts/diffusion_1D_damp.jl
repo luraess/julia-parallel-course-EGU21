@@ -1,4 +1,4 @@
-using Plots, Printf
+using Plots, Printf, LinearAlgebra
 
 @views function diffusion_1D()
     # Physics
@@ -9,7 +9,7 @@ using Plots, Printf
     nx    = 128        # numerical grid resolution
     tol   = 1e-6       # tolerance
     itMax = 1e4        # max number of iterations
-    damp  = 0.86       # damping
+    damp  = 0.87       # damping
     # Derived numerics
     dx    = lx/nx      # grid size
     dtau  = (1.0/(dx^2/D/2.1) + 1.0/dt)^-1 # iterative timestep
@@ -27,7 +27,7 @@ using Plots, Printf
         qH         .= -D*diff(H)/dx            # flux
         dHdt       .= -(H[2:end-1].-Hold[2:end-1])/dt .-diff(qH)/dx .+ damp*dHdt # damped rate of change
         H[2:end-1] .= H[2:end-1] .+ dtau*dHdt  # update rule
-        it += 1; err = maximum(dHdt)
+        it += 1; err = norm(dHdt)/length(dHdt)
     end
     @printf("Total time = %1.2f, it tot = %d \n", round(dt, sigdigits=2), it)
     # Visualise

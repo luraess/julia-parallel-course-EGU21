@@ -1,4 +1,4 @@
-using Plots, Printf
+using Plots, Printf, LinearAlgebra
 
 function compute_flux!(qH, H, D, dx, nx)
     Threads.@threads for ix=1:nx
@@ -31,7 +31,7 @@ end
     nx    = 128        # numerical grid resolution
     tol   = 1e-6       # tolerance
     itMax = 1e4        # max number of iterations
-    damp  = 0.86       # damping
+    damp  = 0.87       # damping
     # Derived numerics
     dx    = lx/nx      # grid size
     dtau  = (1.0/(dx^2/D/2.1) + 1.0/dt)^-1 # iterative timestep
@@ -49,7 +49,7 @@ end
         compute_flux!(qH, H, D, dx, nx)
         compute_rate!(dHdt, H, Hold, qH, dt, damp, dx, nx)
         compute_update!(H, dHdt, dtau, nx)
-        it += 1; err = maximum(dHdt)
+        it += 1; err = norm(dHdt)/length(dHdt)
     end
     @printf("Total time = %1.2f, it tot = %d \n", round(dt, sigdigits=2), it)
     # Visualise

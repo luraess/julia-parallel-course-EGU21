@@ -6,7 +6,7 @@ using ParallelStencil.FiniteDifferences1D
 else
     @init_parallel_stencil(Threads, Float64, 1)
 end
-using Plots, Printf
+using Plots, Printf, LinearAlgebra
 
 @parallel function compute_flux!(qH, H, D, dx)
     @all(qH) = -D*@d(H)/dx
@@ -32,7 +32,7 @@ end
     nx    = 128        # numerical grid resolution
     tol   = 1e-6       # tolerance
     itMax = 1e4        # max number of iterations
-    damp  = 0.86       # damping
+    damp  = 0.87       # damping
     # Derived numerics
     dx    = lx/nx      # grid size
     dtau  = (1.0/(dx^2/D/2.1) + 1.0/dt)^-1 # iterative timestep
@@ -50,7 +50,7 @@ end
         @parallel compute_flux!(qH, H, D, dx)
         @parallel compute_rate!(dHdt, H, Hold, qH, dt, damp, dx)
         @parallel compute_update!(H, dHdt, dtau)
-        it += 1; err = maximum(dHdt)
+        it += 1; err = norm(dHdt)/length(dHdt)
     end
     @printf("Total time = %1.2f, it tot = %d \n", round(dt, sigdigits=2), it)
     # Visualise

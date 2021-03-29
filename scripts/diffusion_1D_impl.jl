@@ -1,4 +1,4 @@
-using Plots, Printf
+using Plots, Printf, LinearAlgebra
 
 @views function diffusion_1D()
     # Physics
@@ -26,7 +26,7 @@ using Plots, Printf
         qH         .= -D*diff(H)/dx            # flux
         dHdt       .= -(H[2:end-1].-Hold[2:end-1])/dt .-diff(qH)/dx  # rate of change
         H[2:end-1] .= H[2:end-1] .+ dtau*dHdt  # update rule
-        it += 1; err = maximum(dHdt)
+        it += 1; err = norm(dHdt)/length(dHdt)
     end
     @printf("Total time = %1.2f, it tot = %d \n", round(dt, sigdigits=2), it)
     # Visualise
