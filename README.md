@@ -160,6 +160,7 @@ This section lists the material discussed within this 60 min. short course:
 * [Part 2 - solving PDEs to predict ice flow](#part-2---solving-pdes-to-predict-ice-flow)
     * [SIA equation](#sia-equation)
     * [XPU SIA implementation](#xpu-sia-implementation)
+    * [Exercise](#exercise)
 
 💡 In this course we will implement a 2D nonlinear diffusion equation on GPUs in Julia using the finite-difference method and an iterative solving approach. The goal is to resolve the shallow ice approximation (SIA) and predict ice flow over Greenland.
 
@@ -380,7 +381,6 @@ S     .= B .+ H
 🚧 WIP - to add:
 - output figure
 - some words on iteration count and time to solution on specific resolution (low res, slow)
-- physical time derivative to be able to switch from steady state to specific time-span
 
 #### XPU SIA implementation
 Applying what we learned from the 1D diffusion equation, we can now instrument the [`iceflow.jl`](scripts/iceflow.jl) code (see code snippet just above) to make it XPU compatible using [ParallelStencil.jl]; the [`iceflow_xpu.jl`](scripts/iceflow_xpu.jl) code:
@@ -440,8 +440,12 @@ end
 @parallel compute_H!(H, dHdt, dt)
 @parallel compute_Mask_S!(H, S, B, Mask)
 ```
-🚧 Needs some words on high res example and maybe zoomed in figure into specific location.
+🚧 WIP:
+- needs some words on high resolution example and maybe zoomed in figure into specific location.
 
+#### Exercise
+
+🚧 WIP physical time derivative to be able to switch from steady state to specific time-span
 
 ⤴️ [_back to course material_](#short-course-material)
 
@@ -449,15 +453,23 @@ end
 
 🚧 WIP
 
+### Simple inversion
+Using the inversion approach proposed by \[[6][Visnjevic18]\], our ice flow solver [`iceflow.jl`](scripts/iceflow.jl) can be embedded into an inversion framework to retrieve spatially variable maximum accumulation rate `b_max` in order to constrain ice thickness distribution over Greenland. The following animation depicts the evolution of the inversion procedure as function of the 30 inversion steps and was produced using the [`iceflow_inverse.jl`](scripts/iceflow_inverse.jl) code. `Gam` represents the misfit between the observed `Hice` and the calculated `H` ice thickness, `B_max` represents the spatially variable maximal accumulation.
+
+![](docs/iceflow_inv_160x304.gif)
+
+The ice thickness obtained from the inversion procedure can be further compared to the [BedMachine Greenland v3] ice thickness data:
+
+![](docs/iceflow_inv_out2_160x304.png)
+
+> Note that the inversion procedure serves here as proof of concept, as higher resolution and finer tuning may be needed to further improve the misfit minimisation.
+
 ### Performance metric
 Curious about relevant performance metric for memory-bounded applications? Check out the [performance metric section](https://github.com/omlins/ParallelStencil.jl#performance-metric) from the [ParallelStencil.jl] module and this [JuliaCon2020][JuliaCon20a] presentation \[[1][JuliaCon20a]\].
 
 Add a graph showing iteration count, time to solution, as fn of resolution ?...
 
 ### Multi-XPU implementation
-
-
-### Simple inversion
 
 
 ⤴️ [_back to content_](#content)
