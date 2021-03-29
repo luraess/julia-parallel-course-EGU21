@@ -496,7 +496,7 @@ Add a graph showing iteration count, time to solution, as fn of resolution ?...
 
 \[5\] [Machgut, H. et al. (2016). Greenland surface mass-balance observations from the ice-sheet ablation area and local glaciers. Journal of Glaciology, 62(235), 861-887.][Machgut16]
 
-\[6\] [Jarosch, A. H., Schoof, C. G., and Anslow, F. S. (2013). Restoring mass conservation to shallow ice flow models over complex terrain, The Cryosphere, 7, 229–240,][Jarosch13]
+\[6\] [Jarosch, A. H., Schoof, C. G., and Anslow, F. S. (2013). Restoring mass conservation to shallow ice flow models over complex terrain, The Cryosphere, 7, 229–240.][Jarosch13]
 
 \[7\] [Visnjevic, V., Herman, F., & Podladchikov, Y. (2018). Reconstructing spatially variable mass balances from past ice extents by inverse modeling. Journal of Glaciology, 64(248), 957-968.][Visnjevic18]
 
