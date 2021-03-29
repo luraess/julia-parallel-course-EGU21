@@ -113,9 +113,11 @@ julia> ]
 
 (julia-parallel-course-EGU21) pkg> st
 Status `~/julia-parallel-course-EGU21/Project.toml`
-  [4138dd39] JLD
-  [85f8d34a] NCDatasets
-  [91a5bcdd] Plots
+  [4138dd39] JLD v0.12.2
+  [85f8d34a] NCDatasets v0.11.3
+  [94395366] ParallelStencil v0.5.1
+  [91a5bcdd] Plots v1.11.1
+  [37e2e46d] LinearAlgebra
   [de0858da] Printf
 
 (julia-parallel-course-EGU21) pkg> instantiate
@@ -210,7 +212,7 @@ It works, but the iteration count seems to be pretty high (`niter>1000`). There 
 ```md
 dHdt = -(H-Hold)/dt -dqH/dx + damp*dHdt
 ```
-The [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) code implements a damped iterative implicit solution of eq. (1). The iteration count drops to `niter<100`.
+The [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) code implements a damped iterative implicit solution of eq. (1). The iteration count drops to `niter<200`.
 
 ![](docs/diffusion_damp.png)
 
