@@ -36,7 +36,7 @@ end
     nsm      = 300             # number of smoothing steps
     tau1     = 5e-5            # inversion update step B_max
     tau2     = 0.1             # inversion update step z_ELA
-    nsmG     = 10              # number of Gam smoothing steps
+    nsmG     = 1               # number of Gam smoothing steps
     # derived physics
     a        = 2.0*a0/(npow+2)*(rho_i*g)^npow*s2y
     lx, ly   = nx*dx, ny*dy
@@ -119,8 +119,9 @@ end
             end
             it += 1
         end
-        # inversion (Visnjevic 2018)
-        Gam .= Hice .- H
+        # modified from inversion (Visnjevic 2018)
+        if it_inv==1 rel = 1.0 else rel = 0.2 end
+        Gam .= (1.0-rel)*Gam .+ rel*(Hice .- H)
         for ism = 1:nsmG
             smooth!(Gam)
         end
@@ -176,9 +177,10 @@ println("done.")
 do_visu = true
 do_save = true
 
+# visu and save
+nx, ny = size(Hice)
 if do_visu
     # ENV["GKSwstype"]="nul"
-    nx, ny = size(Hice)
     !ispath("../output_inv") && mkdir("../output_inv")
     !ispath("../output_inv/gif_$(nx)x$(ny)") && mkdir("../output_inv/gif_$(nx)x$(ny)"); loadpath = "../output_inv/gif_$(nx)x$(ny)"; anim = Animation(loadpath,String[])
     println("Animation directory: $(anim.dir)")
@@ -189,7 +191,6 @@ H, S, M, Vx, Vy = iceflow_inverse(dx, dy, Zbed, Hice, Mask; do_visu=true)
 
 # visualisation
 if do_visu
-
     gif(anim, "../output_inv/iceflow_inv_$(nx)x$(ny).gif", fps = 5)
 
     H_v = fill(NaN, nx, ny)

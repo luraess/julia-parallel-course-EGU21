@@ -122,10 +122,11 @@ H, S, M, Vx, Vy = iceflow(dx, dy, Zbed, Hice, Mask)
 do_visu = true
 do_save = true
 
+# visu and save
+nx, ny = size(H)
 if do_visu
     !ispath("../output") && mkdir("../output")
 
-    nx, ny   = size(H)
     H_v = fill(NaN, nx, ny)
     S_v = fill(NaN, nx, ny)
     M_v = fill(NaN, nx, ny)
