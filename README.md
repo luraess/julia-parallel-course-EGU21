@@ -1,5 +1,5 @@
 
-# julia-parallel-course-EGU21
+# Julia parallel course EGU21
 
 **[vEGU2021: SC4.6 Solving differential equations in parallel with Julia | Thu, 29 Apr, 16:00–17:00 (CEST)](https://meetingorganizer.copernicus.org/EGU21/session/38986)**
 
@@ -107,7 +107,7 @@ julia --project
 3. From VS Code, follow the [instructions from the documentation](https://www.julia-vscode.org/docs/stable/gettingstarted/) to get started.
 
 ---
-Now that you launched Julia, you should be in the [Julia REPL]. We now need to ensure all the packages we need to be installed before using them. To do so, enter the [Pkg mode](https://docs.julialang.org/en/v1/stdlib/REPL/#Pkg-mode) by typing `]`. Then, instantiate the project which should trigger the download of the packages. Exit the Pkg mode with CRTL+C:
+Now that you launched Julia, you should be in the [Julia REPL]. We now need to ensure all the packages we need to be installed before using them. To do so, enter the [Pkg mode](https://docs.julialang.org/en/v1/stdlib/REPL/#Pkg-mode) by typing `]`. Then, `instantiate` the project which should trigger the download of the packages. Exit the Pkg mode with CRTL+C:
 ```julia-repl
 julia> ]
 
@@ -167,7 +167,6 @@ This section lists the material discussed within this 60 min. short course:
 
 ⤴️ [_back to content_](#content)
 
----
 
 ## Part 1 - Julia, parallel computing, iterative solvers
 
@@ -357,6 +356,7 @@ grad_b = (1.3517 - 0.014158*LAT)/100.0*0.91
 ```
 where `LAT` is the latitude (taken from \[[5][Machgut16]\]). The equilibrium line altitude (where accumulation = ablation) `z_ELA` is latitude dependent, ranging from 1300m (South) to 1000m (North) as suggested by \[[5][Machgut16]\].
 
+
 ⤴️ [_back to course material_](#short-course-material)
 
 ### SIA implementation
@@ -383,6 +383,8 @@ H[Mask.==0] .= 0.0
 S     .= B .+ H
 ```
 > 💡 Note that the here discussed SIA codes do not implement any flux limiter scheme to circumvent known accuracy and stability issues. Check out  \[[6][Jarosch13], [7][Visnjevic18]\] for further references (the [`iceflow_bench.jl`](scripts/iceflow_bench.jl) script implements the benchmark \[[6][Jarosch13]\] that reflects this issue).
+
+> 💡 This implementation of the SIA equations solves the steady-state. To achieve an implicit solution of the ice flow predictions, the physical time derivative needs to be included in the `ResH` term. This modification is suggested as an [exercise](#exercise) for the end of the course.
 
 🚧 WIP - to add:
 - output figure
@@ -460,8 +462,10 @@ end
 ⤴️ [_back to course material_](#short-course-material)
 
 # Extras
-
-🚧 WIP
+If time permits, let's check out some extra material:
+- The ice flow solver we've now designed can be readily used as forward solver within a [simple inversion](#simple-inversion) procedure to constrain climate forcing parameters. 
+- If curious about a relevant [performance metric](performance-metric), check out what the effective memory throughput is about.
+- In case the problem to solve is too large to fit within a single GPU, [ImplicitGlobalGrid.jl] combined to [ParallelStencil.jl] enables a frictionless [multi-XPU implementation](#multi-xpu-implementation) of the SIA equation.
 
 ## Simple inversion
 Using the inversion approach proposed by \[[7][Visnjevic18]\], our ice flow solver [`iceflow.jl`](scripts/iceflow.jl) can be embedded into an inversion framework to retrieve spatially variable maximum accumulation rate `b_max` in order to constrain ice thickness distribution over Greenland. The following animation depicts the evolution of the inversion procedure as function of the 30 inversion steps and was produced using the [`iceflow_inverse.jl`](scripts/iceflow_inverse.jl) code. `Gam` represents the misfit between the observed `Hice` and the calculated `H` ice thickness, `B_max` represents the spatially variable maximal accumulation.
@@ -475,11 +479,12 @@ The ice thickness obtained from the inversion procedure can be further compared 
 > Note that the inversion procedure serves here as proof of concept, as higher resolution and finer tuning may be needed to further improve the misfit minimisation.
 
 ## Performance metric
-Curious about relevant performance metric for memory-bounded applications? Check out the [performance metric section](https://github.com/omlins/ParallelStencil.jl#performance-metric) from the [ParallelStencil.jl] module and this [JuliaCon2020][JuliaCon20a] presentation \[[1][JuliaCon20a]\].
+Majority of stencil based codes as in this course are memory bounded, meaning the limiting factor in performance is the rate at which memory is transferred from and back between the memory and the arithmetic units. The maximal rate at which the memory transfers occur is the memory copy rate, in the order of 50 GB/s for CPUs and about 1 TB/s for modern GPUs. The effective memory throughput metric (T_eff) measures how good an iterative stencil-based algorithm performs in terms of memory throughput, to be compared to the memory copy rate.
 
-Add a graph showing iteration count, time to solution, as fn of resolution ?...
+Check out the [performance metric section](https://github.com/omlins/ParallelStencil.jl#performance-metric) from the [ParallelStencil.jl] module and this [JuliaCon2020][JuliaCon20a] presentation \[[1][JuliaCon20a]\].
 
 ## Multi-XPU implementation
+Check out [this material](https://github.com/luraess/geo-hpc-course#running-julia-mpi) to figure out how combining [ImplicitGlobalGrid.jl] to [ParallelStencil.jl] enables efficient distributed memory parallelisation on multiple XPUs.
 
 
 ⤴️ [_back to content_](#content)
@@ -511,6 +516,7 @@ Add a graph showing iteration count, time to solution, as fn of resolution ?...
 [CUDA.jl]: https://github.com/JuliaGPU/CUDA.jl
 [JuliaGPU]: https://juliagpu.org
 [ParallelStencil.jl]: https://github.com/omlins/ParallelStencil.jl
+[ImplicitGlobalGrid.jl]: https://github.com/eth-cscs/ImplicitGlobalGrid.jl
 
 [BedMachine Greenland v3]: https://sites.uci.edu/morlighem/dataproducts/bedmachine-greenland/
 
