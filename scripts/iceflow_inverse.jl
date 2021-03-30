@@ -33,10 +33,10 @@ end
     tol_inv  = 1e-4            # inversion tolerance
     nt_inv   = 30              # number of inversion steps
     nout_inv = 1               # inversion plot frequency
-    nsm      = 50              # number of smoothing steps
+    nsm      = 300             # number of smoothing steps
     tau1     = 5e-5            # inversion update step B_max
     tau2     = 0.1             # inversion update step z_ELA
-    nsmG     = 3               # number of Gam smoothing steps
+    nsmG     = 10              # number of Gam smoothing steps
     # derived physics
     a        = 2.0*a0/(npow+2)*(rho_i*g)^npow*s2y
     lx, ly   = nx*dx, ny*dy
@@ -157,8 +157,8 @@ end
 # ------------------------------------------------------------------------------
 # load the data
 print("Loading the data ... ")
-data = load("../data/BedMachineGreenland_96_184_ds100.jld")
-# data = load("../data/BedMachineGreenland_160_304_ds60.jld")
+# data = load("../data/BedMachineGreenland_96_184_ds100.jld")
+data = load("../data/BedMachineGreenland_160_304_ds60.jld")
 Hice, Mask, Zbed = data["Hice"], data["Mask"], data["Zbed"]
 xc, yc, dx, dy   = data["xc"], data["yc"], data["dx"], data["dy"]
 println("done.")
@@ -218,7 +218,7 @@ if do_visu
     FS = 7
     p1 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(Hice, dims=2)'  , c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="H data [m]", titlefontsize=FS, titlefont="Courier")
     p2 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H, dims=2)'     , c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="H model [m]", titlefontsize=FS, titlefont="Courier")
-    p3 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H_diff, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="H (data-model) [m]", titlefontsize=FS, titlefont="Courier")
+    p3 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H_diff, dims=2)', c=:viridis, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="H (data-model) [m]", titlefontsize=FS, titlefont="Courier")
     # display(plot(p1, p2, p3, layout=(1, 3), size=(500,160)))
     plot(p1, p2, p3, layout=(1, 3), size=(500,160), dpi=200) #background_color=:transparent, foreground_color=:white
     savefig("../output_inv/iceflow_inv_out2_$(nx)x$(ny).png")
