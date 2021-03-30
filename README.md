@@ -373,10 +373,10 @@ D     .= a*av(H).^(npow+2) .* gradS.^(npow-1)
 qHx   .= .-av_ya(D).*diff(S[:,2:end-1], dims=1)/dx
 qHy   .= .-av_xa(D).*diff(S[2:end-1,:], dims=2)/dy
 # update ice thickness
-dt    .= dtsc*min.(10.0, cfl./(epsi .+ av(D)))
+dtau  .= dtausc*min.(10.0, cfl./(epsi .+ av(D)))
 ResH  .= .-(diff(qHx, dims=1)/dx .+ diff(qHy, dims=2)/dy) .+ inn(M)
 dHdt  .= dHdt.*damp .+ ResH
-H[2:end-1,2:end-1] .= max.(0.0, inn(H) .+ dt.*dHdt)
+H[2:end-1,2:end-1] .= max.(0.0, inn(H) .+ dtau.*dHdt)
 # apply mask
 H[Mask.==0] .= 0.0
 # update surface
@@ -384,7 +384,7 @@ S     .= B .+ H
 ```
 > 💡 Note that the here discussed SIA codes do not implement any flux limiter scheme to circumvent known accuracy and stability issues. Check out  \[[6][Jarosch13], [7][Visnjevic18]\] for further references (the [`iceflow_bench.jl`](scripts/iceflow_bench.jl) script implements the benchmark \[[6][Jarosch13]\] that reflects this issue).
 
-> 💡 This implementation of the SIA equations solves the steady-state. To achieve an implicit solution of the ice flow predictions, the physical time derivative needs to be included in the `ResH` term. This modification is suggested as an [exercise](#exercise) for the end of the course.
+> 💡 This implementation of the SIA equations solves the steady-state. To achieve an implicit solution of the ice flow predictions prediction over a specific time span `dt`, the physical time derivative needs to be included in the `ResH` term. This modification is suggested as an [exercise](#exercise) for the end of the course.
 
 🚧 WIP - to add:
 - output figure
@@ -419,10 +419,10 @@ end
     return
 end
 
-@parallel function compute_qH_dt!(qHx, qHy, dt, D, S, dtsc, cfl, epsi, dx, dy)
-    @all(qHx) = -@av_ya(D)*@d_xi(S)/dx
-    @all(qHy) = -@av_xa(D)*@d_yi(S)/dy
-    @all(dt)  = dtsc*min(10.0, cfl/(epsi + @av(D)))
+@parallel function compute_qH_dtau!(qHx, qHy, dtau, D, S, dtausc, cfl, epsi, dx, dy)
+    @all(qHx)  = -@av_ya(D)*@d_xi(S)/dx
+    @all(qHy)  = -@av_xa(D)*@d_yi(S)/dy
+    @all(dtau) = dtausc*min(10.0, cfl/(epsi + @av(D)))
     return
 end
 
@@ -432,8 +432,8 @@ end
     return
 end
 
-@parallel function compute_H!(H, dHdt, dt)
-    @inn(H) = max(0.0, @inn(H) + @all(dt)*@all(dHdt))
+@parallel function compute_H!(H, dHdt, dtau)
+    @inn(H) = max(0.0, @inn(H) + @all(dtau)*@all(dHdt))
     return
 end
 
@@ -445,9 +445,9 @@ end
 # [...] skipped lines
 @parallel compute_M_dS!(M, dSdx, dSdy, S, z_ELA, grad_b, b_max, dx, dy)
 @parallel compute_D!(D, H, dSdx, dSdy, a, npow)
-@parallel compute_qH_dt!(qHx, qHy, dt, D, S, dtsc, cfl, epsi, dx, dy)
+@parallel compute_qH_dtau!(qHx, qHy, dtau, D, S, dtausc, cfl, epsi, dx, dy)
 @parallel compute_dHdt!(ResH, dHdt, qHx, qHy, M, damp, dx, dy)
-@parallel compute_H!(H, dHdt, dt)
+@parallel compute_H!(H, dHdt, dtau)
 @parallel compute_Mask_S!(H, S, B, Mask)
 ```
 🚧 WIP:
