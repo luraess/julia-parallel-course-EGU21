@@ -134,8 +134,8 @@ end
     M        = @zeros(nx  , ny  )
     # initial condition
     S        = @zeros(nx  , ny  )
-    B        = Data.Array( Zbed )
-    H        = Data.Array( Hice )
+    B        = copy(Data.Array( Zbed ))
+    H        = copy(Data.Array( Hice ))
     Mask     = Data.Array( Mask )
     Yc2      = Yc .- minimum(Yc); Yc2 .= Yc2./maximum(Yc2)
     grad_b   = Data.Array( (1.3517 .- 0.014158.*(60.0.+Yc2*20.0))./100.0.*0.91 )# Mass Bal. gradient, from doi: 10.1017/jog.2016.75
@@ -239,7 +239,7 @@ if do_visu
     FS = 7
     p1 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(Hice, dims=2)'  , c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="H data [m]", titlefontsize=FS, titlefont="Courier")
     p2 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H, dims=2)'     , c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="H model [m]", titlefontsize=FS, titlefont="Courier")
-    p3 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H_diff, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="H (data-model) [m]", titlefontsize=FS, titlefont="Courier")
+    p3 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H_diff, dims=2)', c=:viridis, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="H (data-model) [m]", titlefontsize=FS, titlefont="Courier")
     # display(plot(p1, p2, p3, layout=(1, 3), size=(500,160)))
     plot(p1, p2, p3, layout=(1, 3), size=(500,160), dpi=200) #background_color=:transparent, foreground_color=:white
     savefig("../output/iceflow_out2_xpu_HR_$(nx)x$(ny).png")
