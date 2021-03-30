@@ -1,7 +1,7 @@
 
 # julia-parallel-course-EGU21
 
-#### [vEGU2021: SC4.6 Solving differential equations in parallel with Julia | Thu, 29 Apr, 16:00–17:00 (CEST)](https://meetingorganizer.copernicus.org/EGU21/session/38986)
+**[vEGU2021: SC4.6 Solving differential equations in parallel with Julia | Thu, 29 Apr, 16:00–17:00 (CEST)](https://meetingorganizer.copernicus.org/EGU21/session/38986)**
 
 👉 **Organisation notes:**
 - 💡 All material presented during the short course will be uploaded here and made available to participants 5 days prior to the event on this repository.
@@ -15,7 +15,7 @@
 This short course covers trendy areas in modern geocomputing with broad geoscientific applications. The physical processes governing natural systems' evolution are often mathematically described as systems of differential equations. A performant numerical implementation of the solving algorithm leveraging modern hardware is key and permits to tackle problems that were technically not possible a decade ago.
 
 
-## Content
+# Content
 * [Objectives](#objectives)
 * [Structure of the repository](#structure-of-the-repository)
 * [Getting started](#getting-started) _(not part of the live course)_
@@ -24,7 +24,7 @@ This short course covers trendy areas in modern geocomputing with broad geoscien
 * [Further reading](#further-reading)
 
 
-## Objectives
+# Objectives
 The goal of this short course is to offer an interactive overview on how to solve systems of differential equations in parallel on GPUs using the [Julia language]. [Julia] combines high-level language simplicity and low-level language performance. The resulting codes and applications are fast, short and readable \[[1][JuliaCon20a], [2][JuliaCon20b], [3][JuliaCon19]\]. We will design and implement a numerical algorithm that predicts ice flow dynamics over mountainous topography (Greenland) using a high-performance computing approach:
 
 ![Greenland ice cap](docs/greenland_1.png)
@@ -41,7 +41,7 @@ By the end of this short course, you will:
 
 ⤴️ [_back to content_](#content)
 
-## Structure of the repository
+# Structure of the repository
 The course repository lists following folders and items:
 - the [data](data) folder contains various low resolution Greenland input data (bedrock topography, surface elevation, ice thickness, masks, ...) downscaled from [BedMachine Greenland v3] - note the filenames include grid resolution information `(nx, ny)`;
 - the [docs](docs) folder contains documentation linked in the [README](README.md);
@@ -51,7 +51,7 @@ The course repository lists following folders and items:
 
 ⤴️ [_back to content_](#content)
 
-## Getting started
+# Getting started
 > ⚠️ Due to the time limitation, the short course will not cover the [Getting started](#getting-started) steps. These are meant to provide directions to the participant willing to actively try out the examples during the short course. It is warmly recommended to perform the [Getting started](#getting-started) steps before the beginning of the workshop.
 
 The provided directions will get you started with:
@@ -63,7 +63,7 @@ The provided directions will get you started with:
 
 > 👉 _**Note: This course relies on Julia v1.5.4**. The install configuration are tested on a MacBook Pro running macOS 10.15.7, a Linux GPU server running Ubuntu 20.04 LTS and a Linux GPU server running CentOS 8._
 
-### Installing Julia v1.5.4
+## Installing Julia v1.5.4
 Check you have an active internet connexion and [download Julia v1.5.4](https://julialang.org/downloads/oldreleases/#v154_march_11_2021) for your platform following the install directions provided under [help] if needed.
 
 Alternatively, open a terminal and download the binaries (select the one for your platform):
@@ -80,17 +80,17 @@ PATH=<path-to>/julia-1.5.4/bin/:$PATH
 export JULIA_CUDA_USE_BINARYBUILDER=false
 ```
 
-#### Terminal + external editor
+### Terminal + external editor
 Ensure you have a text editor with syntax highlighting support for Julia. From within the terminal, type
 ```sh
 julia
 ```
 and you should be all set.
 
-#### VS Code
+### VS Code
 If you'd enjoy a more IDE type of environment, [check out VS Code](https://code.visualstudio.com). Follow the [installation directions](https://github.com/julia-vscode/julia-vscode#getting-started) for the [Julia VS Code extension](https://www.julia-vscode.org).
 
-### Running the scripts
+## Running the scripts
 To get started with the course,
 1. clone (or download the ZIP archive) the course repository ([help here](https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository))
 ```sh
@@ -141,15 +141,15 @@ You should then see two figures saved in a newly created output folder, the seco
 
 ![Greenland ice cap](docs/iceflow_out2.png)
 
-### Multi-threading on CPUs
+## Multi-threading on CPUs
 On the CPU, multi-threading is made accessible via [Base.Threads] and the environment variable [JULIA_NUM_THREADS] can be used to define the number of cores to use on the CPU, e.g. `export JULIA_NUM_THREADS=2` to enable 2 threads (2 CPU cores).
 
-### Running on GPUs
+## Running on GPUs
 The [CUDA.jl] module permits to launch compute kernels on Nvidia GPUs natively from within [Julia]. [JuliaGPU] provides further reading and [introductory material](https://juliagpu.gitlab.io/CUDA.jl/tutorials/introduction/) about GPU ecosystems within Julia.
 
 ⤴️ [_back to content_](#content)
 
-## Short course material
+# Short course material
 This section lists the material discussed within this 60 min. short course:
 * [Part 1 - Julia, parallel computing, iterative solvers](#part-1---julia-parallel-computing-iterative-solvers)
     * [Why Julia](#why-julia)
@@ -169,9 +169,9 @@ This section lists the material discussed within this 60 min. short course:
 
 ---
 
-### Part 1 - Julia, parallel computing, iterative solvers
+## Part 1 - Julia, parallel computing, iterative solvers
 
-#### Why Julia
+### Why Julia
 _by M. Werder_
 
 🚧 WIP
@@ -183,7 +183,7 @@ _by M. Werder_
 
 ⤴️ [_back to course material_](#short-course-material)
 
-#### Diffusion processes
+### Diffusion processes
 Let's start with a simple 1D linear diffusion example to (i) see the difference between explicit and implicit and (ii) to compare the serial CPU vs the parallel GPU implementations. The diffusion of a quantity `H` over time `t` can be described as (1a) a diffusive flux, (1b) a flux balance and (1c) an update rule:
 ```md
 qH    = -D*dH/dx  (1a)
@@ -201,7 +201,7 @@ How to go with an implicit solution _**and**_ keeping it "matrix-free" ?
 
 ⤴️ [_back to course material_](#short-course-material)
 
-#### Iterative solvers
+### Iterative solvers
 The [`diffusion_1D_impl.jl`](scripts/diffusion_1D_impl.jl) code implements an iterative implicit solution of eq. (1). How ? We add the physical time derivative `dh/dt=(H-Hold)/dt` to the rate of change `dHdt` 
 ```md
 dHdt = -(H-Hold)/dt -dqH/dx
@@ -220,7 +220,7 @@ The [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) code implements a dam
 
 ⤴️ [_back to course material_](#short-course-material)
 
-#### Parallel GPU computing
+### Parallel GPU computing
 So now we have a cool iterative and implicit solver in about 30 lines of code 🎉. Good enough for low resolution 1D calculations. What if we need more - 2D, 3D and high resolution to capture local and nonlinear physics ? Parallel and GPU computing makes it possible. Let's start from the [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) code and port it to GPU (with some intermediate steps).
 
 1. Extract the physics calculations from [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl), i.e. the time loop:
@@ -296,7 +296,7 @@ synchronize()
 
 ⤴️ [_back to course material_](#short-course-material)
 
-#### XPU computing
+### XPU computing
 Wouldn't it be great to be able to combine the multi-thread CPU and GPU implementations into a single "XPU" code to be able to run on various hardware with only changing a `USE_GPU` switch ? Using [ParallelStencil.jl] enables this, as well more other cool features. The [`diffusion_1D_damp_xpu.jl`](scripts/diffusion_1D_damp_xpu.jl) uses [ParallelStencil.jl] for an XPU implementation on various backends:
 
 ```julia
@@ -333,9 +333,9 @@ Various macros `@(...)` permit to deal with the low-level technicalities and the
 
 ⤴️ [_back to course material_](#short-course-material)
 
-### Part 2 - solving PDEs to predict ice flow
+## Part 2 - solving PDEs to predict ice flow
 
-#### SIA equation
+### SIA equation
 Let's move from the simple 1D linear diffusion example to the SIA equation, a 2D nonlinear diffusion equation:
 ```md
 qHx   = -D*d(B+H)/dx              (2a)
@@ -359,7 +359,7 @@ where `LAT` is the latitude (taken from \[[5][Machgut16]\]). The equilibrium lin
 
 ⤴️ [_back to course material_](#short-course-material)
 
-#### SIA implementation
+### SIA implementation
 The [`iceflow.jl`](scripts/iceflow.jl) code implements the 2D SIA equations using the iterative implicit damped formulation as in [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl). The calculation of the SIA PDEs resumes in these 13 lines of Julia code:
 ```julia
 # mass balance
@@ -390,7 +390,7 @@ S     .= B .+ H
 
 ⤴️ [_back to course material_](#short-course-material)
 
-#### XPU SIA implementation
+### XPU SIA implementation
 Applying what we learned from the 1D diffusion equation, we can now instrument the [`iceflow.jl`](scripts/iceflow.jl) code (see code snippet just above) to make it XPU compatible using [ParallelStencil.jl]; the [`iceflow_xpu.jl`](scripts/iceflow_xpu.jl) code:
 ```julia
 const USE_GPU = false
@@ -453,17 +453,17 @@ end
 
 ⤴️ [_back to course material_](#short-course-material)
 
-#### Exercise
+### Exercise
 
 🚧 WIP physical time derivative to be able to switch from steady state to specific time-span
 
 ⤴️ [_back to course material_](#short-course-material)
 
-## Extras
+# Extras
 
 🚧 WIP
 
-### Simple inversion
+## Simple inversion
 Using the inversion approach proposed by \[[7][Visnjevic18]\], our ice flow solver [`iceflow.jl`](scripts/iceflow.jl) can be embedded into an inversion framework to retrieve spatially variable maximum accumulation rate `b_max` in order to constrain ice thickness distribution over Greenland. The following animation depicts the evolution of the inversion procedure as function of the 30 inversion steps and was produced using the [`iceflow_inverse.jl`](scripts/iceflow_inverse.jl) code. `Gam` represents the misfit between the observed `Hice` and the calculated `H` ice thickness, `B_max` represents the spatially variable maximal accumulation.
 
 ![](docs/iceflow_inv_160x304.gif)
@@ -474,18 +474,18 @@ The ice thickness obtained from the inversion procedure can be further compared 
 
 > Note that the inversion procedure serves here as proof of concept, as higher resolution and finer tuning may be needed to further improve the misfit minimisation.
 
-### Performance metric
+## Performance metric
 Curious about relevant performance metric for memory-bounded applications? Check out the [performance metric section](https://github.com/omlins/ParallelStencil.jl#performance-metric) from the [ParallelStencil.jl] module and this [JuliaCon2020][JuliaCon20a] presentation \[[1][JuliaCon20a]\].
 
 Add a graph showing iteration count, time to solution, as fn of resolution ?...
 
-### Multi-XPU implementation
+## Multi-XPU implementation
 
 
 ⤴️ [_back to content_](#content)
 
 
-## Further reading
+# Further reading
 \[1\] [Omlin, S., Räss, L., Kwasniewski, G., Malvoisin, B., & Podladchikov, Y. Y. (2020). Solving Nonlinear Multi-Physics on GPU Supercomputers with Julia. JuliaCon Conference, virtual.][JuliaCon20a]
 
 \[2\] [Räss, L., Reuber, G., Omlin, S. (2020). Multi-Physics 3-D Inversion on GPU Supercomputers with Julia. JuliaCon Conference, virtual.][JuliaCon20b]
