@@ -55,10 +55,10 @@ end
     return
 end
 
-@parallel function compute_qH_dt!(qHx, qHy, dt, D, S, dtsc, cfl, epsi, dx, dy)
-    @all(qHx) = -@av_ya(D)*@d_xi(S)/dx
-    @all(qHy) = -@av_xa(D)*@d_yi(S)/dy
-    @all(dt)  = dtsc*min(10.0, cfl/(epsi + @av(D)))
+@parallel function compute_qH_dtau!(qHx, qHy, dtau, D, S, dtausc, cfl, epsi, dx, dy)
+    @all(qHx)  = -@av_ya(D)*@d_xi(S)/dx
+    @all(qHy)  = -@av_xa(D)*@d_yi(S)/dy
+    @all(dtau) = dtausc*min(10.0, cfl/(epsi + @av(D)))
     return
 end
 
@@ -68,8 +68,8 @@ end
     return
 end
 
-@parallel function compute_H!(H, dHdt, dt)
-    @inn(H) = max(0.0, @inn(H) + @all(dt)*@all(dHdt))
+@parallel function compute_H!(H, dHdt, dtau)
+    @inn(H) = max(0.0, @inn(H) + @all(dtau)*@all(dHdt))
     return
 end
 
@@ -102,7 +102,7 @@ end
     tolnl    = 1e-6            # nonlinear tolerance
     epsi     = 1e-4            # small number
     damp     = 0.85            # convergence accelerator
-    dtsc     = 1.0/3.0         # iterative dt scaling
+    dtausc   = 1.0/3.0         # iterative dtau scaling
     # derived physics
     a        = 2.0*a0/(npow+2)*(rho_i*g)^npow*s2y
     lx, ly   = nx*dx, ny*dy
@@ -119,7 +119,7 @@ end
     D        = @zeros(nx-1, ny-1)
     qHx      = @zeros(nx-1, ny-2)
     qHy      = @zeros(nx-2, ny-1)
-    dt       = @zeros(nx-2, ny-2)
+    dtau     = @zeros(nx-2, ny-2)
     ResH     = @zeros(nx-2, ny-2)
     dHdt     = @zeros(nx-2, ny-2)
     Vx       = @zeros(nx-1, ny-1)
@@ -141,9 +141,9 @@ end
         @parallel compute_Err1!(Err, H) 
         @parallel compute_M_dS!(M, dSdx, dSdy, S, z_ELA, grad_b, b_max, dx, dy)
         @parallel compute_D!(D, H, dSdx, dSdy, a, npow)
-        @parallel compute_qH_dt!(qHx, qHy, dt, D, S, dtsc, cfl, epsi, dx, dy)
+        @parallel compute_qH_dtau!(qHx, qHy, dtau, D, S, dtausc, cfl, epsi, dx, dy)
         @parallel compute_dHdt!(ResH, dHdt, qHx, qHy, M, damp, dx, dy)
-        @parallel compute_H!(H, dHdt, dt)
+        @parallel compute_H!(H, dHdt, dtau)
         @parallel compute_Mask_S!(H, S, B, Mask)
         # error check
         if mod(it, nout)==0
@@ -186,10 +186,11 @@ H, S, M, Vx, Vy = iceflow(dx, dy, Zbed, Hice, Mask)
 do_visu = true
 do_save = true
 
+# visu and save
+nx, ny = size(H)
 if do_visu
     !ispath("../output") && mkdir("../output")
 
-    nx, ny = size(H)
     H_v = fill(NaN, nx, ny)
     S_v = fill(NaN, nx, ny)
     M_v = fill(NaN, nx, ny)

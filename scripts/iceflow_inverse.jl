@@ -28,7 +28,7 @@ end
     tolnl    = 1e-6            # nonlinear tolerance
     epsi     = 1e-4            # small number
     damp     = 0.8             # convergence accelerator
-    dtsc     = 1.0/3.0         # iterative dt scaling
+    dtausc   = 1.0/3.0         # iterative dtau scaling
     # inversion
     tol_inv  = 1e-4            # inversion tolerance
     nt_inv   = 30              # number of inversion steps
@@ -53,7 +53,7 @@ end
     D        = zeros(nx-1, ny-1)
     qHx      = zeros(nx-1, ny-2)
     qHy      = zeros(nx-2, ny-1)
-    dt       = zeros(nx-2, ny-2)
+    dtau     = zeros(nx-2, ny-2)
     ResH     = zeros(nx-2, ny-2)
     dHdt     = zeros(nx-2, ny-2)
     Vx       = zeros(nx-1, ny-1)
@@ -98,10 +98,10 @@ end
             qHx   .= .-av_ya(D).*diff(S[:,2:end-1], dims=1)/dx
             qHy   .= .-av_xa(D).*diff(S[2:end-1,:], dims=2)/dy
             # update ice thickness
-            dt    .= dtsc*min.(10.0, cfl./(epsi .+ av(D)))
+            dtau  .= dtausc*min.(10.0, cfl./(epsi .+ av(D)))
             ResH  .= .-(diff(qHx, dims=1)/dx .+ diff(qHy, dims=2)/dy) .+ inn(M)
             dHdt  .= dHdt.*damp .+ ResH
-            H[2:end-1,2:end-1] .= max.(0.0, inn(H) .+ dt.*dHdt)
+            H[2:end-1,2:end-1] .= max.(0.0, inn(H) .+ dtau.*dHdt)
             # apply mask
             H[Mask.==0] .= 0.0
             # update surface

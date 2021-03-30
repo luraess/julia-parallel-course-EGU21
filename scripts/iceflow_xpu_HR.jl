@@ -60,10 +60,10 @@ end
     return
 end
 
-@parallel function compute_qH_dt!(qHx, qHy, dt, D, S, dtsc, cfl, epsi, dx, dy)
-    @all(qHx) = -@av_ya(D)*@d_xi(S)/dx
-    @all(qHy) = -@av_xa(D)*@d_yi(S)/dy
-    @all(dt)  = dtsc*min(10.0, cfl/(epsi + @av(D)))
+@parallel function compute_qH_dtau!(qHx, qHy, dtau, D, S, dtausc, cfl, epsi, dx, dy)
+    @all(qHx)  = -@av_ya(D)*@d_xi(S)/dx
+    @all(qHy)  = -@av_xa(D)*@d_yi(S)/dy
+    @all(dtau) = dtausc*min(10.0, cfl/(epsi + @av(D)))
     return
 end
 
@@ -73,8 +73,8 @@ end
     return
 end
 
-@parallel function compute_H!(H, dHdt, dt)
-    @inn(H) = max(0.0, @inn(H) + @all(dt)*@all(dHdt))
+@parallel function compute_H!(H, dHdt, dtau)
+    @inn(H) = max(0.0, @inn(H) + @all(dtau)*@all(dHdt))
     return
 end
 
@@ -106,7 +106,7 @@ end
     nout     = 500             # error check frequency
     tolnl    = 1e-6            # nonlinear tolerance
     damp     = 0.85            # convergence accelerator
-    dtsc     = 1.0/4.0         # iterative dt scaling
+    dtausc   = 1.0/4.0         # iterative dtau scaling
     ntloc    = 1               # local min iterations
     epsi     = 1e-4            # small number
     # derived physics
@@ -125,8 +125,8 @@ end
     D        = @zeros(nx-1, ny-1)
     qHx      = @zeros(nx-1, ny-2)
     qHy      = @zeros(nx-2, ny-1)
-    dt       = @zeros(nx-2, ny-2)
-    dt2      = @zeros(nx-2, ny-2)
+    dtau     = @zeros(nx-2, ny-2)
+    dtau2    = @zeros(nx-2, ny-2)
     ResH     = @zeros(nx-2, ny-2)
     dHdt     = @zeros(nx-2, ny-2)
     Vx       = @zeros(nx-1, ny-1)
@@ -148,15 +148,15 @@ end
         @parallel compute_Err1!(Err, H) 
         @parallel compute_M_dS!(M, dSdx, dSdy, S, z_ELA, grad_b, b_max, dx, dy)
         @parallel compute_D!(D, H, dSdx, dSdy, a, npow)
-        @parallel compute_qH_dt!(qHx, qHy, dt, D, S, dtsc, cfl, epsi, dx, dy)
+        @parallel compute_qH_dtau!(qHx, qHy, dtau, D, S, dtausc, cfl, epsi, dx, dy)
         for iloc = 1:ntloc
-            @parallel compute_minloc!(dt2, dt)
-            @parallel (1:size(dt2,2)) bc_x!(dt2)
-            @parallel (1:size(dt2,1)) bc_y!(dt2)
-            dt, dt2 = dt2, dt
+            @parallel compute_minloc!(dtau2, dtau)
+            @parallel (1:size(dtau2,2)) bc_x!(dtau2)
+            @parallel (1:size(dtau2,1)) bc_y!(dtau2)
+            dtau, dtau2 = dtau2, dtau
         end
         @parallel compute_dHdt!(ResH, dHdt, qHx, qHy, M, damp, dx, dy)
-        @parallel compute_H!(H, dHdt, dt)
+        @parallel compute_H!(H, dHdt, dtau)
         @parallel compute_Mask_S!(H, S, B, Mask)
         # error check
         if mod(it, nout)==0
@@ -174,8 +174,8 @@ end
 # load the data
 print("Loading the data ... ")
 # data = load("../data/BedMachineGreenland_96_184_ds100.jld")
-# data = load("../data/BedMachineGreenland_160_304_ds60.jld")
-data = load("../data/BedMachineGreenland_320_608_ds30.jld")
+data = load("../data/BedMachineGreenland_160_304_ds60.jld")
+# data = load("../data/BedMachineGreenland_320_608_ds30.jld")
 # data = load("../data/BedMachineGreenland_992_1832_ds10.jld")
 # data = load("../data/BedMachineGreenland_2016_3664_ds5.jld")
 # data = load("../data/BedMachineGreenland_2528_4584_ds4.jld")
@@ -206,10 +206,11 @@ H, S, M, Vx, Vy = iceflow(dx, dy, Zbed, Hice, Mask)
 do_visu = false
 do_save = false
 
+# visu and save
+nx, ny = size(H)
 if do_visu
     !ispath("../output") && mkdir("../output")
 
-    nx, ny = size(H)
     H_v = fill(NaN, nx, ny)
     S_v = fill(NaN, nx, ny)
     M_v = fill(NaN, nx, ny)

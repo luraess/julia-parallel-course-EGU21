@@ -28,7 +28,7 @@ end
     tolnl    = 1e-6            # nonlinear tolerance
     epsi     = 1e-4            # small number
     damp     = 0.85            # convergence accelerator
-    dtsc     = 1.0/3.0         # iterative dt scaling
+    dtausc   = 1.0/3.0         # iterative dtau scaling
     # derived physics
     a        = 2.0*a0/(npow+2)*(rho_i*g)^npow*s2y
     lx, ly   = nx*dx, ny*dy
@@ -45,7 +45,7 @@ end
     D        = zeros(nx-1, ny-1)
     qHx      = zeros(nx-1, ny-2)
     qHy      = zeros(nx-2, ny-1)
-    dt       = zeros(nx-2, ny-2)
+    dtau     = zeros(nx-2, ny-2)
     ResH     = zeros(nx-2, ny-2)
     dHdt     = zeros(nx-2, ny-2)
     Vx       = zeros(nx-1, ny-1)
@@ -75,10 +75,10 @@ end
         qHx   .= .-av_ya(D).*diff(S[:,2:end-1], dims=1)/dx
         qHy   .= .-av_xa(D).*diff(S[2:end-1,:], dims=2)/dy
         # update ice thickness
-        dt    .= dtsc*min.(10.0, cfl./(epsi .+ av(D)))
+        dtau  .= dtausc*min.(10.0, cfl./(epsi .+ av(D)))
         ResH  .= .-(diff(qHx, dims=1)/dx .+ diff(qHy, dims=2)/dy) .+ inn(M)
         dHdt  .= dHdt.*damp .+ ResH
-        H[2:end-1,2:end-1] .= max.(0.0, inn(H) .+ dt.*dHdt)
+        H[2:end-1,2:end-1] .= max.(0.0, inn(H) .+ dtau.*dHdt)
         # apply mask
         H[Mask.==0] .= 0.0
         # update surface
@@ -153,7 +153,7 @@ if do_visu
     FS = 7
     p1 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(Hice, dims=2)'  , c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="H data [m]", titlefontsize=FS, titlefont="Courier")
     p2 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H, dims=2)'     , c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="H model [m]", titlefontsize=FS, titlefont="Courier")
-    p3 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H_diff, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="H (data-model) [m]", titlefontsize=FS, titlefont="Courier")
+    p3 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H_diff, dims=2)', c=:viridis, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="H (data-model) [m]", titlefontsize=FS, titlefont="Courier")
     # display(plot(p1, p2, p3, layout=(1, 3), size=(500,160)))
     plot(p1, p2, p3, layout=(1, 3), size=(500,160), dpi=200) #background_color=:transparent, foreground_color=:white
     savefig("../output/iceflow_out2.png")
