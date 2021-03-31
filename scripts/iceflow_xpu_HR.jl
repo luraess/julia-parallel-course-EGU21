@@ -121,7 +121,6 @@ end
     Err      = @zeros(nx  , ny  )
     dSdx     = @zeros(nx-1, ny  )
     dSdy     = @zeros(nx  , ny-1)
-    gradS    = @zeros(nx-1, ny-1)
     D        = @zeros(nx-1, ny-1)
     qHx      = @zeros(nx-1, ny-2)
     qHy      = @zeros(nx-2, ny-1)
