@@ -337,11 +337,7 @@ synchronize()
 ```
 > 💡 We use `@cuda blocks=cublocks threads=cuthreads` to launch the GPU function on the appropriate number of threads, i.e. "parallel workers". The numerical grid resolution `nx` and `ny` must now be chosen accordingly to the number of parallel workers.
 
-> 💡 The here detailed porting is actually done for the 1D diffusion equation available in the extra material with following order:
-* [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl)
-* [`diffusion_1D_damp_fun.jl`](extras/diffusion_1D_damp_fun.jl)
-* [`diffusion_1D_damp_gpu.jl`](extras/diffusion_1D_damp_gpu.jl)
-* [`diffusion_1D_damp_xpu.jl`](scripts/diffusion_1D_damp_xpu.jl) (discussed [next section]((#xpu-sia-implementation)))
+> 💡 The here detailed porting is actually done for the 1D diffusion equation available in the extra material with following order: 1) [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl), 2) [`diffusion_1D_damp_fun.jl`](extras/diffusion_1D_damp_fun.jl), 3) [`diffusion_1D_damp_gpu.jl`](extras/diffusion_1D_damp_gpu.jl), 4) [`diffusion_1D_damp_xpu.jl`](scripts/diffusion_1D_damp_xpu.jl).
 
 ### XPU SIA implementation
 Wouldn't it be great to be able to combine the multi-thread CPU and GPU implementations into a single "XPU" code to be able to run on various hardware with only changing a `USE_GPU` switch ? Using [ParallelStencil.jl] enables this, as many more cool features. The [`iceflow_xpu.jl`](scripts/iceflow_xpu.jl) script uses [ParallelStencil.jl] for an XPU implementation on various backends:
