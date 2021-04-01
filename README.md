@@ -25,15 +25,15 @@ This short course covers trendy areas in modern geocomputing with broad geoscien
 
 
 # Objectives
-The goal of this short course is to offer an interactive overview on how to solve systems of differential equations in parallel on GPUs using the [Julia language]. [Julia] combines high-level language simplicity and low-level language performance. The resulting codes and applications are fast, short and readable \[[1][JuliaCon20a], [2][JuliaCon20b], [3][JuliaCon19]\].
+The goal of this short course is to offer an interactive overview on how to solve systems of (partial) differential equations in parallel on GPUs using the [Julia language]. [Julia] combines high-level language simplicity and low-level language performance. The resulting codes and applications are fast, short and readable \[[1][JuliaCon20a], [2][JuliaCon20b], [3][JuliaCon19]\].
 
-**We will design and implement a numerical algorithm that predicts ice flow dynamics over mountainous topography (Greenland) using GPU computing.** We will use the shallow ice approximation (SIA) equations within the ice flow solver to assess Greenland's ice cap evolution as function of a climate scenario.
+We will design and implement a numerical algorithm that predicts ice flow dynamics over mountainous topography (Greenland) using GPU computing (e.g. Fig. below). We will discretise the shallow ice approximation (SIA) equations in our ice flow solver to assess Greenland's ice cap evolution as function of a climate scenario.
 
 ![Greenland ice cap](docs/greenland_1.png)
 
-The online course consists of 2 parts:
-1. You will learn about the [Julia language] and iterative PDE solvers.
-2. You will implement a GPU parallel PDE solver to predict ice flow dynamics on real topography.
+**The online course consists of 2 parts:**
+1. [**Part 1**](#part-1---julia-and-iterative-solvers) You will learn about the [Julia language] and iterative PDE solvers.
+2. [**Part 2**](#part-2---solving-ice-flow-pdes-on-gpus)You will implement a GPU parallel PDE solver to predict ice flow dynamics on real topography.
 
 By the end of this short course, you will:
 - Have a GPU PDE solver that predicts ice-flow;
@@ -55,7 +55,7 @@ The course repository lists following folders and items:
 ⤴️ [_back to content_](#content)
 
 # Getting started
-> ⚠️ Due to the time limitation, the short course will not cover the [Getting started](#getting-started) steps. These are meant to provide directions to the participant willing to actively try out the examples during the short course. It is warmly recommended to perform the [Getting started](#getting-started) steps before the beginning of the workshop.
+> ⚠️ Due to the time limitation, the short course will not cover the [Getting started](#getting-started) steps. These are meant to provide directions to the participant willing to actively try out the examples during the short course. **It is warmly recommended to perform the [Getting started](#getting-started) steps before the beginning of the workshop.**
 
 The provided directions will get you started with:
 1. [Installing Julia v1.5.4](#installing-julia-v154) - 2 configurations are suggested:
@@ -64,7 +64,7 @@ The provided directions will get you started with:
 
 2. [Running the scripts](#running-the-scripts) from the course repository.
 
-> 👉 _**Note: This course relies on Julia v1.5.4**. The install configuration are tested on a MacBook Pro running macOS 10.15.7, a Linux GPU server running Ubuntu 20.04 LTS and a Linux GPU server running CentOS 8._
+> 👉 **Note: This course relies on Julia v1.5.4**. The install configuration are tested on a MacBook Pro running macOS 10.15.7, a Linux GPU server running Ubuntu 20.04 LTS and a Linux GPU server running CentOS 8.
 
 ## Installing Julia v1.5.4
 Check you have an active internet connexion and [download Julia v1.5.4](https://julialang.org/downloads/oldreleases/#v154_march_11_2021) for your platform following the install directions provided under [help] if needed.
@@ -130,7 +130,7 @@ Status `~/julia-parallel-course-EGU21/Project.toml`
 
 julia>
 ```
-To test your install, go to the [scripts](scripts) folder and run the [`iceflow.jl`](scripts/iceflow.jl) code. Note that you can execute shell commands from within the [Julia REPL] first typing `;`:
+To test your install, go to the [scripts](scripts) folder and run the [`iceflow.jl`](scripts/iceflow.jl) code. You can execute shell commands from within the [Julia REPL] first typing `;`:
 ```julia-repl
 julia> ;
 
@@ -191,7 +191,7 @@ qH    = -D*dH/dx  (1a)
 dHdt  =  -dqH/dx  (1b)
 dH/dt = dHdt      (1c)
 ```
-The [`diffusion_1D_expl.jl`](scripts/diffusion_1D_expl.jl) code implements an iterative and explicit solution of eq. (1) for an initial Gaussian profile
+The [`diffusion_1D_expl.jl`](scripts/diffusion_1D_expl.jl) code implements an iterative and explicit solution of eq. (1) for an initial Gaussian profile:
 ```md
 H = exp(-(x-lx/2.0)^2)
 ```
@@ -211,7 +211,7 @@ and iterate until the values of `dHdt` (the residual of the eq. (1)) drop below 
 
 ![](docs/diffusion_impl.png)
 
-It works, but the iteration count seems to be pretty high (`niter>1000`). A simple way to circumvent this is to add "damping" (`damp`) to the rate-of-change `dHdt`, analogous to add friction to enable faster convergence \[[4][Frankel50]\]
+It works, but the iteration count seems to be pretty high (`niter>1000`). A simple way to circumvent this is to add "damping" (`damp`) to the rate-of-change `dHdt`, analogous to add friction enabling faster convergence \[[4][Frankel50]\]
 ```md
 dHdt = -(H-Hold)/dt -dqH/dx + damp*dHdt
 ```
