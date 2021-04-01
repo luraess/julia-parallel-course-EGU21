@@ -55,14 +55,14 @@ end
     return
 end
 
-@parallel function compute_qH_dtau!(qHx, qHy, dtau, D, S, dtausc, cfl, epsi, dx, dy)
+@parallel function compute_flux!(qHx, qHy, D, S, dx, dy)
     @all(qHx)  = -@av_ya(D)*@d_xi(S)/dx
     @all(qHy)  = -@av_xa(D)*@d_yi(S)/dy
-    @all(dtau) = dtausc*min(10.0, cfl/(epsi + @av(D)))
     return
 end
 
-@parallel function compute_dHdt!(ResH, dHdt, qHx, qHy, M, damp, dx, dy)
+@parallel function compute_dHdt!(dtau, ResH, dHdt, D, qHx, qHy, M, dtausc, cfl, epsi, damp, dx, dy)
+    @all(dtau) = dtausc*min(10.0, cfl/(epsi + @av(D)))
     @all(ResH) = -(@d_xa(qHx)/dx + @d_ya(qHy)/dy) + @inn(M)
     @all(dHdt) = @all(dHdt)*damp + @all(ResH)
     return
@@ -126,12 +126,12 @@ end
     M        = @zeros(nx  , ny  )
     # initial condition
     S        = @zeros(nx  , ny  )
-    B        = copy(Data.Array( Zbed ))
-    H        = copy(Data.Array( Hice ))
-    Mask     = Data.Array( Mask )
+    B        = copy(Data.Array(Zbed))
+    H        = copy(Data.Array(Hice))
+    Mask     = Data.Array(Mask)
     Yc2      = Yc .- minimum(Yc); Yc2 .= Yc2./maximum(Yc2)
-    grad_b   = Data.Array( (1.3517 .- 0.014158.*(60.0.+Yc2*20.0))./100.0.*0.91 )# Mass Bal. gradient, from doi: 10.1017/jog.2016.75
-    z_ELA    = Data.Array( 1300.0 .- Yc2*300.0 )                                # Educated guess for ELA altitude
+    grad_b   = Data.Array((1.3517 .- 0.014158.*(60.0.+Yc2*20.0))./100.0.*0.91)# Mass Bal. gradient, from doi: 10.1017/jog.2016.75
+    z_ELA    = Data.Array(1300.0 .- Yc2*300.0)                                # Educated guess for ELA altitude
     S       .= B .+ H
     println(" starting iteration loop:")
     # iteration loop
@@ -140,8 +140,8 @@ end
         @parallel compute_Err1!(Err, H) 
         @parallel compute_M_dS!(M, dSdx, dSdy, S, z_ELA, grad_b, b_max, dx, dy)
         @parallel compute_D!(D, H, dSdx, dSdy, a, npow)
-        @parallel compute_qH_dtau!(qHx, qHy, dtau, D, S, dtausc, cfl, epsi, dx, dy)
-        @parallel compute_dHdt!(ResH, dHdt, qHx, qHy, M, damp, dx, dy)
+        @parallel compute_flux!(qHx, qHy, D, S, dx, dy)
+        @parallel compute_dHdt!(dtau, ResH, dHdt, D, qHx, qHy, M, dtausc, cfl, epsi, damp, dx, dy)
         @parallel compute_H!(H, dHdt, dtau)
         @parallel compute_Mask_S!(H, S, B, Mask)
         # error check
