@@ -60,14 +60,15 @@ end
     return
 end
 
-@parallel function compute_qH_dtau!(qHx, qHy, dtau, D, S, dt, dtausc, cfl, epsi, dx, dy)
+@parallel function compute_flux!(qHx, qHy, D, S, dt, dx, dy)
     @all(qHx)  = -@av_ya(D)*@d_xi(S)/dx
     @all(qHy)  = -@av_xa(D)*@d_yi(S)/dy
-    @all(dtau) = dtausc*min(10.0, 1.0/(1.0/dt + 1.0/(cfl/(epsi + @av(D)))))
+    
     return
 end
 
-@parallel function compute_dHdt!(ResH, dHdt, H, Hold, qHx, qHy, M, dt, damp, dx, dy)
+@parallel function compute_dHdt!(dtau, ResH, dHdt, D, H, Hold, qHx, qHy, M, dtausc, cfl, epsi, dt, damp, dx, dy)
+    @all(dtau) = dtausc*min(10.0, 1.0/(1.0/dt + 1.0/(cfl/(epsi + @av(D)))))
     @all(ResH) = -(@inn(H) - @inn(Hold))/dt -(@d_xa(qHx)/dx + @d_ya(qHy)/dy) + @inn(M)
     @all(dHdt) = @all(dHdt)*damp + @all(ResH)
     return
@@ -109,7 +110,7 @@ end
     nout     = 200             # error check frequency
     tolnl    = 1e-6            # nonlinear tolerance
     epsi     = 1e-4            # small number
-    damp     = 0.7             # convergence accelerator
+    damp     = 0.85            # convergence accelerator
     dtausc   = 1.0/3.0         # iterative dtau scaling
     # derived physics
     a        = 2.0*a0/(npow+2)*(rho_i*g)^npow*s2y
@@ -168,8 +169,8 @@ end
             @parallel compute_Err1!(Err, H) 
             @parallel compute_M_dS!(M, dSdx, dSdy, S, z_ELA, grad_b, b_max, ELA, dx, dy)
             @parallel compute_D!(D, H, dSdx, dSdy, a, npow)
-            @parallel compute_qH_dtau!(qHx, qHy, dtau, D, S, dt, dtausc, cfl, epsi, dx, dy)
-            @parallel compute_dHdt!(ResH, dHdt, H, Hold, qHx, qHy, M, dt, damp, dx, dy)
+            @parallel compute_flux!(qHx, qHy, D, S, dt, dx, dy)
+            @parallel compute_dHdt!(dtau, ResH, dHdt, D, H, Hold, qHx, qHy, M, dtausc, cfl, epsi, dt, damp, dx, dy)
             @parallel compute_H!(H, dHdt, dtau)
             @parallel compute_Mask_S!(H, S, B, Mask)
             # error check
@@ -178,9 +179,6 @@ end
                 err = norm(Err)/length(Err)
                 @printf(" iter = %d, error = %1.2e \n", iter, err)
                 if isnan(err) error("NaNs") end # safeguard
-                p1 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(Array(H), dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="H $(iter)", titlefontsize=FS, titlefont="Courier")
-                p2 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(Array(Err), dims=2)', c=:viridis, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="Err", titlefontsize=FS, titlefont="Courier")
-                display(plot(p1, p2))
             end
             iter += 1
         end
@@ -197,7 +195,7 @@ end
         p4 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(M_v, dims=2)', c=:devon, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="Mass Bal. rate [m/yr]", titlefontsize=FS, titlefont="Courier")
         # display(plot(p1, p2, p3, p4, size=(400,400)))
         plot(p1, p2, p3, p4, size=(400,400), dpi=200) #background_color=:transparent, foreground_color=:white
-        savefig("../output_dt/iceflow_out1_xpu_dt_$(nx)x$(ny)_$(it).png")
+        savefig("../output_evo/iceflow_out1_xpu_evo_$(nx)x$(ny)_$(it).png")
         it += 1
     end
     return Array(H), Array(S), Array(M), Array(Vx), Array(Vy)
