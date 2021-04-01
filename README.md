@@ -20,18 +20,20 @@ This short course covers trendy areas in modern geocomputing with broad geoscien
 * [Structure of the repository](#structure-of-the-repository)
 * [Getting started](#getting-started) _(not part of the live course)_
 * 👉 [Short course material](#short-course-material)
-* [Extras](#extras) _(if time permits)_
+* [Extras](#extras) _(not part of the live course)_
 * [Further reading](#further-reading)
 
 
 # Objectives
-The goal of this short course is to offer an interactive overview on how to solve systems of differential equations in parallel on GPUs using the [Julia language]. [Julia] combines high-level language simplicity and low-level language performance. The resulting codes and applications are fast, short and readable \[[1][JuliaCon20a], [2][JuliaCon20b], [3][JuliaCon19]\]. We will design and implement a numerical algorithm that predicts ice flow dynamics over mountainous topography (Greenland) using a high-performance computing approach:
+The goal of this short course is to offer an interactive overview on how to solve systems of differential equations in parallel on GPUs using the [Julia language]. [Julia] combines high-level language simplicity and low-level language performance. The resulting codes and applications are fast, short and readable \[[1][JuliaCon20a], [2][JuliaCon20b], [3][JuliaCon19]\].
+
+**We will design and implement a numerical algorithm that predicts ice flow dynamics over mountainous topography (Greenland) using GPU computing.** We will use the shallow ice approximation (SIA) equations within the ice flow solver to assess Greenland's ice cap evolution as function of various climate scenario.
 
 ![Greenland ice cap](docs/greenland_1.png)
 
 The online course consists of 2 parts:
-1. You will learn about the [Julia language], parallel and distributed computing and iterative solvers.
-2. You will implement a PDE solver to predict ice flow dynamics on real topography.
+1. You will learn about the [Julia language] and iterative PDE solvers.
+2. You will implement a GPU parallel PDE solver to predict ice flow dynamics on real topography.
 
 By the end of this short course, you will:
 - Have a GPU PDE solver that predicts ice-flow;
@@ -45,8 +47,9 @@ By the end of this short course, you will:
 The course repository lists following folders and items:
 - the [data](data) folder contains various low resolution Greenland input data (bedrock topography, surface elevation, ice thickness, masks, ...) downscaled from [BedMachine Greenland v3] - note the filenames include grid resolution information `(nx, ny)`;
 - the [docs](docs) folder contains documentation linked in the [README](README.md);
-- the output folder _will_ contain the various code output, mainly figures in png format;
+- the various _output_ folder will contain the codes output, mainly figures in png format;
 - the [scripts](scripts) folder contains the scripts this course is about 🎉
+- the [extras](extras) folder contains supporting course material (not discussed live during the course);
 - the [`Project.toml`](Project.toml) file is a Julia project file, tracking the used packages and enabling a reproducible environment.
 
 ⤴️ [_back to content_](#content)
@@ -107,7 +110,7 @@ julia --project
 3. From VS Code, follow the [instructions from the documentation](https://www.julia-vscode.org/docs/stable/gettingstarted/) to get started.
 
 ---
-Now that you launched Julia, you should be in the [Julia REPL]. We now need to ensure all the packages we need to be installed before using them. To do so, enter the [Pkg mode](https://docs.julialang.org/en/v1/stdlib/REPL/#Pkg-mode) by typing `]`. Then, `instantiate` the project which should trigger the download of the packages. Exit the Pkg mode with CRTL+C:
+Now that you launched Julia, you should be in the [Julia REPL]. You need to ensure all the packages you need to be installed before using them. To do so, enter the [Pkg mode](https://docs.julialang.org/en/v1/stdlib/REPL/#Pkg-mode) by typing `]`. Then, `instantiate` the project which should trigger the download of the packages. Exit the Pkg mode with CRTL+C:
 ```julia-repl
 julia> ]
 
@@ -137,7 +140,7 @@ julia> include("iceflow.jl")
 ```
 Running this the first time will (pre-)complie the various installed packages and will take some time.  Subsequent runs, by executing `include("iceflow.jl")`, should take around 10s.
 
-You should then see two figures saved in a newly created output folder, the second being the comparison between modelled and observed ice thickness distribution over Greenland:
+You should then see two figures saved in a newly created _output_ folder, the second being the comparison between modelled and observed ice thickness distribution over Greenland:
 
 ![Greenland ice cap](docs/iceflow_out2.png)
 
@@ -151,24 +154,23 @@ The [CUDA.jl] module permits to launch compute kernels on Nvidia GPUs natively f
 
 # Short course material
 This section lists the material discussed within this 60 min. short course:
-* [Part 1 - Julia, parallel computing, iterative solvers](#part-1---julia-parallel-computing-iterative-solvers)
+* [Part 1 - Julia and iterative solvers](#part-1---julia-and-iterative-solvers)
     * [Why Julia](#why-julia)
-    * [Diffusion processes](#diffusion-processes)
+    * [Diffusion equation](#diffusion-equation)
     * [Iterative solvers](#iterative-solvers)
-    * [Parallel GPU computing](#parallel-gpu-computing)
-    * [XPU computing](#xpu-computing)
-* [Part 2 - solving PDEs to predict ice flow](#part-2---solving-pdes-to-predict-ice-flow)
+* [Part 2 - solving ice flow PDEs on GPUs](#part-2---solving-ice-flow-pdes-on-gpus)
     * [SIA equation](#sia-equation)
     * [SIA implementation](#sia-implementation)
+    * [GPU SIA implementation](#gpu-sia-implementation)
     * [XPU SIA implementation](#xpu-sia-implementation)
-    * [Exercise](#exercise)
+    * [Greenland's ice cap evolution](#greenland-s-ice-cap-evolution)
 
 💡 In this course we will implement a 2D nonlinear diffusion equation on GPUs in Julia using the finite-difference method and an iterative solving approach. The goal is to resolve the shallow ice approximation (SIA) and predict ice flow over Greenland.
 
 ⤴️ [_back to content_](#content)
 
 
-## Part 1 - Julia, parallel computing, iterative solvers
+## Part 1 - Julia and iterative solvers
 
 ### Why Julia
 _by M. Werder_
@@ -182,8 +184,8 @@ _by M. Werder_
 
 ⤴️ [_back to course material_](#short-course-material)
 
-### Diffusion processes
-Let's start with a simple 1D linear diffusion example to (i) see the difference between explicit and implicit and (ii) to compare the serial CPU vs the parallel GPU implementations. The diffusion of a quantity `H` over time `t` can be described as (1a) a diffusive flux, (1b) a flux balance and (1c) an update rule:
+### Diffusion equation
+Let's start with a simple 1D linear diffusion example to implement both an explicit and implicit PDE solver. The diffusion of a quantity `H` over time `t` can be described as (1a) a diffusive flux, (1b) a flux balance and (1c) an update rule:
 ```md
 qH    = -D*dH/dx  (1a)
 dHdt  =  -dqH/dx  (1b)
@@ -201,7 +203,7 @@ How to go with an implicit solution _**and**_ keeping it "matrix-free" ?
 ⤴️ [_back to course material_](#short-course-material)
 
 ### Iterative solvers
-The [`diffusion_1D_impl.jl`](scripts/diffusion_1D_impl.jl) code implements an iterative implicit solution of eq. (1). How ? We add the physical time derivative `dh/dt=(H-Hold)/dt` to the rate of change `dHdt` 
+The [`diffusion_1D_impl.jl`](scripts/diffusion_1D_impl.jl) code implements an iterative implicit solution of eq. (1). How ? We add the physical time derivative `dh/dt=(H-Hold)/dt` to the rate of change (or residual) `dHdt` 
 ```md
 dHdt = -(H-Hold)/dt -dqH/dx
 ```
@@ -209,7 +211,7 @@ and iterate until the values of `dHdt` (the residual of the eq. (1)) drop below 
 
 ![](docs/diffusion_impl.png)
 
-It works, but the iteration count seems to be pretty high (`niter>1000`). There is a simple way to circumvent this by adding "damping" (`damp`) to the rate-of-change `dHdt`, analogous to adding friction to enable faster convergence \[[4][Frankel50]\]
+It works, but the iteration count seems to be pretty high (`niter>1000`). A simple way to circumvent this is to add "damping" (`damp`) to the rate-of-change `dHdt`, analogous to add friction to enable faster convergence \[[4][Frankel50]\]
 ```md
 dHdt = -(H-Hold)/dt -dqH/dx + damp*dHdt
 ```
@@ -219,8 +221,183 @@ The [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) code implements a dam
 
 ⤴️ [_back to course material_](#short-course-material)
 
+
+## Part 2 - solving ice flow PDEs on GPUs
+
+### SIA equation
+Let's move from the simple **1D linear diffusion** example to the shallow ice approximation (SIA) equation, a **2D nonlinear diffusion** equation:
+```md
+qHx   = -D*d(B+H)/dx              (2a)
+qHy   = -D*d(B+H)/dy              (2b)
+dHdt  = -(dqHx/dx + dqHy/dy) + M  (2c)
+dH/dt = dHdt                      (2d)
+```
+where `B` is the bedrock elevation, `H` the ice thickness, `M` the mass balance (accumulation, ablation). The diffusion coefficient `D` is nonlinear and function of surface elevation `S=B+H` and the power-law exponent `n`:
+```md
+D = a*H^(npow+2)*sqrt((dS/dx)^2 + (dS/dy)^2)^(npow-1)
+```
+We implement climate forcing using a simple mass balance (accumulation and ablation) `M` formulation:
+```md
+M  = min(grad_b*(S - z_ELA), b_max)
+```
+as function of the surface elevation `S` and capped by the maximal accumulation rate `b_max`. The mass balance gradient `grad_b` is defined as
+```md
+grad_b = (1.3517 - 0.014158*LAT)/100.0*0.91
+```
+where `LAT` is the latitude (taken from \[[5][Machgut16]\]). The equilibrium line altitude `z_ELA` (where accumulation = ablation) is latitude dependent, ranging from 1300m (South) to 1000m (North) as suggested by \[[5][Machgut16]\].
+
+
+⤴️ [_back to course material_](#short-course-material)
+
+### SIA implementation
+The [`iceflow.jl`](scripts/iceflow.jl) code implements the 2D SIA equations using the iterative implicit damped formulation as in [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl). The calculation of the SIA PDEs resumes in these 13 lines of Julia code:
+```julia
+# mass balance
+M     .= min.(grad_b.*(S .- z_ELA), b_max)
+# compute diffusivity
+dSdx  .= diff(S, dims=1)/dx
+dSdy  .= diff(S, dims=2)/dy
+gradS .= sqrt.(av_ya(dSdx).^2 .+ av_xa(dSdy).^2)
+D     .= a*av(H).^(npow+2) .* gradS.^(npow-1)
+# compute flux
+qHx   .= .-av_ya(D).*diff(S[:,2:end-1], dims=1)/dx
+qHy   .= .-av_xa(D).*diff(S[2:end-1,:], dims=2)/dy
+# update ice thickness
+dtau  .= dtausc*min.(10.0, cfl./(epsi .+ av(D)))
+ResH  .= .-(diff(qHx, dims=1)/dx .+ diff(qHy, dims=2)/dy) .+ inn(M)
+dHdt  .= dHdt.*damp .+ ResH
+H[2:end-1,2:end-1] .= max.(0.0, inn(H) .+ dtau.*dHdt)
+# apply mask
+H[Mask.==0] .= 0.0
+# update surface
+S     .= B .+ H
+```
+> 💡 Note that the here discussed SIA codes do not implement any flux limiter scheme to circumvent known accuracy and stability issues. Check out \[[6][Jarosch13], [7][Visnjevic18]\] for further references (the [`iceflow_bench.jl`](extras/iceflow_bench.jl) script implements the benchmark \[[6][Jarosch13]\] that reflects this issue).
+
+This implementation of the SIA equations solves the steady-state (i.e. the physical time derivative being removed as `dt->∞`). The last part of this course ([Greenland's ice cap evolution](#greenland-s-ice-cap-evolution)) will show how to achieve an (implicit) ice flow predictions over a specific time span `dt` by including the physical time derivative in the `ResH` term.
+
+🚧 WIP - to add:
+- output figure
+- some words on iteration count and time to solution on specific resolution (low res, slow)
+
+⤴️ [_back to course material_](#short-course-material)
+
+### GPU SIA implementation
+So now we have a cool iterative and implicit SIA solver in less than 100 lines of code 🎉. Good enough for low resolution calculations. What if we need more to capture local and nonlinear physics ? Parallel and GPU computing makes it possible. Let's start from the [`iceflow.jl`](scripts/iceflow.jl) code and port it to GPU (with some intermediate steps).
+
+🚧 WIP - add CPU vs GPU comparison figure (and comment).
+
+1. Extract the flux `qHx, qHy` from the physics calculations in [`iceflow.jl`](scripts/iceflow.jl):
+```julia
+# [...] skipped lines
+# compute flux
+qHx   .= .-av_ya(D).*diff(S[:,2:end-1], dims=1)/dx
+qHy   .= .-av_xa(D).*diff(S[2:end-1,:], dims=2)/dy
+# [...] skipped lines
+```
+
+2. Let's modify these lines into a `compute_flux` function we will then be able to turn into a GPU kernel.
+```julia
+# [...] skipped lines
+function compute_flux!(qHx, qHy, S, D, dx, dy, nx, ny)
+    Threads.@threads for iy=1:ny
+        for ix=1:nx
+            if (ix<=nx-1 && 2<=iy<=ny-1)  qHx[ix,iy] = -0.5*(D[ix,iy]+D[ix+1,iy])*(S[ix+1,iy]-S[ix,iy])/dx  end
+            if (2<=ix<=nx-1 && iy<=ny-1)  qHy[ix,iy] = -0.5*(D[ix,iy]+D[ix,iy+1])*(S[ix,iy+1]-S[ix,iy])/dy  end
+        end
+    end
+    return
+end
+# [...] skipped lines
+compute_flux!(qHx, qHy, S, D, dx, dy, nx, ny)
+# [...] skipped lines
+```
+> 💡 Julia enables multi-threading capabilities by simply adding `Threads.@threads` to the outermost loop (here over `iy`).
+
+3. The last step is to replace the (multi-threaded) loops by a vectorised index
+```julia
+ix = (blockIdx().x-1) * blockDim().x + threadIdx().x
+iy = (blockIdx().y-1) * blockDim().y + threadIdx().y
+```
+ specific to GPU execution. Each `ix` and `iy` are executed concurrently on a different GPU thread:
+```julia
+using CUDA
+# [...] skipped lines
+compute_flux!(qHx, qHy, S, D, dx, dy, nx, ny)
+    ix = (blockIdx().x-1) * blockDim().x + threadIdx().x
+    iy = (blockIdx().y-1) * blockDim().y + threadIdx().y
+    if (ix<=nx-1 && 2<=iy<=ny-1)  qHx[ix,iy] = -0.5*(D[ix,iy]+D[ix+1,iy])*(S[ix+1,iy]-S[ix,iy])/dx  end
+    if (2<=ix<=nx-1 && iy<=ny-1)  qHy[ix,iy] = -0.5*(D[ix,iy]+D[ix,iy+1])*(S[ix,iy+1]-S[ix,iy])/dy  end
+    return
+end
+# [...] skipped lines
+@cuda blocks=cublocks threads=cuthreads compute_flux!(qHx, qHy, S, D, dx, dy, nx, ny)
+synchronize()
+# [...] skipped lines
+```
+> 💡 We use `@cuda blocks=cublocks threads=cuthreads` to launch the GPU function on the appropriate number of threads, i.e. "parallel workers". The numerical grid resolution `nx` and `ny` must now be chosen accordingly to the number of parallel workers.
+
+> 💡 The here detailed porting is actually done for the 1D diffusion equation available in the extra material with following order:
+i)   [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl)
+ii)  [`diffusion_1D_damp_fun.jl`](extras/diffusion_1D_damp_fun.jl)
+iii) [`diffusion_1D_damp_gpu.jl`](extras/diffusion_1D_damp_gpu.jl)
+iv)  [`diffusion_1D_damp_xpu.jl`](scripts/diffusion_1D_damp_xpu.jl) (discussed [next section]((#xpu-sia-implementation)))
+
+### XPU SIA implementation
+Wouldn't it be great to be able to combine the multi-thread CPU and GPU implementations into a single "XPU" code to be able to run on various hardware with only changing a `USE_GPU` switch ? Using [ParallelStencil.jl] enables this, as many more cool features. The [`iceflow_xpu.jl`](scripts/iceflow_xpu.jl) script uses [ParallelStencil.jl] for an XPU implementation on various backends:
+
+```julia
+const USE_GPU = false
+using ParallelStencil
+using ParallelStencil.FiniteDifferences2D
+@static if USE_GPU
+    @init_parallel_stencil(CUDA, Float64, 2)
+    macro pow(args...)  esc(:(CUDA.pow($(args...)))) end
+else
+    @init_parallel_stencil(Threads, Float64, 2)
+    pow(x,y) = x^y
+    macro pow(args...)  esc(:(pow($(args...)))) end
+end
+# [...] skipped lines
+@parallel function compute_flux!(qHx, qHy, D, S, dx, dy)
+    @all(qHx)  = -@av_ya(D)*@d_xi(S)/dx
+    @all(qHy)  = -@av_xa(D)*@d_yi(S)/dy
+    return
+end
+# [...] skipped lines
+@parallel compute_flux!(qHx, qHy, D, S, dx, dy)
+# [...] skipped lines
+```
+> 💡 Various macros `@(...)` permit to deal with the low-level technicalities and the `USE_GPU` flag enables to switch between CPU and GPU backend. 
+
+The resulting code is short and readable and solves the "two-language problem"; development and production code implementations are regrouped into a single code. 
+
+⤴️ [_back to course material_](#short-course-material)
+
+### Greenland's ice cap evolution
+
+
+
+
+
+⤴️ [_back to course material_](#short-course-material)
+
+# Extras
+> ⚠️ Due to the time limitation, the short course will not cover the [extras](#extras) material. This information complements the course's main content and may provide intermediate and/or additional development steps.
+
+Extra material comprises:
+* [Porting the diffusion equation to GPUs](#porting-the-diffusion-equation-to-gpus)
+* [Simple inversion](#simple-inversion)
+* [Performance metric](performance-metric)
+* [Multi-XPU implementation](#multi-xpu-implementation)
+
+⤴️ [_back to content_](#content)
+
+## Porting the diffusion equation to GPUs
+This extra example complements the [GPU SIA implementation](#gpu-sia-implementation) and the [XPU SIA implementation](#xpu-sia-implementation).
+
 ### Parallel GPU computing
-So now we have a cool iterative and implicit solver in about 30 lines of code 🎉. Good enough for low resolution 1D calculations. What if we need more - 2D, 3D and high resolution to capture local and nonlinear physics ? Parallel and GPU computing makes it possible. Let's start from the [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) code and port it to GPU (with some intermediate steps).
+Let's start from the [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) code, a cool iterative and implicit solver in about 30 lines of code 🎉, and port it to GPU (with some intermediate steps).
 
 1. Extract the physics calculations from [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl), i.e. the time loop:
 ```julia
@@ -231,7 +408,7 @@ H[2:end-1] .= H[2:end-1] .+ dtau*dHdt
 # [...] skipped lines
 ```
 
-2. Split the calculations into separate functions (or kernels) and call those functions within the time loop. The [`diffusion_1D_damp_fun.jl`](scripts/diffusion_1D_damp_fun.jl) implements those modifications:
+2. Split the calculations into separate functions (or kernels) and call those functions within the time loop. The [`diffusion_1D_damp_fun.jl`](extras/diffusion_1D_damp_fun.jl) implements those modifications:
 ```julia
 function compute_flux!(qH, H, D, dx, nx)
     Threads.@threads for ix=1:nx
@@ -261,7 +438,7 @@ compute_update!(H, dHdt, dtau, nx)
 ```
 > 💡 Julia enables multi-threading capabilities by simply adding `Threads.@threads` to the outermost loop (here over `ix`).
 
-3. The last step is to replace the (multi-threaded) loop by a vectorised index `ix = (blockIdx().x-1) * blockDim().x + threadIdx().x` specific to GPU execution. Each `ix` is executed concurrently on a different GPU thread. The [`diffusion_1D_damp_gpu.jl`](scripts/diffusion_1D_damp_gpu.jl) implements those modifications to run on GPUs:
+3. The last step is to replace the (multi-threaded) loop by a vectorised index `ix = (blockIdx().x-1) * blockDim().x + threadIdx().x` specific to GPU execution. Each `ix` is executed concurrently on a different GPU thread. The [`diffusion_1D_damp_gpu.jl`](extras/diffusion_1D_damp_gpu.jl) implements those modifications to run on GPUs:
 ```julia
 using CUDA
 # [...] skipped lines
@@ -292,8 +469,6 @@ synchronize()
 # [...] skipped lines
 ```
 > 💡 We use `@cuda blocks=cublocks threads=cuthreads` to launch the GPU function on the appropriate number of threads, i.e. "parallel workers". The numerical grid resolution `nx` must now be chosen accordingly to the number of workers `nx=cublocks*cuthreads`.
-
-⤴️ [_back to course material_](#short-course-material)
 
 ### XPU computing
 Wouldn't it be great to be able to combine the multi-thread CPU and GPU implementations into a single "XPU" code to be able to run on various hardware with only changing a `USE_GPU` switch ? Using [ParallelStencil.jl] enables this, as well more other cool features. The [`diffusion_1D_damp_xpu.jl`](scripts/diffusion_1D_damp_xpu.jl) uses [ParallelStencil.jl] for an XPU implementation on various backends:
@@ -328,147 +503,12 @@ end
 @parallel compute_update!(H, dHdt, dtau)
 # [...] skipped lines
 ```
-Various macros `@(...)` permit to deal with the low-level technicalities and the `USE_GPU` flag enables to switch between CPU and GPU backend. The resulting code is short and readable and solves the "two-language problem"; development and production code implementations are regrouped into a single code. 
+Various macros `@(...)` permit to deal with the low-level technicalities and the `USE_GPU` flag enables to switch between CPU and GPU backend.
 
-⤴️ [_back to course material_](#short-course-material)
-
-## Part 2 - solving PDEs to predict ice flow
-
-### SIA equation
-Let's move from the simple 1D linear diffusion example to the SIA equation, a 2D nonlinear diffusion equation:
-```md
-qHx   = -D*d(B+H)/dx              (2a)
-qHy   = -D*d(B+H)/dy              (2b)
-dHdt  = -(dqHx/dx + dqHy/dy) + M  (2c)
-dH/dt = dHdt                      (2d)
-```
-where `B` is the bedrock elevation, `H` the ice thickness, `M` the mass balance (accumulation, ablation). The diffusion coefficient `D` is nonlinear and function of surface elevation `B+H` and the power-law exponent `n`:
-```md
-D = a*H^(npow+2)*sqrt((d(B+H)/dx)^2 + (d(B+H)/dy)^2)^(npow-1)
-```
-We implement climate forcing using a simple mass balance (accumulation, ablation) `M` formulation:
-```md
-M  = min(grad_b*(B+H - z_ELA), b_max)
-```
-as function of the surface elevation `B+H` and capped by the maximal accumulation rate `b_max`. The mass balance gradient `grad_b` is defined as
-```md
-grad_b = (1.3517 - 0.014158*LAT)/100.0*0.91
-```
-where `LAT` is the latitude (taken from \[[5][Machgut16]\]). The equilibrium line altitude (where accumulation = ablation) `z_ELA` is latitude dependent, ranging from 1300m (South) to 1000m (North) as suggested by \[[5][Machgut16]\].
-
-
-⤴️ [_back to course material_](#short-course-material)
-
-### SIA implementation
-The [`iceflow.jl`](scripts/iceflow.jl) code implements the 2D SIA equations using the iterative implicit damped formulation as in [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl). The calculation of the SIA PDEs resumes in these 13 lines of Julia code:
-```julia
-# mass balance
-M     .= min.(grad_b.*(S .- z_ELA), b_max)
-# compute diffusivity
-dSdx  .= diff(S, dims=1)/dx
-dSdy  .= diff(S, dims=2)/dy
-gradS .= sqrt.(av_ya(dSdx).^2 .+ av_xa(dSdy).^2)
-D     .= a*av(H).^(npow+2) .* gradS.^(npow-1)
-# compute flux
-qHx   .= .-av_ya(D).*diff(S[:,2:end-1], dims=1)/dx
-qHy   .= .-av_xa(D).*diff(S[2:end-1,:], dims=2)/dy
-# update ice thickness
-dtau  .= dtausc*min.(10.0, cfl./(epsi .+ av(D)))
-ResH  .= .-(diff(qHx, dims=1)/dx .+ diff(qHy, dims=2)/dy) .+ inn(M)
-dHdt  .= dHdt.*damp .+ ResH
-H[2:end-1,2:end-1] .= max.(0.0, inn(H) .+ dtau.*dHdt)
-# apply mask
-H[Mask.==0] .= 0.0
-# update surface
-S     .= B .+ H
-```
-> 💡 Note that the here discussed SIA codes do not implement any flux limiter scheme to circumvent known accuracy and stability issues. Check out  \[[6][Jarosch13], [7][Visnjevic18]\] for further references (the [`iceflow_bench.jl`](scripts/iceflow_bench.jl) script implements the benchmark \[[6][Jarosch13]\] that reflects this issue).
-
-> 💡 This implementation of the SIA equations solves the steady-state. To achieve an implicit solution of the ice flow predictions prediction over a specific time span `dt`, the physical time derivative needs to be included in the `ResH` term. This modification is suggested as an [exercise](#exercise) for the end of the course.
-
-🚧 WIP - to add:
-- output figure
-- some words on iteration count and time to solution on specific resolution (low res, slow)
-
-⤴️ [_back to course material_](#short-course-material)
-
-### XPU SIA implementation
-Applying what we learned from the 1D diffusion equation, we can now instrument the [`iceflow.jl`](scripts/iceflow.jl) code (see code snippet just above) to make it XPU compatible using [ParallelStencil.jl]; the [`iceflow_xpu.jl`](scripts/iceflow_xpu.jl) code:
-```julia
-const USE_GPU = false
-using ParallelStencil
-using ParallelStencil.FiniteDifferences2D
-@static if USE_GPU
-    @init_parallel_stencil(CUDA, Float64, 2)
-    macro pow(args...)  esc(:(CUDA.pow($(args...)))) end
-else
-    @init_parallel_stencil(Threads, Float64, 2)
-    pow(x,y) = x^y
-    macro pow(args...)  esc(:(pow($(args...)))) end
-end
-# [...] skipped lines
-@parallel function compute_M_dS!(M, dSdx, dSdy, S, z_ELA, grad_b, b_max, dx, dy)
-    @all(M)    = min(@all(grad_b)*(@all(S) - @all(z_ELA)), b_max)
-    @all(dSdx) = @d_xa(S)/dx
-    @all(dSdy) = @d_ya(S)/dy
-    return
-end
-
-@parallel function compute_D!(D, H, dSdx, dSdy, a, npow)
-    @all(D) = a*@pow(@av(H), (npow+2)) * @pow(sqrt(@av_ya(dSdx)*@av_ya(dSdx) + @av_xa(dSdy)*@av_xa(dSdy)), npow-1)
-    return
-end
-
-@parallel function compute_qH_dtau!(qHx, qHy, dtau, D, S, dtausc, cfl, epsi, dx, dy)
-    @all(qHx)  = -@av_ya(D)*@d_xi(S)/dx
-    @all(qHy)  = -@av_xa(D)*@d_yi(S)/dy
-    @all(dtau) = dtausc*min(10.0, cfl/(epsi + @av(D)))
-    return
-end
-
-@parallel function compute_dHdt!(ResH, dHdt, qHx, qHy, M, damp, dx, dy)
-    @all(ResH) = -(@d_xa(qHx)/dx + @d_ya(qHy)/dy) + @inn(M)
-    @all(dHdt) = @all(dHdt)*damp + @all(ResH)
-    return
-end
-
-@parallel function compute_H!(H, dHdt, dtau)
-    @inn(H) = max(0.0, @inn(H) + @all(dtau)*@all(dHdt))
-    return
-end
-
-@parallel_indices (ix,iy) function compute_Mask_S!(H, S, B, Mask)
-    if (ix<=size(H,1) && iy<=size(H,2)) if (Mask[ix,iy]==0) H[ix,iy] = 0.0 end end
-    if (ix<=size(H,1) && iy<=size(H,2)) S[ix,iy] = B[ix,iy] + H[ix,iy] end    
-    return
-end
-# [...] skipped lines
-@parallel compute_M_dS!(M, dSdx, dSdy, S, z_ELA, grad_b, b_max, dx, dy)
-@parallel compute_D!(D, H, dSdx, dSdy, a, npow)
-@parallel compute_qH_dtau!(qHx, qHy, dtau, D, S, dtausc, cfl, epsi, dx, dy)
-@parallel compute_dHdt!(ResH, dHdt, qHx, qHy, M, damp, dx, dy)
-@parallel compute_H!(H, dHdt, dtau)
-@parallel compute_Mask_S!(H, S, B, Mask)
-```
-🚧 WIP:
-- needs some words on high resolution example and maybe zoomed in figure into specific location.
-
-⤴️ [_back to course material_](#short-course-material)
-
-### Exercise
-
-🚧 WIP physical time derivative to be able to switch from steady state to specific time-span
-
-⤴️ [_back to course material_](#short-course-material)
-
-# Extras
-If time permits, let's check out some extra material:
-- The ice flow solver we've now designed can be readily used as forward solver within a [simple inversion](#simple-inversion) procedure to constrain climate forcing parameters. 
-- If curious about a relevant [performance metric](performance-metric), check out what the effective memory throughput is about.
-- In case the problem to solve is too large to fit within a single GPU, [ImplicitGlobalGrid.jl] combined to [ParallelStencil.jl] enables a frictionless [multi-XPU implementation](#multi-xpu-implementation) of the SIA equation.
+⤴️ [_back to extras_](#extras)
 
 ## Simple inversion
-Using the inversion approach proposed by \[[7][Visnjevic18]\], our ice flow solver [`iceflow.jl`](scripts/iceflow.jl) can be embedded into an inversion framework to retrieve spatially variable maximum accumulation rate `b_max` in order to constrain ice thickness distribution over Greenland. The following animation depicts the evolution of the inversion procedure as function of the 30 inversion steps and was produced using the [`iceflow_inverse.jl`](scripts/iceflow_inverse.jl) code. `Gam` represents the misfit between the observed `Hice` and the calculated `H` ice thickness, `B_max` represents the spatially variable maximal accumulation.
+Using the inversion approach proposed by \[[7][Visnjevic18]\], our ice flow solver [`iceflow.jl`](scripts/iceflow.jl) can be embedded into an inversion framework to retrieve spatially variable maximum accumulation rate `b_max` in order to constrain ice thickness distribution over Greenland. The following animation depicts the evolution of the inversion procedure as function of the 30 inversion steps and was produced using the [`iceflow_inverse.jl`](extras/iceflow_inverse.jl) code. `Gam` represents the misfit between the observed `Hice` and the calculated `H` ice thickness, `B_max` represents the spatially variable maximal accumulation.
 
 ![](docs/iceflow_inv_160x304.gif)
 
@@ -478,16 +518,19 @@ The ice thickness obtained from the inversion procedure can be further compared 
 
 > 💡 Note that the inversion procedure serves here as proof of concept, as higher resolution and finer tuning may be needed to further improve the misfit minimisation.
 
+⤴️ [_back to extras_](#extras)
+
 ## Performance metric
 Majority of stencil based codes as in this course are memory bounded, meaning the limiting factor in performance is the rate at which memory is transferred from and back between the memory and the arithmetic units. The maximal rate at which the memory transfers occur is the memory copy rate, in the order of 50 GB/s for CPUs and about 1 TB/s for modern GPUs. The effective memory throughput metric (T_eff) measures how good an iterative stencil-based algorithm performs in terms of memory throughput, to be compared to the memory copy rate.
 
 Check out the [performance metric section](https://github.com/omlins/ParallelStencil.jl#performance-metric) from the [ParallelStencil.jl] module and this [JuliaCon2020][JuliaCon20a] presentation \[[1][JuliaCon20a]\].
 
+⤴️ [_back to extras_](#extras)
+
 ## Multi-XPU implementation
 Check out [this material](https://github.com/luraess/geo-hpc-course#running-julia-mpi) to figure out how combining [ImplicitGlobalGrid.jl] to [ParallelStencil.jl] enables efficient distributed memory parallelisation on multiple XPUs.
 
-
-⤴️ [_back to content_](#content)
+⤴️ [_back to extras_](#extras)
 
 
 # Further reading
