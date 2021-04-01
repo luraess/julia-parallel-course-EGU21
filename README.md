@@ -276,7 +276,7 @@ S     .= B .+ H
 
 This implementation of the SIA equations solves the steady-state (i.e. the physical time derivative being removed as `dt->∞`). The last part of this course ([Greenland's ice cap evolution](#greenland-s-ice-cap-evolution)) will show how to achieve an (implicit) ice flow predictions over a specific time span `dt` by including the physical time derivative in the `ResH` term.
 
-🚧 WIP - to add:
+🚧 WIP - add:
 - output figure
 - some words on iteration count and time to solution on specific resolution (low res, slow)
 
