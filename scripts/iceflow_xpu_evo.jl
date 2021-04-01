@@ -74,9 +74,7 @@ end
 end
 
 @parallel function compute_H!(H, dHdt, dtau)
-    # @inn(H) = max(0.0, @inn(H) + @all(dtau)*@all(dHdt) )
-    @inn(H) = @inn(H) + @all(dtau)*@all(dHdt)
-    @inn(H) = 0.5*@inn(H)*(1.0 -tanh(-(@inn(H)-1.0)/2.0))
+    @inn(H) = max(0.0, @inn(H) + @all(dtau)*@all(dHdt) )
     return
 end
 
@@ -143,8 +141,7 @@ end
     Yc2      = Yc .- minimum(Yc); Yc2 .= Yc2./maximum(Yc2)
     grad_b   = Data.Array((1.3517 .- 0.014158.*(60.0.+Yc2*20.0))./100.0.*0.91) # Mass Bal. gradient, from doi: 10.1017/jog.2016.75
     z_ELA    = Data.Array(1300.0 .- Yc2*300.0)                                 # Educated guess for ELA altitude
-    S       .= B .+ H.*0.0 .+ 100.0
-    @parallel compute_Mask_S!(H, S, B, Mask)
+    S       .= B .+ H
     ELA      = 0.0
     if do_visu
         FS = 7
@@ -231,7 +228,7 @@ println("done.")
 do_visu = true
 do_save = true
 
-if do_visu  !ispath("../output_dt") && mkdir("../output_dt") end
+if do_visu  !ispath("../output_evo") && mkdir("../output_evo") end
 
 # run the SIA flow model
 H, S, M, Vx, Vy = iceflow(dx, dy, Zbed, Hice, Mask; do_visu=true)
@@ -239,14 +236,14 @@ H, S, M, Vx, Vy = iceflow(dx, dy, Zbed, Hice, Mask; do_visu=true)
 # output and save
 nx, ny = size(H)
 if do_save
-    save("../output_dt/iceflow_xpu_dt_$(nx)x$(ny).jld", "Hice", convert(Matrix{Float32}, Hice),
-                                                        "Mask", convert(Matrix{Float32}, Mask),
-                                                        "H"   , convert(Matrix{Float32}, H),
-                                                        "S"   , convert(Matrix{Float32}, S),
-                                                        "M"   , convert(Matrix{Float32}, M),
-                                                        "Vx"  , convert(Matrix{Float32}, Vx),
-                                                        "Vy"  , convert(Matrix{Float32}, Vy),
-                                                        "xc", xc, "yc", yc)
+    save("../output_evo/iceflow_xpu_evo_$(nx)x$(ny).jld", "Hice", convert(Matrix{Float32}, Hice),
+                                                          "Mask", convert(Matrix{Float32}, Mask),
+                                                          "H"   , convert(Matrix{Float32}, H),
+                                                          "S"   , convert(Matrix{Float32}, S),
+                                                          "M"   , convert(Matrix{Float32}, M),
+                                                          "Vx"  , convert(Matrix{Float32}, Vx),
+                                                          "Vy"  , convert(Matrix{Float32}, Vy),
+                                                          "xc", xc, "yc", yc)
 end
 
 println("... done.")
