@@ -27,7 +27,7 @@ This short course covers trendy areas in modern geocomputing with broad geoscien
 # Objectives
 The goal of this short course is to offer an interactive overview on how to solve systems of differential equations in parallel on GPUs using the [Julia language]. [Julia] combines high-level language simplicity and low-level language performance. The resulting codes and applications are fast, short and readable \[[1][JuliaCon20a], [2][JuliaCon20b], [3][JuliaCon19]\].
 
-**We will design and implement a numerical algorithm that predicts ice flow dynamics over mountainous topography (Greenland) using GPU computing.** We will use the shallow ice approximation (SIA) equations within the ice flow solver to assess Greenland's ice cap evolution as function of various climate scenario.
+**We will design and implement a numerical algorithm that predicts ice flow dynamics over mountainous topography (Greenland) using GPU computing.** We will use the shallow ice approximation (SIA) equations within the ice flow solver to assess Greenland's ice cap evolution as function of a climate scenario.
 
 ![Greenland ice cap](docs/greenland_1.png)
 
