@@ -283,9 +283,11 @@ This implementation of the SIA equations solves the steady-state (i.e. the physi
 ⤴️ [_back to course material_](#short-course-material)
 
 ### GPU SIA implementation
-So now we have a cool iterative and implicit SIA solver in less than 100 lines of code 🎉. Good enough for low resolution calculations. What if we need more to capture local and nonlinear physics ? Parallel and GPU computing makes it possible. Let's start from the [`iceflow.jl`](scripts/iceflow.jl) code and port it to GPU (with some intermediate steps).
+So now we have a cool iterative and implicit SIA solver in less than 100 lines of code 🎉. Good enough for low resolution calculations. What if we need higher resolution and faster time to solution ? Parallel and GPU computing makes it possible. Let's start from the [`iceflow.jl`](scripts/iceflow.jl) code and port it to GPU (with some intermediate steps).
 
-🚧 WIP - add CPU vs GPU comparison figure (and comment).
+The main idea of GPU parallelisation is to calculate each grid point concurently by a different GPU thread (instaed of the more serial CPU execution) as depicted hereafter:
+
+🚧 WIP - add CPU vs GPU comparison figure.
 
 1. Extract the flux `qHx, qHy` from the physics calculations in [`iceflow.jl`](scripts/iceflow.jl):
 ```julia
@@ -337,7 +339,7 @@ synchronize()
 ```
 > 💡 We use `@cuda blocks=cublocks threads=cuthreads` to launch the GPU function on the appropriate number of threads, i.e. "parallel workers". The numerical grid resolution `nx` and `ny` must now be chosen accordingly to the number of parallel workers.
 
-The here detailed porting is actually done for the 1D diffusion equation ([Porting the diffusion equation to GPUs](#porting-the-diffusion-equation-to-gpus)) available in the [extra material](#extras) with following order:
+The here described porting procedure steps are exemplified for the 1D diffusion equation ([Porting the diffusion equation to GPUs](#porting-the-diffusion-equation-to-gpus)) available in the [extra material](#extras):
 - (1) [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl)
 - (2) [`diffusion_1D_damp_fun.jl`](extras/diffusion_1D_damp_fun.jl)
 - (3) [`diffusion_1D_damp_gpu.jl`](extras/diffusion_1D_damp_gpu.jl)
@@ -375,10 +377,13 @@ The resulting code is short and readable and solves the "two-language problem"; 
 ⤴️ [_back to course material_](#short-course-material)
 
 ### Greenland's ice cap evolution
-Finally, we can use our XPU ice flow solver to simulate the evolution of Greenland's ice cap for a specific climate scenario. The [`iceflow_xpu_evo.jl`](scripts/iceflow_xpu_evo.jl) code produces the following figure.
+We can finally use our XPU ice flow solver to simulate the evolution of Greenland's ice cap for a specific climate scenario. The steps are following:
+1. Compute the steady-state ice thickness for current climate forcing (mass balance function as described in [SIA equation](#sia-equation) section)
+2. Apply a time-dependent linear increase of the ELA (the equilibrium line where accumulation = ablation) of 1m/yr over the next 2500yrs. We here assume that an increase in annual mean temperature of 0.6°C is equivalent to a 100m shift of the ELA, thus 1m/yr represents 0.3°C per 50yrs. The [`iceflow_xpu_evo.jl`](scripts/iceflow_xpu_evo.jl) code implements this climate evolution model and produces the following predictions for the Greenland ice cap evolution:
 
 ![](docs/iceflow_evo_160x304.gif)
 
+> Note that our climate scenario may reflect some extreme warming over the next 2500yrs.
 
 ⤴️ [_back to course material_](#short-course-material)
 
