@@ -375,9 +375,9 @@ The resulting code is short and readable and solves the "two-language problem"; 
 ⤴️ [_back to course material_](#short-course-material)
 
 ### Greenland's ice cap evolution
+Finally, we can now use our GPU ice flow solver to simulate the evolution of Greenland's ice cap for a specific climate scenario. More
 
-
-
+![](docs/iceflow_evo_160x304.gif)
 
 
 ⤴️ [_back to course material_](#short-course-material)
