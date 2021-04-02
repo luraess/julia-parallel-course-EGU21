@@ -163,7 +163,7 @@ This section lists the material discussed within this 60 min. short course:
     * [SIA implementation](#sia-implementation)
     * [GPU SIA implementation](#gpu-sia-implementation)
     * [XPU SIA implementation](#xpu-sia-implementation)
-    * [Greenland's ice cap evolution](#greenland-s-ice-cap-evolution)
+    * [Greenland's ice cap evolution](#greenlands-ice-cap-evolution)
 
 💡 In this course we will implement a 2D nonlinear diffusion equation on GPUs in Julia using the finite-difference method and an iterative solving approach. The goal is to resolve the shallow ice approximation (SIA) and predict ice flow over Greenland.
 
@@ -375,7 +375,7 @@ The resulting code is short and readable and solves the "two-language problem"; 
 ⤴️ [_back to course material_](#short-course-material)
 
 ### Greenland's ice cap evolution
-Finally, we can now use our GPU ice flow solver to simulate the evolution of Greenland's ice cap for a specific climate scenario. More
+Finally, we can use our XPU ice flow solver to simulate the evolution of Greenland's ice cap for a specific climate scenario. The [`iceflow_xpu_evo.jl`](scripts/iceflow_xpu_evo.jl) code produces the following figure.
 
 ![](docs/iceflow_evo_160x304.gif)
 
