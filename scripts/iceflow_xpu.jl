@@ -178,8 +178,8 @@ end
 # ------------------------------------------------------------------------------
 # load the data
 print("Loading the data ... ")
-# data = load("../data/BedMachineGreenland_96_184_ds100.jld")
-data = load("../data/BedMachineGreenland_160_304_ds60.jld")
+data = load("../data/BedMachineGreenland_96_184_ds100.jld")
+# data = load("../data/BedMachineGreenland_160_304_ds60.jld")
 Hice, Mask, Zbed = Data.Array(data["Hice"]), Data.Array(data["Mask"]), Data.Array(data["Zbed"])
 xc, yc, dx, dy   = data["xc"], data["yc"], data["dx"], data["dy"]
 println("done.")
