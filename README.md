@@ -227,8 +227,8 @@ The [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) code implements a dam
 ### SIA equation
 Let's move from the simple **1D linear diffusion** example to the shallow ice approximation (SIA) equation, a **2D nonlinear diffusion** equation:
 ```md
-qHx   = -D*d(B+H)/dx              (2a)
-qHy   = -D*d(B+H)/dy              (2b)
+qHx   = -D*dS/dx                  (2a)
+qHy   = -D*dS/dy                  (2b)
 dHdt  = -(dqHx/dx + dqHy/dy) + M  (2c)
 dH/dt = dHdt                      (2d)
 ```
