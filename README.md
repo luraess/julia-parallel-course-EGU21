@@ -232,7 +232,7 @@ qHy   = -D*dS/dy                  (2b)
 dHdt  = -(dqHx/dx + dqHy/dy) + M  (2c)
 dH/dt = dHdt                      (2d)
 ```
-where `B` is the bedrock elevation, `H` the ice thickness, `M` the mass balance (accumulation, ablation). The diffusion coefficient `D` is nonlinear and function of surface elevation `S=B+H` and the power-law exponent `n`:
+where `S=B+H` is the surface elevation, `B` is the bedrock elevation, `H` the ice thickness, `M` the mass balance (accumulation, ablation). The diffusion coefficient `D` is nonlinear and function of `S` and the power-law exponent `n`:
 ```md
 D = a*H^(npow+2)*sqrt((dS/dx)^2 + (dS/dy)^2)^(npow-1)
 ```
