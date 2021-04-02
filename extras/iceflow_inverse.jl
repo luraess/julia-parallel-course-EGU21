@@ -11,7 +11,7 @@ using  JLD, Plots, Printf, LinearAlgebra
     return
 end
 
-@views function iceflow_inverse(dx, dy, Zbed, Hice, Mask=zero(Zbed); do_visu=false)
+@views function iceflow_inverse(dx, dy, Zbed, Hice, Mask; do_visu=false)
     print("Starting ice flow model ... ")
     # physics
     s2y      = 3600*24*365.25  # seconds to years
@@ -59,18 +59,18 @@ end
     Vx       = zeros(nx-1, ny-1)
     Vy       = zeros(nx-1, ny-1)
     M        = zeros(nx  , ny  )
+    B        = zeros(nx  , ny  )
+    H        = zeros(nx  , ny  )
     Gam      = zeros(nx  , ny  )
     # initial condition
     S        = zeros(nx  , ny  )
-    B        = copy(Zbed)
-    H        = copy(Hice)
+    B       .= Zbed
+    H       .= Hice
     Yc2      = Yc .- minimum(Yc); Yc2 .= Yc2./maximum(Yc2)
     grad_b   = (1.3517 .- 0.014158.*(60.0.+Yc2*20.0))./100.0.*0.91 # From doi: 10.1017/jog.2016.75
     z_ELA    = 1300.0 .- Yc2*300.0
     B_max    = b_max.*ones(nx, ny)
     S       .= B .+ H
-    # display(heatmap(xc./1e3, reverse(yc)./1e3, reverse(grad_b, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, framestyle=:box, title="Surface"))
-    # error("stop")
     if do_visu
         FS = 7
         H_v     = fill(NaN, nx, ny)
@@ -110,12 +110,8 @@ end
                 # error check
                 Err .= Err .- H
                 err = norm(Err)/length(Err)
-                # err  = (sum(abs.(Err))./nx./ny)
                 @printf(" it = %d, error = %1.2e \n", it, err)
                 if isnan(err) error("NaNs") end # safeguard
-                # p1 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, framestyle=:box, title="Ice thickness")
-                # p2 = heatmap(xc[2:end-1]./1e3, reverse(yc[2:end-1])./1e3, reverse(dt, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[2], xc[end-1])./1e3, ylims=(yc[end-1], yc[2])./1e3, framestyle=:box, title="Surface")
-                # display(plot(p1, p2))
             end
             it += 1
         end
@@ -187,7 +183,7 @@ if do_visu
 end
 
 # run the inversion SIA flow model
-H, S, M, Vx, Vy = iceflow_inverse(dx, dy, Zbed, Hice, Mask; do_visu=true)
+H, S, M, Vx, Vy = iceflow_inverse(dx, dy, Zbed, Hice, Mask; do_visu)
 
 # visualisation
 if do_visu

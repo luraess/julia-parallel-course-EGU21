@@ -11,7 +11,7 @@ using JLD, Plots, Printf, LinearAlgebra
     return
 end
 
-@views function iceflow(dx, dy, Zbed, Hice, Mask=zero(Zbed))
+@views function iceflow(dx, dy, Zbed, Hice, Mask)
     println("Initialising ice flow model ... ")
     # physics
     s2y      = 3600*24*365.25  # seconds to years
@@ -51,10 +51,12 @@ end
     Vx       = zeros(nx-1, ny-1)
     Vy       = zeros(nx-1, ny-1)
     M        = zeros(nx  , ny  )
+    B        = zeros(nx  , ny  )
+    H        = zeros(nx  , ny  )
     # initial condition
     S        = zeros(nx  , ny  )
-    B        = copy(Zbed)
-    H        = copy(Hice)
+    B       .= Zbed
+    H       .= Hice
     Yc2      = Yc .- minimum(Yc); Yc2 .= Yc2./maximum(Yc2)
     grad_b   = (1.3517 .- 0.014158.*(60.0.+Yc2*20.0))./100.0.*0.91 # Mass Bal. gradient, from doi: 10.1017/jog.2016.75
     z_ELA    = 1300.0 .- Yc2*300.0                                 # Educated guess for ELA altitude
