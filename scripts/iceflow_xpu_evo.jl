@@ -15,9 +15,27 @@ using JLD, Plots, Printf, LinearAlgebra
 @views av(A)  = 0.25*(A[1:end-1,1:end-1].+A[2:end,1:end-1].+A[1:end-1,2:end].+A[2:end,2:end])
 @views inn(A) = A[2:end-1,2:end-1]
 
+@views function apply_smoothing!(A, B, ns)
+    print("Applying some smoothing ... ")
+    A2 = @zeros(size(A)); A2 .= A
+    B2 = @zeros(size(B)); B2 .= B
+    for is=1:ns
+        @parallel smooth!(A2, A)
+        @parallel smooth!(B2, B)
+        @parallel (1:size(A2,2)) bc_x!(A2)
+        @parallel (1:size(A2,1)) bc_y!(A2)
+        @parallel (1:size(B2,2)) bc_x!(B2)
+        @parallel (1:size(B2,1)) bc_y!(B2)
+        A, A2 = A2, A
+        B, B2 = B2, B
+    end
+    println("done.")
+    return
+end
+
 # GPU function
-@parallel function smooth!(A)
-    @inn(A) = @inn(A) + 1.0./4.1.*(@d2_xi(A) + @d2_yi(A))
+@parallel function smooth!(A2, A)
+    @inn(A2) = @inn(A) + 1.0./4.1.*(@d2_xi(A) + @d2_yi(A))
     return
 end
 
@@ -91,7 +109,7 @@ end
     return
 end
 
-@views function iceflow(dx, dy, Zbed, Hice, Mask=zero(Zbed); do_visu=false)
+@views function iceflow(dx, dy, Zbed, Hice, Mask; do_visu=false)
     println("Initialising ice flow model ... ")
     # physics
     s2y      = 3600*24*365.25  # seconds to years
@@ -134,10 +152,12 @@ end
     Vx       = @zeros(nx-1, ny-1)
     Vy       = @zeros(nx-1, ny-1)
     M        = @zeros(nx  , ny  )
+    B        = @zeros(nx  , ny  )
+    H        = @zeros(nx  , ny  )
     # initial condition
     S        = @zeros(nx  , ny  )
-    B        = copy(Data.Array(Zbed))
-    H        = copy(Data.Array(Hice))
+    B       .= Zbed
+    H       .= Hice
     Mask     = Data.Array(Mask)
     Yc2      = Yc .- minimum(Yc); Yc2 .= Yc2./maximum(Yc2)
     grad_b   = Data.Array((1.3517 .- 0.014158.*(60.0.+Yc2*20.0))./100.0.*0.91) # Mass Bal. gradient, from doi: 10.1017/jog.2016.75
@@ -190,12 +210,12 @@ end
         M_v .= Array(M); M_v[Ma.==0] .= NaN
         V_v .= sqrt.(av(Array(Vx)).^2 .+ av(Array(Vy)).^2); V_v[inn(Array(H)).==0] .= NaN
         p1 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(S_v, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="Surface elev. [m]", titlefontsize=FS, titlefont="Courier")
-        p2 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H_v, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="Ice thickness [m]", titlefontsize=FS, titlefont="Courier")
+        p2 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H_v, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="$(round(t,sigdigits=2)) yrs, Ice thick. [m]", titlefontsize=FS, titlefont="Courier")
         p3 = heatmap(xc[2:end-1]./1e3, reverse(yc[2:end-1])./1e3, reverse(log10.(V_v), dims=2)', c=:batlow, aspect_ratio=1, xlims=(xc[2], xc[end-1])./1e3, ylims=(yc[end-1], yc[2])./1e3, clims=(0.1, 2.0), yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="log10(vel) [m/yr]", titlefontsize=FS, titlefont="Courier")
         p4 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(M_v, dims=2)', c=:devon, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="Mass Bal. rate [m/yr]", titlefontsize=FS, titlefont="Courier")
         # display(plot(p1, p2, p3, p4, size=(400,400)))
-        plot(p1, p2, p3, p4, size=(400,400), dpi=200) #background_color=:transparent, foreground_color=:white
-        savefig("../output_evo/iceflow_out1_xpu_evo_$(nx)x$(ny)_$(it).png")
+        plot(p1, p2, p3, p4, size=(400,400), dpi=200); frame(anim) #background_color=:transparent, foreground_color=:white
+        # savefig("../output_evo/iceflow_out1_xpu_evo_$(nx)x$(ny)_$(it).png")
         it += 1
     end
     return Array(H), Array(S), Array(M), Array(Vx), Array(Vy)
@@ -203,36 +223,34 @@ end
 # ------------------------------------------------------------------------------
 # load the data
 print("Loading the data ... ")
-data = load("../data/BedMachineGreenland_96_184_ds100.jld")
-# data = load("../data/BedMachineGreenland_160_304_ds60.jld")
+# data = load("../data/BedMachineGreenland_96_184_ds100.jld")
+data = load("../data/BedMachineGreenland_160_304_ds60.jld")
 Hice, Mask, Zbed = Data.Array(data["Hice"]), Data.Array(data["Mask"]), Data.Array(data["Zbed"])
 xc, yc, dx, dy   = data["xc"], data["yc"], data["dx"], data["dy"]
 println("done.")
 
 # apply some smoothing
-print("Applying some smoothing ... ")
-ns = 1
-for is=1:ns
-    @parallel smooth!(Zbed)
-    @parallel smooth!(Hice)
-    @parallel (1:size(Zbed,2)) bc_x!(Zbed)
-    @parallel (1:size(Zbed,1)) bc_y!(Zbed)
-    @parallel (1:size(Hice,2)) bc_x!(Hice)
-    @parallel (1:size(Hice,1)) bc_y!(Hice)
-end
-println("done.")
+ns = 2
+apply_smoothing!(Hice, Zbed, ns)
 
 # handle output
 do_visu = true
 do_save = true
 
-if do_visu  !ispath("../output_evo") && mkdir("../output_evo") end
+nx, ny = size(Hice)
+if do_visu
+    ENV["GKSwstype"]="nul"
+    !ispath("../output_evo") && mkdir("../output_evo")
+    !ispath("../output_evo/gif_$(nx)x$(ny)") && mkdir("../output_evo/gif_$(nx)x$(ny)"); loadpath = "../output_evo/gif_$(nx)x$(ny)"; anim = Animation(loadpath,String[])
+    println("Animation directory: $(anim.dir)")
+end
 
 # run the SIA flow model
-H, S, M, Vx, Vy = iceflow(dx, dy, Zbed, Hice, Mask; do_visu=true)
+H, S, M, Vx, Vy = iceflow(dx, dy, Zbed, Hice, Mask; do_visu)
 
 # output and save
-nx, ny = size(H)
+if do_visu gif(anim, "../output_evo/iceflow_evo_$(nx)x$(ny).gif", fps = 5) end
+
 if do_save
     save("../output_evo/iceflow_xpu_evo_$(nx)x$(ny).jld", "Hice", convert(Matrix{Float32}, Hice),
                                                           "Mask", convert(Matrix{Float32}, Mask),

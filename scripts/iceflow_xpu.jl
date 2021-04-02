@@ -15,9 +15,27 @@ using JLD, Plots, Printf, LinearAlgebra
 @views av(A)  = 0.25*(A[1:end-1,1:end-1].+A[2:end,1:end-1].+A[1:end-1,2:end].+A[2:end,2:end])
 @views inn(A) = A[2:end-1,2:end-1]
 
+@views function apply_smoothing!(A, B, ns)
+    print("Applying some smoothing ... ")
+    A2 = @zeros(size(A)); A2 .= A
+    B2 = @zeros(size(B)); B2 .= B
+    for is=1:ns
+        @parallel smooth!(A2, A)
+        @parallel smooth!(B2, B)
+        @parallel (1:size(A2,2)) bc_x!(A2)
+        @parallel (1:size(A2,1)) bc_y!(A2)
+        @parallel (1:size(B2,2)) bc_x!(B2)
+        @parallel (1:size(B2,1)) bc_y!(B2)
+        A, A2 = A2, A
+        B, B2 = B2, B
+    end
+    println("done.")
+    return
+end
+
 # GPU function
-@parallel function smooth!(A)
-    @inn(A) = @inn(A) + 1.0./4.1.*(@d2_xi(A) + @d2_yi(A))
+@parallel function smooth!(A2, A)
+    @inn(A2) = @inn(A) + 1.0./4.1.*(@d2_xi(A) + @d2_yi(A))
     return
 end
 
@@ -75,7 +93,7 @@ end
 
 @parallel_indices (ix,iy) function compute_Mask_S!(H, S, B, Mask)
     if (ix<=size(H,1) && iy<=size(H,2)) if (Mask[ix,iy]==0) H[ix,iy] = 0.0 end end
-    if (ix<=size(H,1) && iy<=size(H,2)) S[ix,iy] = B[ix,iy] + H[ix,iy] end    
+    if (ix<=size(S,1) && iy<=size(S,2)) S[ix,iy] = B[ix,iy] + H[ix,iy] end    
     return
 end
 
@@ -85,7 +103,7 @@ end
     return
 end
 
-@views function iceflow(dx, dy, Zbed, Hice, Mask=zero(Zbed))
+@views function iceflow(dx, dy, Zbed, Hice, Mask)
     println("Initialising ice flow model ... ")
     # physics
     s2y      = 3600*24*365.25  # seconds to years
@@ -124,11 +142,12 @@ end
     Vx       = @zeros(nx-1, ny-1)
     Vy       = @zeros(nx-1, ny-1)
     M        = @zeros(nx  , ny  )
+    B        = @zeros(nx  , ny  )
+    H        = @zeros(nx  , ny  )
     # initial condition
     S        = @zeros(nx  , ny  )
-    B        = copy(Data.Array(Zbed))
-    H        = copy(Data.Array(Hice))
-    Mask     = Data.Array(Mask)
+    B       .= Zbed
+    H       .= Hice
     Yc2      = Yc .- minimum(Yc); Yc2 .= Yc2./maximum(Yc2)
     grad_b   = Data.Array((1.3517 .- 0.014158.*(60.0.+Yc2*20.0))./100.0.*0.91)# Mass Bal. gradient, from doi: 10.1017/jog.2016.75
     z_ELA    = Data.Array(1300.0 .- Yc2*300.0)                                # Educated guess for ELA altitude
@@ -159,24 +178,15 @@ end
 # ------------------------------------------------------------------------------
 # load the data
 print("Loading the data ... ")
-data = load("../data/BedMachineGreenland_96_184_ds100.jld")
-# data = load("../data/BedMachineGreenland_160_304_ds60.jld")
+# data = load("../data/BedMachineGreenland_96_184_ds100.jld")
+data = load("../data/BedMachineGreenland_160_304_ds60.jld")
 Hice, Mask, Zbed = Data.Array(data["Hice"]), Data.Array(data["Mask"]), Data.Array(data["Zbed"])
 xc, yc, dx, dy   = data["xc"], data["yc"], data["dx"], data["dy"]
 println("done.")
 
 # apply some smoothing
-print("Applying some smoothing ... ")
 ns = 2
-for is=1:ns
-    @parallel smooth!(Zbed)
-    @parallel smooth!(Hice)
-    @parallel (1:size(Zbed,2)) bc_x!(Zbed)
-    @parallel (1:size(Zbed,1)) bc_y!(Zbed)
-    @parallel (1:size(Hice,2)) bc_x!(Hice)
-    @parallel (1:size(Hice,1)) bc_y!(Hice)
-end
-println("done.")
+apply_smoothing!(Hice, Zbed, ns)
 
 # run the SIA flow model
 H, S, M, Vx, Vy = iceflow(dx, dy, Zbed, Hice, Mask)
