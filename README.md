@@ -33,7 +33,7 @@ We will design and implement a numerical algorithm that predicts ice flow dynami
 
 **The online course consists of 2 parts:**
 1. [**Part 1**](#part-1---julia-and-iterative-solvers) You will learn about the [Julia language] and iterative PDE solvers.
-2. [**Part 2**](#part-2---solving-ice-flow-pdes-on-gpus)You will implement a GPU parallel PDE solver to predict ice flow dynamics on real topography.
+2. [**Part 2**](#part-2---solving-ice-flow-pdes-on-gpus) You will implement a GPU parallel PDE solver to predict ice flow dynamics on real topography.
 
 By the end of this short course, you will:
 - Have a GPU PDE solver that predicts ice-flow;
