@@ -110,12 +110,7 @@ julia> ]
 
 (julia-parallel-course-EGU21) pkg> st
 Status `~/julia-parallel-course-EGU21/Project.toml`
-  [4138dd39] JLD v0.12.2
-  [85f8d34a] NCDatasets v0.11.3
-  [94395366] ParallelStencil v0.5.1
-  [91a5bcdd] Plots v1.11.1
-  [37e2e46d] LinearAlgebra
-  [de0858da] Printf
+    # [...]
 
 (julia-parallel-course-EGU21) pkg> instantiate
    Updating registry at `~/.julia/registries/General`
@@ -146,6 +141,7 @@ The [CUDA.jl] module permits to launch compute kernels on Nvidia GPUs natively f
 ```sh
 export JULIA_CUDA_USE_BINARYBUILDER=false
 ```
+We will use the GPU acceleration in the [second part](#gpu-sia-implementation) of the course.
 
 ⤴️ [_back to content_](#content)
 
