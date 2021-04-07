@@ -74,12 +74,8 @@ Alternatively, open a terminal and download the binaries (select the one for you
 wget https://julialang-s3.julialang.org/bin/winnt/x64/1.6/julia-1.6.0-win64.exe # Windows
 wget https://julialang-s3.julialang.org/bin/mac/x64/1.6/julia-1.6.0-mac64.dmg # macOS
 wget https://julialang-s3.julialang.org/bin/linux/x64/1.6/julia-1.6.0-linux-x86_64.tar.gz # Linux x86
-tar -xzf julia-1.6.0-<win64, mac64, linux-x86_64>.tar.gz # selecting your platform
 ```
-Then add Julia to PATH (usually done in your `.bashrc`, `.profile`, or `config` file). If you have an Nvidia CUDA capable GPU device, also export following environment vaiable (usually done in your `.bashrc`, `.profile`, or `config` file):
-```sh
-export JULIA_CUDA_USE_BINARYBUILDER=false
-```
+Then add Julia to PATH (usually done in your `.bashrc`, `.profile`, or `config` file).
 
 ### Terminal + external editor
 Ensure you have a text editor with syntax highlighting support for Julia. From within the terminal, type
@@ -146,7 +142,10 @@ You should then see two figures saved in a newly created _output_ folder, the se
 On the CPU, multi-threading is made accessible via [Base.Threads] and the environment variable [JULIA_NUM_THREADS] can be used to define the number of cores to use on the CPU, e.g. `export JULIA_NUM_THREADS=2` to enable 2 threads (2 CPU cores).
 
 ## Running on GPUs
-The [CUDA.jl] module permits to launch compute kernels on Nvidia GPUs natively from within [Julia]. [JuliaGPU] provides further reading and [introductory material](https://juliagpu.gitlab.io/CUDA.jl/tutorials/introduction/) about GPU ecosystems within Julia.
+The [CUDA.jl] module permits to launch compute kernels on Nvidia GPUs natively from within [Julia]. [JuliaGPU] provides further reading and [introductory material](https://juliagpu.gitlab.io/CUDA.jl/tutorials/introduction/) about GPU ecosystems within Julia. If you have an Nvidia CUDA capable GPU device, also export following environment vaiable prior to installing the [CUDA.jl] package:
+```sh
+export JULIA_CUDA_USE_BINARYBUILDER=false
+```
 
 ⤴️ [_back to content_](#content)
 
