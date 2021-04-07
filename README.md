@@ -67,19 +67,17 @@ The provided directions will get you started with:
 > 👉 **Note: This course relies on Julia v1.6**. The install configuration are tested on a MacBook Pro running macOS 10.15.7, a Linux GPU server running Ubuntu 20.04 LTS and a Linux GPU server running CentOS 8.
 
 ## Installing Julia v1.6
-Check you have an active internet connexion and [download Julia v1.6](https://julialang.org/downloads/oldreleases/#v154_march_11_2021) for your platform following the install directions provided under [help] if needed.
+Check you have an active internet connexion and [download Julia v1.6](https://julialang.org/downloads/) for your platform following the install directions provided under **\[help\]** if needed.
 
 Alternatively, open a terminal and download the binaries (select the one for your platform):
 ```sh
-wget https://julialang-s3.julialang.org/bin/winnt/x64/1.5/julia-1.5.4-win64.exe # Windows
-wget https://julialang-s3.julialang.org/bin/mac/x64/1.5/julia-1.5.4-mac64.dmg # macOS
-wget https://julialang-s3.julialang.org/bin/linux/x64/1.5/julia-1.5.4-linux-x86_64.tar.gz # Linux x86
-tar -xzf julia-1.5.4-<win64, mac64, linux-x86_64>.tar.gz # selecting your platform
+wget https://julialang-s3.julialang.org/bin/winnt/x64/1.6/julia-1.6.0-win64.exe # Windows
+wget https://julialang-s3.julialang.org/bin/mac/x64/1.6/julia-1.6.0-mac64.dmg # macOS
+wget https://julialang-s3.julialang.org/bin/linux/x64/1.6/julia-1.6.0-linux-x86_64.tar.gz # Linux x86
+tar -xzf julia-1.6.0-<win64, mac64, linux-x86_64>.tar.gz # selecting your platform
 ```
-Then add following lines in your `.bashrc`, `.profile`, or `config` file:
+Then add Julia to PATH (usually done in your `.bashrc`, `.profile`, or `config` file). If you have an Nvidia CUDA capable GPU device, also export following environment vaiable (usually done in your `.bashrc`, `.profile`, or `config` file):
 ```sh
-vim ~/.bashrc
-PATH=<path-to>/julia-1.6/bin/:$PATH
 export JULIA_CUDA_USE_BINARYBUILDER=false
 ```
 
