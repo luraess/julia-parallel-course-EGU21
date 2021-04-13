@@ -3,11 +3,8 @@ using ParallelStencil
 using ParallelStencil.FiniteDifferences2D
 @static if USE_GPU
     @init_parallel_stencil(CUDA, Float64, 2)
-    macro pow(args...)  esc(:(CUDA.pow($(args...)))) end
 else
     @init_parallel_stencil(Threads, Float64, 2)
-    pow(x,y) = x^y
-    macro pow(args...)  esc(:(pow($(args...)))) end
 end
 using JLD, Plots, Printf, LinearAlgebra
 
@@ -74,7 +71,7 @@ end
 end
 
 @parallel function compute_D!(D, H, dSdx, dSdy, a, npow)
-    @all(D) = a*@pow(@av(H), (npow+2)) * (@av_ya(dSdx)*@av_ya(dSdx) + @av_xa(dSdy)*@av_xa(dSdy))
+    @all(D) = a*@av(H)^(npow+2) * (@av_ya(dSdx)*@av_ya(dSdx) + @av_xa(dSdy)*@av_xa(dSdy))
     return
 end
 
