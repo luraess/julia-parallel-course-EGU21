@@ -129,7 +129,7 @@ julia> include("iceflow.jl")
 ```
 Running this the first time will (pre-)complie the various installed packages and will take some time.  Subsequent runs, by executing `include("iceflow.jl")`, should take around 10s.
 
-You should then see two figures saved in a newly created _output_ folder, the second being the comparison between modelled and observed ice thickness distribution over Greenland:
+You should then see two figures saved in a newly created **_output_** folder, the second being the comparison between modelled and observed ice thickness distribution over Greenland:
 
 ![Greenland ice cap](docs/iceflow_out2.png)
 
@@ -280,7 +280,7 @@ So now we have a cool iterative and implicit SIA solver in less than 100 lines o
 
 The main idea of GPU parallelisation is to calculate each grid point concurently by a different GPU thread (instaed of the more serial CPU execution) as depicted hereafter:
 
-🚧 WIP - add CPU vs GPU comparison figure.
+![](docs/cpu_gpu.png)
 
 1. Extract the flux `qHx, qHy` from the physics calculations in [`iceflow.jl`](scripts/iceflow.jl):
 ```julia
@@ -347,11 +347,8 @@ using ParallelStencil
 using ParallelStencil.FiniteDifferences2D
 @static if USE_GPU
     @init_parallel_stencil(CUDA, Float64, 2)
-    macro pow(args...)  esc(:(CUDA.pow($(args...)))) end
 else
     @init_parallel_stencil(Threads, Float64, 2)
-    pow(x,y) = x^y
-    macro pow(args...)  esc(:(pow($(args...)))) end
 end
 # [...] skipped lines
 @parallel function compute_flux!(qHx, qHy, D, S, dx, dy)
