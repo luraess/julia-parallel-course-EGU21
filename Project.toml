@@ -1,3 +1,10 @@
+name = "julia-parallel-course-EGU21"
+authors = ["Ludovic Räss", "Mauro Werder"]
+
+[compat]
+CUDA = "3"
+julia = "1.6"
+
 [deps]
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 JLD = "4138dd39-2aa7-5051-a626-17a0bb65d9c8"
