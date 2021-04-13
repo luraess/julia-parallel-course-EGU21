@@ -267,11 +267,12 @@ S     .= B .+ H
 ```
 > 💡 Note that the here discussed SIA codes do not implement any flux limiter scheme to circumvent known accuracy and stability issues. Check out \[[6][Jarosch13], [7][Visnjevic18]\] for further references (the [`iceflow_bench.jl`](extras/iceflow_bench.jl) script implements the benchmark \[[6][Jarosch13]\] that reflects this issue).
 
+The model output is the ice surface elevation, the ice thickness, the ice velocity magnitude and the mass balance:
+![](docs/iceflow_out1.png)
+
 This implementation of the SIA equations solves the steady-state (i.e. the physical time derivative being removed as `dt->∞`). The last part of this course ([Greenland's ice cap evolution](#greenland-s-ice-cap-evolution)) will show how to achieve an (implicit) ice flow predictions over a specific time span `dt` by including the physical time derivative in the `ResH` term.
 
-🚧 WIP - add:
-- output figure
-- some words on iteration count and time to solution on specific resolution (low res, slow)
+🚧 WIP - add time to solution for # of iters on various resolution.
 
 ⤴️ [_back to course material_](#short-course-material)
 
@@ -362,7 +363,9 @@ end
 ```
 > 💡 Various macros `@(...)` permit to deal with the low-level technicalities and the `USE_GPU` flag enables to switch between CPU and GPU backend. 
 
-The resulting code is short and readable and solves the "two-language problem"; development and production code implementations are regrouped into a single code. 
+The resulting code is short and readable and solves the "two-language problem"; development and production code implementations are regrouped into a single code.
+
+🚧 WIP - add time to solution for # of iters on various resolution to compare with CPU version.
 
 ⤴️ [_back to course material_](#short-course-material)
 
