@@ -41,12 +41,17 @@ By the end of this short course, you will:
 - Know how the Julia language solves the "two-language problem";
 - Be able to leverage the computing power of modern GPU accelerated servers and supercomputers.
 
+> **Disclaimer**
+>- The solvers presented in this short course enable to solve PDEs iteratively and are well-suited for parallel execution (on GPUs). However many other methods exists as well to achieve similar goals. It is **not** the purpose of this course to provide an extensive overview of various solution techniques. 
+>- The performance assessment is done using the time / iteration metric which reflects the ability of the algorithm to efficiently exploit the memory bandwith of the (parallel) hardware. Further performance considerations regarding the metric can be found [here](https://github.com/omlins/ParallelStencil.jl).
+
 ⤴️ [_back to content_](#content)
 
 # About this repository
 > 👉 This repository is an interactive and dynamic source of information related to the short course.
 >- Check out the [**Discussion**](https://github.com/luraess/julia-parallel-course-EGU21/discussions) tab if you have general comments, ideas to share or for Q&A.
 >- File an [**Issue**](https://github.com/luraess/julia-parallel-course-EGU21/issues) if you encounter any technical problems whith the distributed codes.
+>- Interact in a open-minded, respectful and inclusive manner.
 
 The course repository lists following folders and items:
 - the [data](data) folder contains various low resolution Greenland input data (bedrock topography, surface elevation, ice thickness, masks, ...) downscaled from [BedMachine Greenland v3] - note the filenames include grid resolution information `(nx, ny)`;
@@ -215,6 +220,12 @@ dHdt = -(H-Hold)/dt -dqH/dx + damp*dHdt
 The [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) code implements a damped iterative implicit solution of eq. (1). The iteration count drops to `niter<200`.
 
 ![](docs/diffusion_damp.png)
+
+#### Performance considerations
+Performance evaluation is a complex topic as different metrics would lead to different conclusions. Ultimately, efficient algorithms should minimise the time to solution. For iterative algorithms this means:
+1) Ensure fast iterations (minimise the time per iteration).
+2) Keep the iteration count as low as possible avoiding it to increase to much when increasing the numerical resolution.
+
 
 ⤴️ [_back to course material_](#short-course-material)
 
