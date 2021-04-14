@@ -274,8 +274,9 @@ The model output is the ice surface elevation, the ice thickness, the ice veloci
 This implementation of the SIA equations solves the steady-state (i.e. the physical time derivative being removed as `dt->∞`). The last part of this course ([Greenland's ice cap evolution](#greenland-s-ice-cap-evolution)) will show how to achieve an (implicit) ice flow predictions over a specific time span `dt` by including the physical time derivative in the `ResH` term.
 
 #### CPU Performance
+The figure below depicts the time 1000 iterations (or steps) take running the [`iceflow.jl`](scripts/iceflow.jl) code on a Intel Xeon Gold 6244 (1 thread):
 
-🚧 WIP - add time to solution for # of iters on various resolution.
+![](docs/timingJulia.png)
 
 ⤴️ [_back to course material_](#short-course-material)
 
@@ -371,8 +372,11 @@ end
 The resulting code is short and readable and solves the "two-language problem"; development and production code implementations are regrouped into a single code.
 
 #### GPU - CPU Performance
+The figure below depicts the time 1000 iterations (or steps) take running the [`iceflow_xpu.jl`](scripts/iceflow_xpu.jl) code on:
+- an Intel Xeon Gold 6244 (4 threads - cores)
+- an Nvidia RTX 2070 GPU
 
-🚧 WIP - add time to solution for # of iters on various resolution to compare with CPU version.
+![](docs/timing.png)
 
 ⤴️ [_back to course material_](#short-course-material)
 
