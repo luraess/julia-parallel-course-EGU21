@@ -17,7 +17,7 @@ This short course covers trendy areas in modern geocomputing with broad geoscien
 
 # Content
 * [Objectives](#objectives)
-* [Structure of the repository](#structure-of-the-repository)
+* [About this repository](#about-this-repository)
 * [Getting started](#getting-started) _(not part of the live course)_
 * 👉 [Short course material](#short-course-material)
 * [Extras](#extras) _(not part of the live course)_
@@ -43,7 +43,11 @@ By the end of this short course, you will:
 
 ⤴️ [_back to content_](#content)
 
-# Structure of the repository
+# About this repository
+> 👉 This repository is an interactive and dynamic source of information related to the short course.
+>- Check out the [**Discussion**](https://github.com/luraess/julia-parallel-course-EGU21/discussions) tab if you have general comments, ideas to share or for Q&A.
+>- File an [**Issue**](https://github.com/luraess/julia-parallel-course-EGU21/issues) if you encounter any technical problems whith the distributed codes.
+
 The course repository lists following folders and items:
 - the [data](data) folder contains various low resolution Greenland input data (bedrock topography, surface elevation, ice thickness, masks, ...) downscaled from [BedMachine Greenland v3] - note the filenames include grid resolution information `(nx, ny)`;
 - the [docs](docs) folder contains documentation linked in the [README](README.md);
