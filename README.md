@@ -43,14 +43,14 @@ By the end of this short course, you will:
 
 > **Disclaimer**
 >- The solvers presented in this short course enable to solve PDEs iteratively and are well-suited for parallel execution (on GPUs). However many other methods exists as well to achieve similar goals. It is **not** the purpose of this course to provide an extensive overview of various solution techniques. 
->- The performance assessment is done using the time / iteration metric which reflects the ability of the algorithm to efficiently exploit the memory bandwith of the (parallel) hardware. Further performance considerations regarding the metric can be found [here](https://github.com/omlins/ParallelStencil.jl).
+>- The performance assessment is done using the time / iteration metric which reflects the ability of the algorithm to efficiently exploit the memory bandwidth of the (parallel) hardware. Further performance considerations regarding the metric can be found [here](https://github.com/omlins/ParallelStencil.jl).
 
 ⤴️ [_back to content_](#content)
 
 # About this repository
 > 👉 This repository is an interactive and dynamic source of information related to the short course.
 >- Check out the [**Discussion**](https://github.com/luraess/julia-parallel-course-EGU21/discussions) tab if you have general comments, ideas to share or for Q&A.
->- File an [**Issue**](https://github.com/luraess/julia-parallel-course-EGU21/issues) if you encounter any technical problems whith the distributed codes.
+>- File an [**Issue**](https://github.com/luraess/julia-parallel-course-EGU21/issues) if you encounter any technical problems with the distributed codes.
 >- Interact in a open-minded, respectful and inclusive manner.
 
 The course repository lists following folders and items:
