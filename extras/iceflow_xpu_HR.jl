@@ -213,7 +213,7 @@ H, S, M, Vx, Vy = iceflow(dx, dy, Zbed, Hice, Mask)
 
 # handle output
 do_visu = true
-do_save = false
+do_save = true
 
 # visu and save
 nx, ny = size(H)
