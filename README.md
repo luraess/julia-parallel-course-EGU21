@@ -32,27 +32,22 @@ We will design and implement a numerical algorithm that predicts ice flow dynami
 ![Greenland ice cap](docs/greenland_1.png)
 
 **The online course consists of 2 parts:**
-1. [**Part 1**](#part-1---julia-and-iterative-solvers) You will learn about the [Julia language] and iterative PDE solvers.
-2. [**Part 2**](#part-2---solving-ice-flow-pdes-on-gpus) You will implement a GPU parallel PDE solver to predict ice flow dynamics on real topography.
+1. [**Part 1**](#part-1---julia-and-iterative-solvers) - You will learn about the [Julia language] and iterative PDE solvers.
+2. [**Part 2**](#part-2---solving-ice-flow-pdes-on-gpus) - You will implement a GPU parallel PDE solver to predict ice flow dynamics on real topography.
 
 By the end of this short course, you will:
-- Have a GPU PDE solver that predicts ice-flow;
+- Have an iterative GPU PDE solver that predicts ice-flow;
 - Have a Julia code that achieves similar performance than legacy codes (C, CUDA, MPI);
 - Know how the Julia language solves the "two-language problem";
 - Be able to leverage the computing power of modern GPU accelerated servers and supercomputers.
 
-> **Disclaimer**
->- The solvers presented in this short course enable to solve PDEs iteratively and are well-suited for parallel execution (on GPUs). However many other methods exists as well to achieve similar goals. It is **not** the purpose of this course to provide an extensive overview of various solution techniques. 
+> 💡 **Disclaimer**
+>- The solvers presented in this short course, based on the **pseudo-transient method**, enable to solve PDEs iteratively and are well-suited for parallel execution (on GPUs). It is **not** the purpose of this course to provide an extensive overview of various solution techniques. 
 >- The performance assessment is done using the time / iteration metric which reflects the ability of the algorithm to efficiently exploit the memory bandwidth of the (parallel) hardware. Further performance considerations regarding the metric can be found [here](https://github.com/omlins/ParallelStencil.jl).
 
 ⤴️ [_back to content_](#content)
 
 # About this repository
-> 👉 This repository is an interactive and dynamic source of information related to the short course.
->- Check out the [**Discussion**](https://github.com/luraess/julia-parallel-course-EGU21/discussions) tab if you have general comments, ideas to share or for Q&A.
->- File an [**Issue**](https://github.com/luraess/julia-parallel-course-EGU21/issues) if you encounter any technical problems with the distributed codes.
->- Interact in a open-minded, respectful and inclusive manner.
-
 The course repository lists following folders and items:
 - the [data](data) folder contains various low resolution Greenland input data (bedrock topography, surface elevation, ice thickness, masks, ...) downscaled from [BedMachine Greenland v3] - note the filenames include grid resolution information `(nx, ny)`;
 - the [docs](docs) folder contains documentation linked in the [README](README.md);
@@ -60,6 +55,11 @@ The course repository lists following folders and items:
 - the [scripts](scripts) folder contains the scripts this course is about 🎉
 - the [extras](extras) folder contains supporting course material (not discussed live during the course);
 - the [`Project.toml`](Project.toml) file is a Julia project file, tracking the used packages and enabling a reproducible environment.
+
+> 👉 This repository is an interactive and dynamic source of information related to the short course.
+>- Check out the [**Discussion**](https://github.com/luraess/julia-parallel-course-EGU21/discussions) tab if you have general comments, ideas to share or for Q&A.
+>- File an [**Issue**](https://github.com/luraess/julia-parallel-course-EGU21/issues) if you encounter any technical problems with the distributed codes.
+>- Interact in a open-minded, respectful and inclusive manner.
 
 ⤴️ [_back to content_](#content)
 
@@ -187,7 +187,7 @@ _by M. Werder_
 ⤴️ [_back to course material_](#short-course-material)
 
 ### Diffusion equation
-Let's start with a simple 1D linear diffusion example to implement both an explicit and implicit PDE solver. The diffusion of a quantity `H` over time `t` can be described as (1a) a diffusive flux, (1b) a flux balance and (1c) an update rule:
+Let's start with a 1D linear diffusion example to implement both an explicit and iterative implicit PDE solver. The diffusion of a quantity `H` over time `t` can be described as (1a) a diffusive flux, (1b) a flux balance and (1c) an update rule:
 ```md
 qH    = -D*dH/dx  (1a)
 dHdt  =  -dqH/dx  (1b)
@@ -213,11 +213,11 @@ and iterate until the values of `dHdt` (the residual of the eq. (1)) drop below 
 
 ![](docs/diffusion_impl.png)
 
-It works, but the iteration count seems to be pretty high (`niter>1000`). A simple way to circumvent this is to add "damping" (`damp`) to the rate-of-change `dHdt`, analogous to add friction enabling faster convergence \[[4][Frankel50]\]
+It works, but the "naive" _Picard_ iteration count seems to be pretty high (`niter>1000`). A efficient way to circumvent this is to add "damping" (`damp`) to the rate-of-change `dHdt`, analogous to add friction enabling faster convergence \[[4][Frankel50]\]
 ```md
 dHdt = -(H-Hold)/dt -dqH/dx + damp*dHdt
 ```
-The [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) code implements a damped iterative implicit solution of eq. (1). The iteration count drops to `niter<200`.
+The [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) code implements a damped iterative implicit solution of eq. (1). The iteration count drops to `niter<200`. This pseudo-transient approach enables fast as the iteration count sclaes close to _O(N)_ and not _O(N^2)_. 
 
 ![](docs/diffusion_damp.png)
 
@@ -226,6 +226,7 @@ Performance evaluation is a complex topic as different metrics would lead to dif
 1) Ensure fast iterations (minimise the time per iteration).
 2) Keep the iteration count as low as possible avoiding it to increase to much when increasing the numerical resolution.
 
+We will here report (1) for various implementations on various computer architectures.
 
 ⤴️ [_back to course material_](#short-course-material)
 
@@ -258,7 +259,7 @@ where `LAT` is the latitude (taken from \[[5][Machgut16]\]). The equilibrium lin
 ⤴️ [_back to course material_](#short-course-material)
 
 ### SIA implementation
-The [`iceflow.jl`](scripts/iceflow.jl) code implements the 2D SIA equations using the iterative implicit damped formulation as in [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl). The calculation of the SIA PDEs resumes in these 13 lines of Julia code:
+The [`iceflow.jl`](scripts/iceflow.jl) code implements the 2D SIA equations using the iterative implicit damped formulation as in [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) using the pseudo-transient approach. The calculation of the SIA PDEs resumes in these 13 lines of Julia code:
 ```julia
 # mass balance
 M     .= min.(grad_b.*(S .- z_ELA), b_max)
@@ -289,7 +290,7 @@ The model output is the ice surface elevation, the ice thickness, the ice veloci
 This implementation of the SIA equations solves the steady-state (i.e. the physical time derivative being removed as `dt->∞`). The last part of this course ([Greenland's ice cap evolution](#greenland-s-ice-cap-evolution)) will show how to achieve an (implicit) ice flow predictions over a specific time span `dt` by including the physical time derivative in the `ResH` term.
 
 #### CPU Performance
-The figure below depicts the time 1000 iterations (or steps) take running the [`iceflow.jl`](scripts/iceflow.jl) code on a Intel Xeon Gold 6244 (1 thread):
+The figure below depicts the time 1000 iterations (or pseudo-time steps) take running the [`iceflow.jl`](scripts/iceflow.jl) code on a Intel Xeon Gold 6244 (1 thread - plain Julia):
 
 ![](docs/timingJulia.png)
 
@@ -387,7 +388,7 @@ end
 The resulting code is short and readable and solves the "two-language problem"; development and production code implementations are regrouped into a single code.
 
 #### GPU - CPU Performance
-The figure below depicts the time 1000 iterations (or steps) take running the [`iceflow_xpu.jl`](scripts/iceflow_xpu.jl) code on:
+The figure below depicts the time 1000 iterations (or pseudo-time steps) take running the [`iceflow_xpu.jl`](scripts/iceflow_xpu.jl) code on:
 - an Intel Xeon Gold 6244 (4 threads - cores)
 - an Nvidia RTX 2070 GPU
 
