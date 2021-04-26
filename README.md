@@ -145,7 +145,7 @@ But now, you may ask: can we use an implicit algorithm to side-step the CFL-cond
 ### Iterative solvers
 _by Ludovic Räss_
 
-The [`diffusion_1D_impl.jl`](scripts/diffusion_1D_impl.jl) code implements an iterative, implicit solution of eq. (1). How ? We add the physical time derivative `dh/dt=(H-Hold)/dt` to the rate of change (or residual) `dHdt`
+The [`diffusion_1D_impl.jl`](scripts/diffusion_1D_impl.jl) code implements an iterative, implicit solution of eq. (1). How ? We add the physical time derivative `dH/dt=(H-Hold)/dt` to the rate of change (or residual) `dHdt`
 ```md
 dHdt = -(H-Hold)/dt -dqH/dx
 ```
