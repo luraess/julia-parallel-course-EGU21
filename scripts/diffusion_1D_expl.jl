@@ -8,15 +8,15 @@ using Plots, Printf
     # Numerics
     nx    = 128         # numerical grid resolution
     # Derived numerics
-    dx    = lx/nx       # gird size
+    dx    = lx/nx       # grid size
     dt    = dx^2/D/2.1  # time step
     xc    = LinRange(dx/2, lx-dx/2, nx)
     # Array allocation
-    qH    = zeros(nx-1)
-    dHdt  = zeros(nx-2)
+    qH    = zeros(nx-1) # on staggered grid
+    dHdt  = zeros(nx-2) # normal grid, without boundary points
     # Initial condition
-    H     = exp.(.-(xc.-lx./2.0).^2)
-    H0    = copy(H)
+    H0    = exp.(.-(xc.-lx./2.0).^2)
+    H     = copy(H0)
     t = 0.0; it = 1
     # Time loop
     while t<ttot

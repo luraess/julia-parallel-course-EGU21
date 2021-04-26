@@ -91,7 +91,7 @@ Ensure you have a text editor with syntax highlighting support for Julia. From w
 ```sh
 julia
 ```
-and you should be all set.
+to make sure that the Julia REPL (aka terminal) starts.  Exit with Ctrl-d.
 
 ### VS Code
 If you'd enjoy a more IDE type of environment, [check out VS Code](https://code.visualstudio.com). Follow the [installation directions](https://github.com/julia-vscode/julia-vscode#getting-started) for the [Julia VS Code extension](https://www.julia-vscode.org).
@@ -143,7 +143,12 @@ You should then see two figures saved in a newly created **_output_** folder, th
 ![Greenland ice cap](docs/iceflow_out2.png)
 
 ## Multi-threading on CPUs
-On the CPU, multi-threading is made accessible via [Base.Threads] and the environment variable [JULIA_NUM_THREADS] can be used to define the number of cores to use on the CPU, e.g. `export JULIA_NUM_THREADS=2` to enable 2 threads (2 CPU cores).
+On the CPU, multi-threading is made accessible via [Base.Threads].  To make use of threads, Julia needs to be launched with
+```
+julia --project -t auto
+```
+which will launch Julia with as many threads are there are cores on your machine (including hyper-threaded cores).  Alternatively set
+the environment variable [JULIA_NUM_THREADS], e.g. `export JULIA_NUM_THREADS=2` to enable 2 threads.
 
 ## Running on GPUs
 The [CUDA.jl] module permits to launch compute kernels on Nvidia GPUs natively from within [Julia]. [JuliaGPU] provides further reading and [introductory material](https://juliagpu.gitlab.io/CUDA.jl/tutorials/introduction/) about GPU ecosystems within Julia. If you have an Nvidia CUDA capable GPU device, also export following environment vaiable prior to installing the [CUDA.jl] package:
@@ -175,7 +180,7 @@ This section lists the material discussed within this 60 min. short course:
 ## Part 1 - Julia and iterative solvers
 
 ### Why Julia
-_by M. Werder_
+_by Mauro Werder_
 
 🚧 WIP
 
@@ -187,7 +192,11 @@ _by M. Werder_
 ⤴️ [_back to course material_](#short-course-material)
 
 ### Diffusion equation
-Let's start with a 1D linear diffusion example to implement both an explicit and iterative implicit PDE solver. The diffusion of a quantity `H` over time `t` can be described as (1a) a diffusive flux, (1b) a flux balance and (1c) an update rule:
+Let's start with a 1D linear diffusion example to implement both an explicit and iterative implicit PDE solver.
+
+$\frac{dH}{dt} = \nabla . (D \nabla H)$
+
+The diffusion of a quantity `H` over time `t` can be described as (1a) a diffusive flux, (1b) a flux balance and (1c) an update rule:
 ```md
 qH    = -D*dH/dx  (1a)
 dHdt  =  -dqH/dx  (1b)
@@ -205,7 +214,7 @@ How to go with an implicit solution _**and**_ keeping it "matrix-free" ?
 ⤴️ [_back to course material_](#short-course-material)
 
 ### Iterative solvers
-The [`diffusion_1D_impl.jl`](scripts/diffusion_1D_impl.jl) code implements an iterative implicit solution of eq. (1). How ? We add the physical time derivative `dh/dt=(H-Hold)/dt` to the rate of change (or residual) `dHdt`
+The [`diffusion_1D_impl.jl`](scripts/diffusion_1D_impl.jl) code implements an iterative, implicit solution of eq. (1). How ? We add the physical time derivative `dh/dt=(H-Hold)/dt` to the rate of change (or residual) `dHdt`
 ```md
 dHdt = -(H-Hold)/dt -dqH/dx
 ```
@@ -217,14 +226,14 @@ It works, but the "naive" _Picard_ iteration count seems to be pretty high (`nit
 ```md
 dHdt = -(H-Hold)/dt -dqH/dx + damp*dHdt
 ```
-The [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) code implements a damped iterative implicit solution of eq. (1). The iteration count drops to `niter<200`. This pseudo-transient approach enables fast as the iteration count sclaes close to _O(N)_ and not _O(N^2)_.
+The [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) code implements a damped iterative implicit solution of eq. (1). The iteration count drops to `niter<200`. This pseudo-transient approach enables fast as the iteration count scales close to _O(N)_ and not _O(N^2)_.
 
 ![](docs/diffusion_damp.png)
 
 #### Performance considerations
 Performance evaluation is a complex topic as different metrics would lead to different conclusions. Ultimately, efficient algorithms should minimise the time to solution. For iterative algorithms this means:
 1) Ensure fast iterations (minimise the time per iteration).
-2) Keep the iteration count as low as possible avoiding it to increase to much when increasing the numerical resolution.
+2) Keep the iteration count as low as possible and, in particular, that iteration count scales aroung _O(n)_ with the numerical resolution _n_.
 
 We will here report (1) for various implementations on various computer architectures.
 
@@ -232,6 +241,7 @@ We will here report (1) for various implementations on various computer architec
 
 
 ## Part 2 - solving ice flow PDEs on GPUs
+_by Ludovic Räss_
 
 ### SIA equation
 Let's move from the simple **1D linear diffusion** example to the shallow ice approximation (SIA) equation, a **2D nonlinear diffusion** equation:
