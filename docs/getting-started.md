@@ -94,4 +94,4 @@ export JULIA_CUDA_USE_BINARYBUILDER=false
 ```
 We will use the GPU acceleration in the [second part](#gpu-sia-implementation) of the course.
 
-⤴️ [_back to content_](#content)
+⤴️ [_back to top_](#getting-started)
