@@ -182,12 +182,23 @@ This section lists the material discussed within this 60 min. short course:
 ### Why Julia
 _by Mauro Werder_
 
-🚧 WIP
+Julia is a modern, general-purpose programming language unifying interactive, high productivity features (like Python, Matlab, etc.) with high performance (like C, Fortran, etc.).  This removes the need to have a separate prototype and production languages (the two-language problem).
 
-- the cool Julia ecosystem
-- git integration
-- modern code dev and CI
-- ...
+The main reason to use Julia for scientific computing is:
+- high performance & productivity, ditto
+- a good package manager (see the [`Project.toml`](Project.toml) of this course) making reproducible science easier
+- a rapidly expanding number of packages, with many at the forefront of research (e.g. GPU-packages, differential equations, machine learning, automatic differentiation)
+- a friendly community with a large number of scientific
+
+The main reason to use Julia for GPU computing is that it indeed solves the two-language problem in this domain: it works well from prototyping an idea with a simple serial code to massively parallel, multi-node GPU production code.
+
+A short introduction to Julia will be given using the first numerical example of this course.  A very short summary of features covered:
+- third-party packages can be installed with the package manager (see ???)
+- using a package is done with `using XYZ`
+- running code from a file is done with `include("abc.jl")`
+- indexing is done with `[ ]` and starts at 1
+- vectorized function application is done with the dot-notation, e.g. `sin.(x) ./ y` for vectors `x` and `y`
+- macros do funky stuff with your code (aka code-transformations) and are called with `@`, e.g. `@time sin(1)` evaluates time it takes to evaluate `sin(1)`
 
 ⤴️ [_back to course material_](#short-course-material)
 
@@ -214,6 +225,8 @@ How to go with an implicit solution _**and**_ keeping it "matrix-free" ?
 ⤴️ [_back to course material_](#short-course-material)
 
 ### Iterative solvers
+_by Ludovic Räss_
+
 The [`diffusion_1D_impl.jl`](scripts/diffusion_1D_impl.jl) code implements an iterative, implicit solution of eq. (1). How ? We add the physical time derivative `dh/dt=(H-Hold)/dt` to the rate of change (or residual) `dHdt`
 ```md
 dHdt = -(H-Hold)/dt -dqH/dx
@@ -241,7 +254,6 @@ We will here report (1) for various implementations on various computer architec
 
 
 ## Part 2 - solving ice flow PDEs on GPUs
-_by Ludovic Räss_
 
 ### SIA equation
 Let's move from the simple **1D linear diffusion** example to the shallow ice approximation (SIA) equation, a **2D nonlinear diffusion** equation:
