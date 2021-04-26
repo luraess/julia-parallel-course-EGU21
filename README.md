@@ -42,7 +42,7 @@ By the end of this short course, you will:
 - Be able to leverage the computing power of modern GPU accelerated servers and supercomputers.
 
 > 💡 **Disclaimer**
->- The solvers presented in this short course, based on the **pseudo-transient method**, enable to solve PDEs iteratively and are well-suited for parallel execution (on GPUs). It is **not** the purpose of this course to provide an extensive overview of various solution techniques. 
+>- The solvers presented in this short course, based on the **pseudo-transient method**, enable to solve PDEs iteratively and are well-suited for parallel execution (on GPUs). It is **not** the purpose of this course to provide an extensive overview of various solution techniques.
 >- The performance assessment is done using the time / iteration metric which reflects the ability of the algorithm to efficiently exploit the memory bandwidth of the (parallel) hardware. Further performance considerations regarding the metric can be found [here](https://github.com/omlins/ParallelStencil.jl).
 
 ⤴️ [_back to content_](#content)
@@ -73,9 +73,9 @@ The provided directions will get you started with:
 
 2. [Running the scripts](#running-the-scripts) from the course repository.
 
-> 👉 **Note: This course relies on Julia v1.6**. The install configuration are tested on a MacBook Pro running macOS 10.15.7, a Linux GPU server running Ubuntu 20.04 LTS and a Linux GPU server running CentOS 8.
+> 👉 **Note: This course was developed and tested on Julia v1.6. It should work with any Julia version ≥v1.6**. The install configuration were tested on a MacBook Pro running macOS 10.15.7, a Linux GPU server running Ubuntu 20.04 LTS and a Linux GPU server running CentOS 8.
 
-## Installing Julia v1.6
+## Installing Julia v1.6 (or later)
 Check you have an active internet connexion and [download Julia v1.6](https://julialang.org/downloads/) for your platform following the install directions provided under **\[help\]** if needed.
 
 Alternatively, open a terminal and download the binaries (select the one for your platform):
@@ -205,7 +205,7 @@ How to go with an implicit solution _**and**_ keeping it "matrix-free" ?
 ⤴️ [_back to course material_](#short-course-material)
 
 ### Iterative solvers
-The [`diffusion_1D_impl.jl`](scripts/diffusion_1D_impl.jl) code implements an iterative implicit solution of eq. (1). How ? We add the physical time derivative `dh/dt=(H-Hold)/dt` to the rate of change (or residual) `dHdt` 
+The [`diffusion_1D_impl.jl`](scripts/diffusion_1D_impl.jl) code implements an iterative implicit solution of eq. (1). How ? We add the physical time derivative `dh/dt=(H-Hold)/dt` to the rate of change (or residual) `dHdt`
 ```md
 dHdt = -(H-Hold)/dt -dqH/dx
 ```
@@ -217,7 +217,7 @@ It works, but the "naive" _Picard_ iteration count seems to be pretty high (`nit
 ```md
 dHdt = -(H-Hold)/dt -dqH/dx + damp*dHdt
 ```
-The [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) code implements a damped iterative implicit solution of eq. (1). The iteration count drops to `niter<200`. This pseudo-transient approach enables fast as the iteration count sclaes close to _O(N)_ and not _O(N^2)_. 
+The [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) code implements a damped iterative implicit solution of eq. (1). The iteration count drops to `niter<200`. This pseudo-transient approach enables fast as the iteration count sclaes close to _O(N)_ and not _O(N^2)_.
 
 ![](docs/diffusion_damp.png)
 
@@ -383,7 +383,7 @@ end
 @parallel compute_flux!(qHx, qHy, D, S, dx, dy)
 # [...] skipped lines
 ```
-> 💡 Various macros `@(...)` permit to deal with the low-level technicalities and the `USE_GPU` flag enables to switch between CPU and GPU backend. 
+> 💡 Various macros `@(...)` permit to deal with the low-level technicalities and the `USE_GPU` flag enables to switch between CPU and GPU backend.
 
 The resulting code is short and readable and solves the "two-language problem"; development and production code implementations are regrouped into a single code.
 
