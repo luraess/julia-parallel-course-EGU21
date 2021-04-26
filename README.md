@@ -5,6 +5,7 @@
 
 👉 **Organisation notes:**
 - 💡 All material presented during the short course will be uploaded here and made available to participants 5 days prior to the event on this repository.
+- make sure to go through [Getting started](docs/getting-started.md) before the start of the course
 - ⚠️ Live participation to this short course requires [registration to EGU's main meeting](https://egu21.eu/register.html).
 - Due to the time-limited course schedule (60 min), an interactive overview will cover the course's [objectives](#objectives) replacing an extensive hands-on.
 - Further interests in solving PDEs with Julia on GPUs❓
@@ -18,7 +19,7 @@ This short course covers trendy areas in modern geocomputing with broad geoscien
 # Content
 * [Objectives](#objectives)
 * [About this repository](#about-this-repository)
-* [Getting started](#getting-started) _(not part of the live course)_
+* [Getting started](docs/getting-started.md) _(not part of the live course)_
 * 👉 [Short course material](#short-course-material)
 * [Extras](#extras) _(not part of the live course)_
 * [Further reading](#further-reading)
@@ -64,100 +65,15 @@ The course repository lists following folders and items:
 ⤴️ [_back to content_](#content)
 
 # Getting started
-> ⚠️ Due to the time limitation, the short course will not cover the [Getting started](#getting-started) steps. These are meant to provide directions to the participant willing to actively try out the examples during the short course. **It is warmly recommended to perform the [Getting started](#getting-started) steps before the beginning of the workshop.**
+> ⚠️ Due to the time limitation, the short course will not cover the [Getting started](docs/getting-started.md) steps. These are meant to provide directions to the participant willing to actively try out the examples during the short course. **It is warmly recommended to perform the [Getting started](docs/getting-started.md) steps before the beginning of the workshop.**
 
 The provided directions will get you started with:
-1. [Installing Julia v1.6](#installing-julia-v16) - 2 configurations are suggested:
-- running Julia from the [terminal with an external text editor](#terminal--external-editor)
-- running Julia from [VS Code](#vs-code)
+1. Installing Julia v1.6
+2. Running the scripts from the course repository.
 
-2. [Running the scripts](#running-the-scripts) from the course repository.
+**Please follow the detailed steps in**: [docs/getting-started.md](docs/getting-started.md)
 
 > 👉 **Note: This course was developed and tested on Julia v1.6. It should work with any Julia version ≥v1.6**. The install configuration were tested on a MacBook Pro running macOS 10.15.7, a Linux GPU server running Ubuntu 20.04 LTS and a Linux GPU server running CentOS 8.
-
-## Installing Julia v1.6 (or later)
-Check you have an active internet connexion and [download Julia v1.6](https://julialang.org/downloads/) for your platform following the install directions provided under **\[help\]** if needed.
-
-Alternatively, open a terminal and download the binaries (select the one for your platform):
-```sh
-wget https://julialang-s3.julialang.org/bin/winnt/x64/1.6/julia-1.6.0-win64.exe # Windows
-wget https://julialang-s3.julialang.org/bin/mac/x64/1.6/julia-1.6.0-mac64.dmg # macOS
-wget https://julialang-s3.julialang.org/bin/linux/x64/1.6/julia-1.6.0-linux-x86_64.tar.gz # Linux x86
-```
-Then add Julia to PATH (usually done in your `.bashrc`, `.profile`, or `config` file).
-
-### Terminal + external editor
-Ensure you have a text editor with syntax highlighting support for Julia. From within the terminal, type
-```sh
-julia
-```
-to make sure that the Julia REPL (aka terminal) starts.  Exit with Ctrl-d.
-
-### VS Code
-If you'd enjoy a more IDE type of environment, [check out VS Code](https://code.visualstudio.com). Follow the [installation directions](https://github.com/julia-vscode/julia-vscode#getting-started) for the [Julia VS Code extension](https://www.julia-vscode.org).
-
-## Running the scripts
-To get started with the course,
-1. clone (or download the ZIP archive) the course repository ([help here](https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository))
-```sh
-git clone https://github.com/luraess/julia-parallel-course-EGU21.git
-```
-2. Navigate to `julia-parallel-course-EGU21`
-```sh
-cd julia-parallel-course-EGU21
-```
-3. From the terminal, launch Julia with the `--project` flag to read-in project environment related informations such as used packages
-```sh
-julia --project
-```
-3. From VS Code, follow the [instructions from the documentation](https://www.julia-vscode.org/docs/stable/gettingstarted/) to get started.
-
----
-Now that you launched Julia, you should be in the [Julia REPL]. You need to ensure all the packages you need to be installed before using them. To do so, enter the [Pkg mode](https://docs.julialang.org/en/v1/stdlib/REPL/#Pkg-mode) by typing `]`. Then, `instantiate` the project which should trigger the download of the packages (`st` lists the package status). Exit the Pkg mode with CRTL+C:
-```julia-repl
-julia> ]
-
-(julia-parallel-course-EGU21) pkg> st
-Status `~/julia-parallel-course-EGU21/Project.toml`
-    # [...]
-
-(julia-parallel-course-EGU21) pkg> instantiate
-   Updating registry at `~/.julia/registries/General`
-   Updating git-repo `https://github.com/JuliaRegistries/General.git`
-   # [...]
-
-julia>
-```
-To test your install, go to the [scripts](scripts) folder and run the [`iceflow.jl`](scripts/iceflow.jl) code. You can execute shell commands from within the [Julia REPL] first typing `;`:
-```julia-repl
-julia> ;
-
-shell> cd scripts/
-
-julia> include("iceflow.jl")
-```
-Running this the first time will (pre-)complie the various installed packages and will take some time.  Subsequent runs, by executing `include("iceflow.jl")`, should take around 10s.
-
-You should then see two figures saved in a newly created **_output_** folder, the second being the comparison between modelled and observed ice thickness distribution over Greenland:
-
-![Greenland ice cap](docs/iceflow_out2.png)
-
-## Multi-threading on CPUs
-On the CPU, multi-threading is made accessible via [Base.Threads].  To make use of threads, Julia needs to be launched with
-```
-julia --project -t auto
-```
-which will launch Julia with as many threads are there are cores on your machine (including hyper-threaded cores).  Alternatively set
-the environment variable [JULIA_NUM_THREADS], e.g. `export JULIA_NUM_THREADS=2` to enable 2 threads.
-
-## Running on GPUs
-The [CUDA.jl] module permits to launch compute kernels on Nvidia GPUs natively from within [Julia]. [JuliaGPU] provides further reading and [introductory material](https://juliagpu.gitlab.io/CUDA.jl/tutorials/introduction/) about GPU ecosystems within Julia. If you have an Nvidia CUDA capable GPU device, also export following environment vaiable prior to installing the [CUDA.jl] package:
-```sh
-export JULIA_CUDA_USE_BINARYBUILDER=false
-```
-We will use the GPU acceleration in the [second part](#gpu-sia-implementation) of the course.
-
-⤴️ [_back to content_](#content)
 
 # Short course material
 This section lists the material discussed within this 60 min. short course:
@@ -186,14 +102,14 @@ Julia is a modern, general-purpose programming language unifying interactive, hi
 
 The main reason to use Julia for scientific computing is:
 - high performance & productivity, ditto
-- a good package manager (see the [`Project.toml`](Project.toml) of this course) making reproducible science easier
+- a good package manager (see, e.g., the [`Project.toml`](Project.toml) of this course) making reproducible science easier
 - a rapidly expanding number of packages, with many at the forefront of research (e.g. GPU-packages, differential equations, machine learning, automatic differentiation)
 - a friendly community with a large number of scientific users
 
 The main reason to use Julia for GPU computing is that it indeed solves the two-language problem in this domain: it works well from prototyping an idea with a simple serial code to massively parallel, multi-node GPU production code.
 
 A short introduction to Julia will be given using the first numerical example of this course (next section).  A very short summary of features covered:
-- third-party packages can be installed with the package manager (see ???)
+- third-party packages can be installed with the package manager (see [Package installation](docs/getting-started.md#packages-installation))
 - using a package is done with `using XYZ`
 - running code from a file is done with `include("abc.jl")`
 - array indexing is done with `[ ]` and starts at 1
