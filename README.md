@@ -182,23 +182,25 @@ This section lists the material discussed within this 60 min. short course:
 ### Why Julia
 _by Mauro Werder_
 
-Julia is a modern, general-purpose programming language unifying interactive, high productivity features (like Python, Matlab, etc.) with high performance (like C, Fortran, etc.).  This removes the need to have a separate prototype and production languages (the two-language problem).
+Julia is a modern, general-purpose programming language unifying interactive, high productivity features (like Python, Matlab, etc.) with high performance (like C, Fortran, etc.).  This removes the need to have a separate prototype and production languages (the _two-language problem_).
 
 The main reason to use Julia for scientific computing is:
 - high performance & productivity, ditto
 - a good package manager (see the [`Project.toml`](Project.toml) of this course) making reproducible science easier
 - a rapidly expanding number of packages, with many at the forefront of research (e.g. GPU-packages, differential equations, machine learning, automatic differentiation)
-- a friendly community with a large number of scientific
+- a friendly community with a large number of scientific users
 
 The main reason to use Julia for GPU computing is that it indeed solves the two-language problem in this domain: it works well from prototyping an idea with a simple serial code to massively parallel, multi-node GPU production code.
 
-A short introduction to Julia will be given using the first numerical example of this course.  A very short summary of features covered:
+A short introduction to Julia will be given using the first numerical example of this course (next section).  A very short summary of features covered:
 - third-party packages can be installed with the package manager (see ???)
 - using a package is done with `using XYZ`
 - running code from a file is done with `include("abc.jl")`
-- indexing is done with `[ ]` and starts at 1
+- array indexing is done with `[ ]` and starts at 1
 - vectorized function application is done with the dot-notation, e.g. `sin.(x) ./ y` for vectors `x` and `y`
-- macros do funky stuff with your code (aka code-transformations) and are called with `@`, e.g. `@time sin(1)` evaluates time it takes to evaluate `sin(1)`
+- macros do funky stuff with your code (aka code-transformations) and are called with `@`, e.g. `@time sin(1)` prints the time it takes to evaluate `sin(1)`
+
+For more info see https://docs.julialang.org.
 
 ⤴️ [_back to course material_](#short-course-material)
 
@@ -215,12 +217,12 @@ dH/dt = dHdt      (1c)
 ```
 The [`diffusion_1D_expl.jl`](scripts/diffusion_1D_expl.jl) code implements an iterative and explicit solution of eq. (1) for an initial Gaussian profile:
 ```md
-H = exp(-(x-lx/2.0)^2)
+H0 = exp(-(x-lx/2.0)^2)
 ```
 
 ![](docs/diffusion_expl.png)
 
-How to go with an implicit solution _**and**_ keeping it "matrix-free" ?
+But now, you may ask: can we use an implicit algorithm to side-step the CFL-condition _**and**_ keep it "matrix-free" ?
 
 ⤴️ [_back to course material_](#short-course-material)
 
