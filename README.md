@@ -531,7 +531,7 @@ Check out [this material](https://github.com/luraess/geo-hpc-course#running-juli
 [JuliaCon20a]: https://www.youtube.com/watch?v=vPsfZUqI4_0
 [JuliaCon20b]: https://www.youtube.com/watch?v=1t1AKnnGRqA
 [JuliaCon19]: https://www.youtube.com/watch?v=b90qqbYJ58Q
-[Frankel50]: /docs/frankel_1950.pdf
+[Frankel50]: https://doi.org/10.2307/2002770
 [Machgut16]: https://doi.org/10.1017/jog.2016.75
 [Jarosch13]: https://doi.org/10.5194/tc-7-229-2013
 [Visnjevic18]: https://doi.org/10.1017/jog.2018.82
