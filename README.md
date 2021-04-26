@@ -110,11 +110,11 @@ The main reason to use Julia for GPU computing is that it indeed solves the two-
 
 A short introduction to Julia will be given using the first numerical example of this course (next section).  A very short summary of features covered:
 - third-party packages can be installed with the package manager (see [Package installation](docs/getting-started.md#packages-installation))
-- using a package is done with `using XYZ`
-- running code from a file is done with `include("abc.jl")`
-- array indexing is done with `[ ]` and starts at 1
-- vectorized function application is done with the dot-notation, e.g. `sin.(x) ./ y` for vectors `x` and `y`
-- macros do funky stuff with your code (aka code-transformations) and are called with `@`, e.g. `@time sin(1)` prints the time it takes to evaluate `sin(1)`
+- use a package with `using XYZ`
+- run the code in a file with `include("abc.jl")`
+- index into an array with `[ ]` and starts at 1
+- vectorized function application do with the dot-notation, e.g. `sin.(x) ./ y` for vectors `x` and `y`
+- macros do funky stuff with your code (aka code-transformations) and call them with `@`, e.g. `@time sin(1)` prints the time it takes to evaluate `sin(1)`
 
 For more info see https://docs.julialang.org.
 
