@@ -192,9 +192,9 @@ _by Mauro Werder_
 ⤴️ [_back to course material_](#short-course-material)
 
 ### Diffusion equation
-Let's start with a 1D linear diffusion example to implement both an explicit and iterative implicit PDE solver.
+Let's start with a 1D linear diffusion example to implement both an explicit and iterative implicit PDE solver:
 
-$\frac{dH}{dt} = \nabla . (D \nabla H)$
+dH/dt = ∇.(D ∇H)
 
 The diffusion of a quantity `H` over time `t` can be described as (1a) a diffusive flux, (1b) a flux balance and (1c) an update rule:
 ```md
