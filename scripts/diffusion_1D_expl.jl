@@ -9,7 +9,7 @@ using Plots, Printf
     nx    = 128         # numerical grid resolution
     # Derived numerics
     dx    = lx/nx       # grid size
-    dt    = dx^2/D/2.1  # time step
+    dt    = dx^2/D/2.1  # time step (obeys CFL condition)
     xc    = LinRange(dx/2, lx-dx/2, nx)
     # Array allocation
     qH    = zeros(nx-1) # on staggered grid
@@ -23,6 +23,7 @@ using Plots, Printf
         qH         .= -D*diff(H)/dx         # flux
         dHdt       .=  -diff(qH)/dx         # rate of change
         H[2:end-1] .= H[2:end-1] .+ dt*dHdt # update rule
+        # Note that above sets the BC as H[1]=H[end]=0
         t += dt; it += 1
     end
     # Analytic solution
