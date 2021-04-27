@@ -10,6 +10,7 @@ The provided directions will get you started with:
 
 > 👉 **Note: This course was developed and tested on Julia v1.6. It should work with any Julia version ≥v1.6**. The install configuration were tested on a MacBook Pro running macOS 10.15.7, a Linux GPU server running Ubuntu 20.04 LTS and a Linux GPU server running CentOS 8.
 
+⬅️ [_back to Content_](https://github.com/luraess/julia-parallel-course-EGU21#content)
 
 ## Installing Julia v1.6 (or later)
 Check you have an active internet connexion and [download Julia v1.6](https://julialang.org/downloads/) for your platform following the install directions provided under **\[help\]** if needed.
@@ -95,6 +96,8 @@ export JULIA_CUDA_USE_BINARYBUILDER=false
 We will use the GPU acceleration in the [second part](https://github.com/luraess/julia-parallel-course-EGU21#gpu-sia-implementation) of the course.
 
 ⤴️ [_back to top_](#getting-started)
+
+⬅️ [_back to Content_](https://github.com/luraess/julia-parallel-course-EGU21#content)
 
 [Julia REPL]: https://docs.julialang.org/en/v1/stdlib/REPL/
 [Base.Threads]: https://docs.julialang.org/en/v1/base/multi-threading/
