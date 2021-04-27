@@ -92,7 +92,7 @@ The [CUDA.jl] module permits to launch compute kernels on Nvidia GPUs natively f
 ```sh
 export JULIA_CUDA_USE_BINARYBUILDER=false
 ```
-We will use the GPU acceleration in the [second part](#gpu-sia-implementation) of the course.
+We will use the GPU acceleration in the [second part](https://github.com/luraess/julia-parallel-course-EGU21#gpu-sia-implementation) of the course.
 
 ⤴️ [_back to top_](#getting-started)
 
