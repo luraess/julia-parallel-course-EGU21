@@ -5,7 +5,7 @@
 
 👉 **Organisation notes:**
 - 💡 All material presented during the short course will be uploaded here and made available to participants 5 days prior to the event on this repository.
-- make sure to go through [Getting started](docs/getting-started.md) before the start of the course
+- 👉 **Make sure to go through [Getting started](docs/getting-started.md) before the start of the course.**
 - ⚠️ Live participation to this short course requires [registration to EGU's main meeting](https://egu21.eu/register.html).
 - Due to the time-limited course schedule (60 min), an interactive overview will cover the course's [objectives](#objectives) replacing an extensive hands-on.
 - Further interests in solving PDEs with Julia on GPUs❓
