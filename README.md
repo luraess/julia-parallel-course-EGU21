@@ -174,14 +174,24 @@ We will here report (1) for various implementations on various computer architec
 ## Part 2 - solving ice flow PDEs on GPUs
 
 ### SIA equation
-Let's move from the simple **1D linear diffusion** example to the shallow ice approximation (SIA) equation, a **2D nonlinear diffusion** equation:
+Let's move from the simple **1D linear diffusion** example to the shallow ice approximation (SIA) equation, a **2D nonlinear diffusion** equation for ice thickness _H_:
+
+  dH/dt = ∇.(D ∇S) + M
+
+with surface elevation _S_ the sum of ice thickness _H_ and bed elevation _B_\
+  S = H + B,\
+surface mass-balance _M_, and non-linear diffusion coefficient\
+  D = a Hⁿ⁺² √(∇S.∇S)ⁿ⁻¹\
+where _n_ is Glen's n (take =3) and _a_ is the ice flow factor (1.5e-24 Pa⁻ⁿ s⁻¹).
+
+Writting the equation in pseudo-code:
 ```md
 qHx   = -D*dS/dx                  (2a)
 qHy   = -D*dS/dy                  (2b)
 dHdt  = -(dqHx/dx + dqHy/dy) + M  (2c)
 dH/dt = dHdt                      (2d)
 ```
-where `S=B+H` is the surface elevation, `B` is the bedrock elevation, `H` the ice thickness, `M` the mass balance (accumulation, ablation). The diffusion coefficient `D` is nonlinear and function of `S` and the power-law exponent `n`:
+with the nonlinear diffusion coefficient `D` with the power-law exponent `npow` (aka Glen's exponent):
 ```md
 D = a*H^(npow+2)*sqrt((dS/dx)^2 + (dS/dy)^2)^(npow-1)
 ```
