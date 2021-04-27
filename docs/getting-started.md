@@ -2,7 +2,7 @@
 > ⚠️ Due to the time limitation, the short course will not cover the [Getting started](#getting-started) steps. These are meant to provide directions to the participant willing to actively try out the examples during the short course. **It is warmly recommended to perform the [Getting started](#getting-started) steps before the beginning of the workshop.**
 
 The provided directions will get you started with:
-1. [Installing Julia v1.6](#installing-julia-v16-or-later) - additionally, two configurations are suggested:
+1. [Installing Julia v1.6 (or later)](#installing-julia-v16-or-later) - additionally, two configurations are suggested:
 - running Julia from the [terminal with an external text editor](#terminal--external-editor)
 - running Julia from [VS Code](#vs-code)
 
@@ -65,7 +65,7 @@ Status `~/julia-parallel-course-EGU21/Project.toml`
 
 julia>
 ```
-To test your install, go to the [scripts](scripts) folder and run the [`iceflow.jl`](scripts/iceflow.jl) code. You can execute shell commands from within the [Julia REPL] first typing `;`:
+To test your install, go to the [scripts](../scripts) folder and run the [`iceflow.jl`](../scripts/iceflow.jl) code. You can execute shell commands from within the [Julia REPL] first typing `;`:
 ```julia-repl
 julia> ;
 
@@ -73,14 +73,14 @@ shell> cd scripts/
 
 julia> include("iceflow.jl")
 ```
-Running this the first time will (pre-)complie the various installed packages and will take some time.  Subsequent runs, by executing `include("iceflow.jl")`, should take around 10s.
+Running this the first time will (pre-)complie the various installed packages and will take some time. Subsequent runs, by executing `include("iceflow.jl")`, should take around 10s.
 
 You should then see two figures saved in a newly created **_output_** folder, the second being the comparison between modelled and observed ice thickness distribution over Greenland:
 
 ![Greenland ice cap](iceflow_out2.png)
 
 ## Multi-threading on CPUs
-On the CPU, multi-threading is made accessible via [Base.Threads].  To make use of threads, Julia needs to be launched with
+On the CPU, multi-threading is made accessible via [Base.Threads]. To make use of threads, Julia needs to be launched with
 ```
 julia --project -t auto
 ```
@@ -95,3 +95,6 @@ export JULIA_CUDA_USE_BINARYBUILDER=false
 We will use the GPU acceleration in the [second part](#gpu-sia-implementation) of the course.
 
 ⤴️ [_back to top_](#getting-started)
+
+[Julia REPL]: https://docs.julialang.org/en/v1/stdlib/REPL/
+[Base.Threads]: https://docs.julialang.org/en/v1/base/multi-threading/
