@@ -2,7 +2,7 @@
 > ⚠️ Due to the time limitation, the short course will not cover the [Getting started](#getting-started) steps. These are meant to provide directions to the participant willing to actively try out the examples during the short course. **It is warmly recommended to perform the [Getting started](#getting-started) steps before the beginning of the workshop.**
 
 The provided directions will get you started with:
-1. [Installing Julia v1.6](#installing-julia-v16) - additionally, two configurations are suggested:
+1. [Installing Julia v1.6](#installing-julia-v16-or-later) - additionally, two configurations are suggested:
 - running Julia from the [terminal with an external text editor](#terminal--external-editor)
 - running Julia from [VS Code](#vs-code)
 
