@@ -15,7 +15,7 @@ using Plots, Printf
     qH    = zeros(nx-1) # on staggered grid
     dHdt  = zeros(nx-2) # normal grid, without boundary points
     # Initial condition
-    H0    = exp.(.-(xc.-lx./2.0).^2)
+    H0    = exp.(-(xc.-lx/2).^2)
     H     = copy(H0)
     t = 0.0; it = 1
     # Time loop
@@ -25,7 +25,10 @@ using Plots, Printf
         H[2:end-1] .= H[2:end-1] .+ dt*dHdt # update rule
         t += dt; it += 1
     end
-    @printf("Total time = %1.2f, it tot = %d \n", round(ttot, sigdigits=2), it)
+    # Analytic solution
+    Hana     = 1/sqrt(4*(ttot+1/4)) * exp.(-(xc.-lx/2).^2 /(4*(ttot+1/4)))
+
+    @printf("Total time = %1.2f, iterations tot = %d, error vs analytic = %1.2e \n", round(ttot, sigdigits=2), it, norm(H-Hana))
     # Visualise
     plot(xc, H0, linewidth=3); display(plot!(xc, H, legend=false, framestyle=:box, linewidth=3, xlabel="lx", ylabel="H", title="explicit diffusion (nt=$it)"))
     return
