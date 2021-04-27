@@ -19,7 +19,7 @@ This short course covers trendy areas in modern geocomputing with broad geoscien
 # Content
 * [Objectives](#objectives)
 * [About this repository](#about-this-repository)
-* [Getting started](docs/getting-started.md) _(not part of the live course)_
+* [Getting started](#getting-started) _(not part of the live course)_
 * 👉 [Short course material](#short-course-material)
 * [Extras](#extras) _(not part of the live course)_
 * [Further reading](#further-reading)
@@ -67,11 +67,11 @@ The course repository lists following folders and items:
 # Getting started
 > ⚠️ Due to the time limitation, the short course will not cover the [Getting started](docs/getting-started.md) steps. These are meant to provide directions to the participant willing to actively try out the examples during the short course. **It is warmly recommended to perform the [Getting started](docs/getting-started.md) steps before the beginning of the workshop.**
 
-The provided directions will get you started with:
+**Please follow the detailed steps in**: [docs/getting-started.md](docs/getting-started.md)
+
+The [provided directions](docs/getting-started.md) will get you started with:
 1. Installing Julia v1.6
 2. Running the scripts from the course repository.
-
-**Please follow the detailed steps in**: [docs/getting-started.md](docs/getting-started.md)
 
 > 👉 **Note: This course was developed and tested on Julia v1.6. It should work with any Julia version ≥v1.6**. The install configuration were tested on a MacBook Pro running macOS 10.15.7, a Linux GPU server running Ubuntu 20.04 LTS and a Linux GPU server running CentOS 8.
 
