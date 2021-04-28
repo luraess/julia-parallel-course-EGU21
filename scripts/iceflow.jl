@@ -61,7 +61,7 @@ end
     B        = zeros(nx  , ny  )
     H        = zeros(nx  , ny  )
     S        = zeros(nx  , ny  )
-    # initial condition
+    # initial conditions
     B       .= Zbed
     H       .= Hice
     S       .= B .+ H
@@ -114,8 +114,7 @@ println("done.")
 
 # apply some smoothing
 print("Applying some smoothing ... ")
-ns = 2
-for is=1:ns
+for is=1:2 # two smoothing steps
     smooth!(Zbed)
     smooth!(Hice)
 end

@@ -23,30 +23,13 @@ function mass_balance_constants(xc, yc)
     return grad_b, z_ELA, b_max
 end
 
-@views function apply_smoothing!(A, B, ns)
-    print("Applying some smoothing ... ")
-    A2 = @zeros(size(A)); A2 .= A
-    B2 = @zeros(size(B)); B2 .= B
-    for is=1:ns
-        @parallel smooth!(A2, A)
-        @parallel smooth!(B2, B)
-        @parallel (1:size(A2,2)) bc_x!(A2)
-        @parallel (1:size(A2,1)) bc_y!(A2)
-        @parallel (1:size(B2,2)) bc_x!(B2)
-        @parallel (1:size(B2,1)) bc_y!(B2)
-        A, A2 = A2, A
-        B, B2 = B2, B
-    end
-    println("done.")
+@views function smooth!(A)
+    A[2:end-1,2:end-1] .= A[2:end-1,2:end-1] .+ 1.0./4.1.*(diff(diff(A[:,2:end-1], dims=1), dims=1) .+ diff(diff(A[2:end-1,:], dims=2), dims=2))
+    A[1,:]=A[2,:]; A[end,:]=A[end-1,:]; A[:,1]=A[:,2]; A[:,end]=A[:,end-1]
     return
 end
 
 # GPU function
-@parallel function smooth!(A2, A)
-    @inn(A2) = @inn(A) + 1.0./4.1.*(@d2_xi(A) + @d2_yi(A))
-    return
-end
-
 @parallel_indices (iy) function bc_x!(A::Data.Array)
     A[1  , iy] = A[2    , iy]
     A[end, iy] = A[end-1, iy]
@@ -140,11 +123,7 @@ end
     dtausc   = 1.0/3.0         # iterative dtau scaling
     # derived physics
     a        = 2.0*a0/(npow+2)*(rho_i*g)^npow*s2y
-    lx, ly   = nx*dx, ny*dy
     # derived numerics
-    xc, yc   = LinRange(dx/2, lx-dx/2, nx), LinRange(dy/2, ly-dy/2, ny)
-    xv, yv   = 0.5*(xc[1:end-1].+xc[2:end]), 0.5*(yc[1:end-1].+yc[2:end])
-    (Xc,Yc)  = ([x for x=xc,y=yc], [y for x=xc,y=yc])
     cfl      = max(dx^2,dy^2)/4.1
     # array initialisation
     Hold     = @zeros(nx  , ny  )
@@ -162,17 +141,18 @@ end
     M        = @zeros(nx  , ny  )
     B        = @zeros(nx  , ny  )
     H        = @zeros(nx  , ny  )
-    # initial condition
     S        = @zeros(nx  , ny  )
+    grad_b   = Data.Array(grad_b)
+    z_ELA    = Data.Array(z_ELA)
+    # initial conditions
     B       .= Zbed
     H       .= Hice
     Mask     = Data.Array(Mask)
-    Yc2      = Yc .- minimum(Yc); Yc2 .= Yc2./maximum(Yc2)
-    grad_b   = Data.Array((1.3517 .- 0.014158.*(60.0.+Yc2*20.0))./100.0.*0.91) # Mass Bal. gradient, from doi: 10.1017/jog.2016.75
-    z_ELA    = Data.Array(1300.0 .- Yc2*300.0)                                 # Educated guess for ELA altitude
     S       .= B .+ H
     ELA      = 0.0
     if do_visu
+        lx, ly   = nx*dx, ny*dy
+        xc, yc   = LinRange(dx/2, lx-dx/2, nx), LinRange(ly-dy/2, dy/2, ny)
         FS = 7
         H_v = fill(NaN, nx, ny)
         S_v = fill(NaN, nx, ny)
@@ -185,7 +165,7 @@ end
     while t<ttot
         println(" > step $(it)")
         if it==0
-            dt = 1e50
+            dt = 1e50 # use the 0th iteration to reach the steady state for unperturbed ELA
         else
             dt  = dt0
             ELA = ELA + dt*dELA
@@ -213,17 +193,19 @@ end
         @parallel compute_Vel!(Vx, Vy, D, H, dSdx, dSdy, epsi)
         if (it>0)  t += dt  end
         # visualisation
-        H_v .= Array(H); H_v[Ma.==0] .= NaN
-        S_v .= Array(S); S_v[Ma.==0] .= NaN
-        M_v .= Array(M); M_v[Ma.==0] .= NaN
-        V_v .= sqrt.(av(Array(Vx)).^2 .+ av(Array(Vy)).^2); V_v[inn(Array(H)).==0] .= NaN
-        p1 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(S_v, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="Surface elev. [m]", titlefontsize=FS, titlefont="Courier")
-        p2 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H_v, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="$(round(t,sigdigits=2)) yrs, Ice thick. [m]", titlefontsize=FS, titlefont="Courier")
-        p3 = heatmap(xc[2:end-1]./1e3, reverse(yc[2:end-1])./1e3, reverse(log10.(V_v), dims=2)', c=:batlow, aspect_ratio=1, xlims=(xc[2], xc[end-1])./1e3, ylims=(yc[end-1], yc[2])./1e3, clims=(0.1, 2.0), yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="log10(vel) [m/yr]", titlefontsize=FS, titlefont="Courier")
-        p4 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(M_v, dims=2)', c=:devon, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="Mass Bal. rate [m/yr]", titlefontsize=FS, titlefont="Courier")
-        # display(plot(p1, p2, p3, p4, size=(400,400)))
-        plot(p1, p2, p3, p4, size=(400,400), dpi=200); frame(anim) #background_color=:transparent, foreground_color=:white
-        # savefig("../output_evo/iceflow_out1_xpu_evo_$(nx)x$(ny)_$(it).png")
+        if do_visu
+            H_v .= Array(H); H_v[Ma.==0] .= NaN
+            S_v .= Array(S); S_v[Ma.==0] .= NaN
+            M_v .= Array(M); M_v[Ma.==0] .= NaN
+            V_v .= sqrt.(av(Array(Vx)).^2 .+ av(Array(Vy)).^2); V_v[inn(Array(H)).==0] .= NaN
+            p1 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(S_v, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="Surface elev. [m]", titlefontsize=FS, titlefont="Courier")
+            p2 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H_v, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="$(round(t,sigdigits=2)) yrs, Ice thick. [m]", titlefontsize=FS, titlefont="Courier")
+            p3 = heatmap(xc[2:end-1]./1e3, reverse(yc[2:end-1])./1e3, reverse(log10.(V_v), dims=2)', c=:batlow, aspect_ratio=1, xlims=(xc[2], xc[end-1])./1e3, ylims=(yc[end-1], yc[2])./1e3, clims=(0.1, 2.0), yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="log10(vel) [m/yr]", titlefontsize=FS, titlefont="Courier")
+            p4 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(M_v, dims=2)', c=:devon, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="Mass Bal. rate [m/yr]", titlefontsize=FS, titlefont="Courier")
+            # display(plot(p1, p2, p3, p4, size=(400,400)))
+            plot(p1, p2, p3, p4, size=(400,400), dpi=200); frame(anim) #background_color=:transparent, foreground_color=:white
+            savefig("../output_evo/iceflow_out1_xpu_evo_$(nx)x$(ny)_$(it).png")
+        end
         it += 1
     end
     return Array(H), Array(S), Array(M), Array(Vx), Array(Vy)
@@ -233,13 +215,17 @@ end
 print("Loading the data ... ")
 # data = load("../data/BedMachineGreenland_96_184_ds100.jld")
 data = load("../data/BedMachineGreenland_160_304_ds60.jld")
-Hice, Mask, Zbed = Data.Array(data["Hice"]), Data.Array(data["Mask"]), Data.Array(data["Zbed"])
+Hice, Mask, Zbed = data["Hice"], data["Mask"], data["Zbed"]
 xc, yc, dx, dy   = data["xc"], data["yc"], data["dx"], data["dy"]
 println("done.")
 
 # apply some smoothing
-ns = 2
-apply_smoothing!(Hice, Zbed, ns)
+print("Applying some smoothing ... ")
+for is=1:2 # two smoothing steps
+    smooth!(Zbed)
+    smooth!(Hice)
+end
+println("done.")
 
 # handle output
 do_visu = true
@@ -253,8 +239,11 @@ if do_visu
     println("Animation directory: $(anim.dir)")
 end
 
+# calculate mass balance coefficients for given spatial grid
+grad_b, z_ELA, b_max = mass_balance_constants(xc, yc)
+
 # run the SIA flow model
-H, S, M, Vx, Vy = iceflow(dx, dy, Zbed, Hice, Mask; do_visu)
+H, S, M, Vx, Vy = iceflow(abs(dx), abs(dy), Zbed, Hice, Mask, grad_b, z_ELA, b_max; do_visu)
 
 # output and save
 if do_visu gif(anim, "../output_evo/iceflow_evo_$(nx)x$(ny).gif", fps = 5) end

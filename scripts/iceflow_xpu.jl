@@ -30,7 +30,6 @@ end
 end
 
 # GPU function
-
 @parallel_indices (iy) function bc_x!(A::Data.Array)
     A[1  , iy] = A[2    , iy]
     A[end, iy] = A[end-1, iy]
@@ -171,7 +170,6 @@ Hice, Mask, Zbed = data["Hice"], data["Mask"], data["Zbed"]
 xc, yc, dx, dy   = data["xc"], data["yc"], data["dx"], data["dy"]
 println("done.")
 
-# apply some smoothing
 # apply some smoothing
 print("Applying some smoothing ... ")
 for is=1:2 # two smoothing steps
