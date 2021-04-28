@@ -377,9 +377,10 @@ Let's start from the [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) code
 1. Extract the physics calculations from [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl), i.e. the time loop:
 ```julia
 # [...] skipped lines
-qH         .= -D*diff(H)/dx
-dHdt       .= -(H[2:end-1].-Hold[2:end-1])/dt .-diff(qH)/dx .+ damp*dHdt
-H[2:end-1] .= H[2:end-1] .+ dtau*dHdt
+qH         .= -D*diff(H)/dx              # flux
+ResH       .= -(H[2:end-1] - Hold[2:end-1])/dt - diff(qH)/dx # residual of the PDE
+dHdtau     .= ResH + damp*dHdtau         # damped rate of change
+H[2:end-1] .= H[2:end-1] + dtau*dHdtau   # update rule, sets the BC as H[1]=H[end]=0
 # [...] skipped lines
 ```
 
@@ -392,9 +393,10 @@ function compute_flux!(qH, H, D, dx, nx)
     return
 end
 
-function compute_rate!(dHdt, H, Hold, qH, dt, damp, dx, nx)
+function compute_rate!(ResH, dHdt, H, Hold, qH, dt, damp, dx, nx)
     Threads.@threads for ix=1:nx
-        if (2<=ix<=nx-1)  dHdt[ix-1] = -(H[ix] - Hold[ix])/dt -(qH[ix]-qH[ix-1])/dx + damp*dHdt[ix-1]  end
+        if (2<=ix<=nx-1)  ResH[ix-1] = -(H[ix] - Hold[ix])/dt -(qH[ix]-qH[ix-1])/dx  end
+        if (2<=ix<=nx-1)  dHdt[ix-1] = ResH[ix-1] + damp*dHdt[ix-1]  end
     end
     return
 end
@@ -407,7 +409,7 @@ function compute_update!(H, dHdt, dtau, nx)
 end
 # [...] skipped lines
 compute_flux!(qH, H, D, dx, nx)
-compute_rate!(dHdt, H, Hold, qH, dt, damp, dx, nx)
+compute_rate!(ResH, dHdt, H, Hold, qH, dt, damp, dx, nx)
 compute_update!(H, dHdt, dtau, nx)
 # [...] skipped lines
 ```
@@ -423,9 +425,10 @@ function compute_flux!(qH, H, D, dx, nx)
     return
 end
 
-function compute_rate!(dHdt, H, Hold, qH, dt, damp, dx, nx)
+function compute_rate!(ResH, dHdt, H, Hold, qH, dt, damp, dx, nx)
     ix = (blockIdx().x-1) * blockDim().x + threadIdx().x
-    if (2<=ix<=nx-1)  dHdt[ix-1] = -(H[ix] - Hold[ix])/dt -(qH[ix]-qH[ix-1])/dx + damp*dHdt[ix-1]  end
+    if (2<=ix<=nx-1)  ResH[ix-1] = -(H[ix] - Hold[ix])/dt -(qH[ix]-qH[ix-1])/dx  end
+    if (2<=ix<=nx-1)  dHdt[ix-1] = ResH[ix-1] + damp*dHdt[ix-1]  end
     return
 end
 
@@ -437,7 +440,7 @@ end
 # [...] skipped lines
 @cuda blocks=cublocks threads=cuthreads compute_flux!(qH, H, D, dx, nx)
 synchronize()
-@cuda blocks=cublocks threads=cuthreads compute_rate!(dHdt, H, Hold, qH, dt, damp, dx, nx)
+@cuda blocks=cublocks threads=cuthreads compute_rate!(ResH, dHdt, H, Hold, qH, dt, damp, dx, nx)
 synchronize()
 @cuda blocks=cublocks threads=cuthreads compute_update!(H, dHdt, dtau, nx)
 synchronize()
@@ -463,8 +466,9 @@ end
     return
 end
 
-@parallel function compute_rate!(dHdt, H, Hold, qH, dt, damp, dx)
-    @all(dHdt) = -(@all(H) - @all(Hold))/dt -@d(qH)/dx + damp*@all(dHdt)
+@parallel function compute_rate!(ResH, dHdt, H, Hold, qH, dt, damp, dx)
+    @all(ResH) = -(@inn(H) - @inn(Hold))/dt -@d(qH)/dx
+    @all(dHdt) = @all(ResH) + damp*@all(dHdt)
     return
 end
 
@@ -474,7 +478,7 @@ end
 end
 # [...] skipped lines
 @parallel compute_flux!(qH, H, D, dx)
-@parallel compute_rate!(dHdt, H, Hold, qH, dt, damp, dx)
+@parallel compute_rate!(ResH, dHdt, H, Hold, qH, dt, damp, dx)
 @parallel compute_update!(H, dHdt, dtau)
 # [...] skipped lines
 ```
