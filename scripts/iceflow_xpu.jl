@@ -12,6 +12,17 @@ using JLD, Plots, Printf, LinearAlgebra
 @views av(A)  = 0.25*(A[1:end-1,1:end-1].+A[2:end,1:end-1].+A[1:end-1,2:end].+A[2:end,2:end])
 @views inn(A) = A[2:end-1,2:end-1]
 
+# Calculates the distributed mass-balance coefficients for a given spatial grid.
+function mass_balance_constants(xc, yc)
+    b_max    = 0.15            # max. Mass balance rate
+    lat_min, lat_max = 60, 80
+    Xc, Yc   = [Float32(x) for x=xc,y=yc], [Float32(y) for x=xc,y=yc]
+    Yc2      = Yc .- minimum(Yc); Yc2 .= Yc2/maximum(Yc2)
+    grad_b   = (1.3517 .- 0.014158.*(lat_min.+Yc2*(lat_max-lat_min)))./100.0.*0.91 # Mass Bal. gradient, from doi: 10.1017/jog.2016.75
+    z_ELA    = 1300.0 .- Yc2*300.0                                 # Educated guess for ELA altitude
+    return grad_b, z_ELA, b_max
+end
+
 @views function apply_smoothing!(A, B, ns)
     print("Applying some smoothing ... ")
     A2 = @zeros(size(A)); A2 .= A
@@ -90,7 +101,7 @@ end
 
 @parallel_indices (ix,iy) function compute_Mask_S!(H, S, B, Mask)
     if (ix<=size(H,1) && iy<=size(H,2)) if (Mask[ix,iy]==0) H[ix,iy] = 0.0 end end
-    if (ix<=size(S,1) && iy<=size(S,2)) S[ix,iy] = B[ix,iy] + H[ix,iy] end    
+    if (ix<=size(S,1) && iy<=size(S,2)) S[ix,iy] = B[ix,iy] + H[ix,iy] end
     return
 end
 
@@ -100,7 +111,7 @@ end
     return
 end
 
-@views function iceflow(dx, dy, Zbed, Hice, Mask)
+@views function iceflow(dx, dy, Zbed, Hice, Mask, grad_b, z_ELA, b_max)
     println("Initialising ice flow model ... ")
     # physics
     s2y      = 3600*24*365.25  # seconds to years
@@ -108,8 +119,8 @@ end
     g        = 9.81            # gravity acceleration
     npow     = 3.0             # Glen's power law exponent
     a0       = 1.5e-24         # Glen's law enhancement term
-    b_max    = 0.15            # max. Mass balance rate
     # numerics
+    @assert (dx>0 && dy>0) "dx and dy need to be positive"
     nx, ny   = size(Zbed,1), size(Zbed,2) # numerical grid resolution
     @assert (nx, ny) == size(Zbed) == size(Hice) == size(Mask) "Sizes don't match"
     itMax    = 1e5             # number of iteration (max)
@@ -120,11 +131,7 @@ end
     dtausc   = 1.0/3.0         # iterative dtau scaling
     # derived physics
     a        = 2.0*a0/(npow+2)*(rho_i*g)^npow*s2y
-    lx, ly   = nx*dx, ny*dy
     # derived numerics
-    xc, yc   = LinRange(dx/2, lx-dx/2, nx), LinRange(dy/2, ly-dy/2, ny)
-    xv, yv   = 0.5*(xc[1:end-1].+xc[2:end]), 0.5*(yc[1:end-1].+yc[2:end])
-    (Xc,Yc)  = ([x for x=xc,y=yc], [y for x=xc,y=yc])
     cfl      = max(dx^2,dy^2)/4.1
     # array initialisation
     Err      = @zeros(nx  , ny  )
@@ -141,19 +148,16 @@ end
     M        = @zeros(nx  , ny  )
     B        = @zeros(nx  , ny  )
     H        = @zeros(nx  , ny  )
-    # initial condition
     S        = @zeros(nx  , ny  )
+    # initial condition
     B       .= Zbed
     H       .= Hice
-    Yc2      = Yc .- minimum(Yc); Yc2 .= Yc2./maximum(Yc2)
-    grad_b   = Data.Array((1.3517 .- 0.014158.*(60.0.+Yc2*20.0))./100.0.*0.91)# Mass Bal. gradient, from doi: 10.1017/jog.2016.75
-    z_ELA    = Data.Array(1300.0 .- Yc2*300.0)                                # Educated guess for ELA altitude
     S       .= B .+ H
     println(" starting iteration loop:")
     # iteration loop
     it = 1; err = 2*tolnl; err2 = err; err0 = err
     while err2>tolnl && it<itMax
-        @parallel compute_Err1!(Err, H) 
+        @parallel compute_Err1!(Err, H)
         @parallel compute_M_dS!(M, dSdx, dSdy, S, z_ELA, grad_b, b_max, dx, dy)
         @parallel compute_D!(D, H, dSdx, dSdy, a, npow)
         @parallel compute_flux!(qHx, qHy, D, S, dx, dy)
@@ -187,8 +191,11 @@ println("done.")
 ns = 2
 apply_smoothing!(Hice, Zbed, ns)
 
+# calculate mass balance coefficients for given spatial grid
+grad_b, z_ELA, b_max = mass_balance_constants(xc, yc)
+
 # run the SIA flow model
-H, S, M, Vx, Vy = iceflow(dx, dy, Zbed, Hice, Mask)
+H, S, M, Vx, Vy = iceflow(abs(dx), abs(dy), Zbed, Hice, Mask, grad_b, z_ELA, b_max)
 
 # handle output
 do_visu = true
@@ -206,7 +213,7 @@ if do_visu
 
     # data back to CPU
     Hice, Mask, Zbed = Array(Hice), Array(Mask), Array(Zbed)
-    
+
     # outputs
     FS  = 7
     H_v.=H; H_v[Mask.==0].=NaN

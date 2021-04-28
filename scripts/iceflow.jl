@@ -11,11 +11,13 @@ using JLD, Plots, Printf, LinearAlgebra
     return
 end
 
+# Calculates the distributed mass-balance coefficients for a given spatial grid.
 function mass_balance_constants(xc, yc)
     b_max    = 0.15            # max. Mass balance rate
+    lat_min, lat_max = 60, 80
     Xc, Yc   = [Float32(x) for x=xc,y=yc], [Float32(y) for x=xc,y=yc]
     Yc2      = Yc .- minimum(Yc); Yc2 .= Yc2/maximum(Yc2)
-    grad_b   = (1.3517 .- 0.014158.*(60.0.+Yc2*20.0))./100.0.*0.91 # Mass Bal. gradient, from doi: 10.1017/jog.2016.75
+    grad_b   = (1.3517 .- 0.014158.*(lat_min.+Yc2*(lat_max-lat_min)))./100.0.*0.91 # Mass Bal. gradient, from doi: 10.1017/jog.2016.75
     z_ELA    = 1300.0 .- Yc2*300.0                                 # Educated guess for ELA altitude
     return grad_b, z_ELA, b_max
 end
@@ -29,6 +31,7 @@ end
     npow     = 3.0             # Glen's power law exponent
     a0       = 1.5e-24         # Glen's law enhancement term
     # numerics
+    @assert (dx>0 && dy>0) "dx and dy need to be positive"
     nx, ny   = size(Zbed,1), size(Zbed,2) # numerical grid resolution
     @assert (nx, ny) == size(Zbed) == size(Hice) == size(Mask) "Sizes don't match"
     itMax    = 1e5             # number of iteration (max)
@@ -39,7 +42,6 @@ end
     dtausc   = 1.0/3.0         # iterative dtau scaling
     # derived physics
     a        = 2.0*a0/(npow+2)*(rho_i*g)^npow*s2y
-    lx, ly   = nx*dx, ny*dy
     # derived numerics
     cfl      = max(dx^2,dy^2)/4.1
     # array initialisation
@@ -123,7 +125,7 @@ println("done.")
 grad_b, z_ELA, b_max = mass_balance_constants(xc, yc)
 
 # run the SIA flow model
-H, S, M, Vx, Vy = iceflow(dx, dy, Zbed, Hice, Mask, grad_b, z_ELA, b_max)
+H, S, M, Vx, Vy = iceflow(abs(dx), abs(dy), Zbed, Hice, Mask, grad_b, z_ELA, b_max)
 
 # handle output
 do_visu = true
