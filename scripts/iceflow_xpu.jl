@@ -23,29 +23,13 @@ function mass_balance_constants(xc, yc)
     return grad_b, z_ELA, b_max
 end
 
-@views function apply_smoothing!(A, B, ns)
-    print("Applying some smoothing ... ")
-    A2 = @zeros(size(A)); A2 .= A
-    B2 = @zeros(size(B)); B2 .= B
-    for is=1:ns
-        @parallel smooth!(A2, A)
-        @parallel smooth!(B2, B)
-        @parallel (1:size(A2,2)) bc_x!(A2)
-        @parallel (1:size(A2,1)) bc_y!(A2)
-        @parallel (1:size(B2,2)) bc_x!(B2)
-        @parallel (1:size(B2,1)) bc_y!(B2)
-        A, A2 = A2, A
-        B, B2 = B2, B
-    end
-    println("done.")
+@views function smooth!(A)
+    A[2:end-1,2:end-1] .= A[2:end-1,2:end-1] .+ 1.0./4.1.*(diff(diff(A[:,2:end-1], dims=1), dims=1) .+ diff(diff(A[2:end-1,:], dims=2), dims=2))
+    A[1,:]=A[2,:]; A[end,:]=A[end-1,:]; A[:,1]=A[:,2]; A[:,end]=A[:,end-1]
     return
 end
 
 # GPU function
-@parallel function smooth!(A2, A)
-    @inn(A2) = @inn(A) + 1.0./4.1.*(@d2_xi(A) + @d2_yi(A))
-    return
-end
 
 @parallel_indices (iy) function bc_x!(A::Data.Array)
     A[1  , iy] = A[2    , iy]
@@ -149,13 +133,15 @@ end
     B        = @zeros(nx  , ny  )
     H        = @zeros(nx  , ny  )
     S        = @zeros(nx  , ny  )
-    # initial condition
+    grad_b   = Data.Array(grad_b)
+    z_ELA    = Data.Array(z_ELA)
+    # initial conditions
     B       .= Zbed
     H       .= Hice
     S       .= B .+ H
     println(" starting iteration loop:")
     # iteration loop
-    it = 1; err = 2*tolnl; err2 = err; err0 = err
+    it = 1; err = 2*tolnl
     while err>tolnl && it<itMax
         @parallel compute_Err1!(Err, H)
         @parallel compute_M_dS!(M, dSdx, dSdy, S, z_ELA, grad_b, b_max, dx, dy)
@@ -165,13 +151,8 @@ end
         @parallel compute_H!(H, dHdt, dtau)
         @parallel compute_Mask_S!(H, S, B, Mask)
         # error check
-        # if mod(it, nout)==0 || it==1
         if mod(it, nout)==0
             @parallel compute_Err2!(Err, H)
-            # err  = sum(abs.(Err))/length(Err)
-            # if it==1  err0=err  end
-            # err2 = sum(abs.(Err))/length(Err)/err0
-            # @printf(" it = %d, error = %1.2e \n", it, err2)
             err = norm(Err)/length(Err)
             @printf(" it = %d, error = %1.2e \n", it, err)
             if isnan(err) error("NaNs") end # safeguard
@@ -186,18 +167,21 @@ end
 print("Loading the data ... ")
 data = load("../data/BedMachineGreenland_96_184_ds100.jld")
 # data = load("../data/BedMachineGreenland_160_304_ds60.jld")
-Hice, Mask, Zbed = Data.Array(data["Hice"]), Data.Array(data["Mask"]), Data.Array(data["Zbed"])
+Hice, Mask, Zbed = data["Hice"], data["Mask"], data["Zbed"]
 xc, yc, dx, dy   = data["xc"], data["yc"], data["dx"], data["dy"]
 println("done.")
 
 # apply some smoothing
-ns = 2
-apply_smoothing!(Hice, Zbed, ns)
+# apply some smoothing
+print("Applying some smoothing ... ")
+for is=1:2 # two smoothing steps
+    smooth!(Zbed)
+    smooth!(Hice)
+end
+println("done.")
 
 # calculate mass balance coefficients for given spatial grid
 grad_b, z_ELA, b_max = mass_balance_constants(xc, yc)
-grad_b .= Data.Array(grad_b)
-z_ELA  .= Data.Array(z_ELA)
 
 # run the SIA flow model
 H, S, M, Vx, Vy = iceflow(abs(dx), abs(dy), Zbed, Hice, Mask, grad_b, z_ELA, b_max)
