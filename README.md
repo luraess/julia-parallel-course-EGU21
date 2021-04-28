@@ -138,26 +138,26 @@ H0 = exp(-(x-lx/2.0)^2)
 
 ![](docs/diffusion_expl.png)
 
-But now, you may ask: can we use an implicit algorithm to side-step the CFL-condition _**and**_ keep it "matrix-free" ?
+But now, you may ask: can we use an implicit algorithm to side-step the CFL-condition, control the (physically motivated) time steps `dt` _**and**_ keep it "matrix-free" ?
 
 ⤴️ [_back to course material_](#short-course-material)
 
 ### Iterative solvers
 _by Ludovic Räss_
 
-The [`diffusion_1D_impl.jl`](scripts/diffusion_1D_impl.jl) code implements an iterative, implicit solution of eq. (1). How ? We add the physical time derivative `dH/dt=(H-Hold)/dt` to the rate of change (or residual) `dHdt`
+The [`diffusion_1D_impl.jl`](scripts/diffusion_1D_impl.jl) code implements an iterative, implicit solution of eq. (1). **How ?** We include the physical time derivative `dH/dt=(H-Hold)/dt` in the previous rate of change `dHdt` to define the residual `ResH`
 ```md
-dHdt = -(H-Hold)/dt -dqH/dx
+ResH = -(H-Hold)/dt -dqH/dx
 ```
-and iterate until the values of `dHdt` (the residual of the eq. (1)) drop below a defined tolerance level `tol`.
+and iterate until the values of `ResH` (the residual of the eq. (1)) drop below a defined tolerance level `tol`.
 
 ![](docs/diffusion_impl.png)
 
-It works, but the "naive" _Picard_ iteration count seems to be pretty high (`niter>1000`). A efficient way to circumvent this is to add "damping" (`damp`) to the rate-of-change `dHdt`, analogous to add friction enabling faster convergence \[[4][Frankel50]\]
+It works, but the "naive" _Picard_ iteration count seems to be pretty high (`niter>7000`). A efficient way to circumvent this is to add "damping" (`damp`) to the rate-of-change `dHdt`, analogous to add friction enabling faster convergence \[[4][Frankel50]\]
 ```md
-dHdt = -(H-Hold)/dt -dqH/dx + damp*dHdt
+dHdt = ResH + damp*dHdt
 ```
-The [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) code implements a damped iterative implicit solution of eq. (1). The iteration count drops to `niter<200`. This pseudo-transient approach enables fast as the iteration count scales close to _O(N)_ and not _O(N^2)_.
+The [`diffusion_1D_damp.jl`](scripts/diffusion_1D_damp.jl) code implements a damped iterative implicit solution of eq. (1). The iteration count drops to `niter~700`. This pseudo-transient approach enables fast as the iteration count scales close to _O(N)_ and not _O(N^2)_.
 
 ![](docs/diffusion_damp.png)
 
