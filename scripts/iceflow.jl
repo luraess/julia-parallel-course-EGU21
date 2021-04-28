@@ -114,8 +114,6 @@ ns = 2
 for is=1:ns
     smooth!(Zbed)
     smooth!(Hice)
-    Zbed[1,:]=Zbed[2,:]; Zbed[end,:]=Zbed[end-1,:]; Zbed[:,1]=Zbed[:,2]; Zbed[:,end]=Zbed[:,end-1]
-    Hice[1,:]=Hice[2,:]; Hice[end,:]=Hice[end-1,:]; Hice[:,1]=Hice[:,2]; Hice[:,end]=Hice[:,end-1]
 end
 println("done.")
 
