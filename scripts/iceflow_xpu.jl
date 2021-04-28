@@ -125,7 +125,7 @@ end
     @assert (nx, ny) == size(Zbed) == size(Hice) == size(Mask) "Sizes don't match"
     itMax    = 1e5             # number of iteration (max)
     nout     = 200             # error check frequency
-    tolnl    = 1e-5            # nonlinear tolerance
+    tolnl    = 1e-6            # nonlinear tolerance
     epsi     = 1e-4            # small number
     damp     = 0.85            # convergence accelerator
     dtausc   = 1.0/3.0         # iterative dtau scaling
@@ -156,7 +156,7 @@ end
     println(" starting iteration loop:")
     # iteration loop
     it = 1; err = 2*tolnl; err2 = err; err0 = err
-    while err2>tolnl && it<itMax
+    while err>tolnl && it<itMax
         @parallel compute_Err1!(Err, H)
         @parallel compute_M_dS!(M, dSdx, dSdy, S, z_ELA, grad_b, b_max, dx, dy)
         @parallel compute_D!(D, H, dSdx, dSdy, a, npow)
@@ -165,12 +165,15 @@ end
         @parallel compute_H!(H, dHdt, dtau)
         @parallel compute_Mask_S!(H, S, B, Mask)
         # error check
-        if mod(it, nout)==0 || it==1
+        # if mod(it, nout)==0 || it==1
+        if mod(it, nout)==0
             @parallel compute_Err2!(Err, H)
-            err  = sum(abs.(Err))/length(Err)
-            if it==1  err0=err  end
-            err2 = sum(abs.(Err))/length(Err)/err0
-            @printf(" it = %d, error = %1.2e \n", it, err2)
+            # err  = sum(abs.(Err))/length(Err)
+            # if it==1  err0=err  end
+            # err2 = sum(abs.(Err))/length(Err)/err0
+            # @printf(" it = %d, error = %1.2e \n", it, err2)
+            err = norm(Err)/length(Err)
+            @printf(" it = %d, error = %1.2e \n", it, err)
             if isnan(err) error("NaNs") end # safeguard
         end
         it += 1
@@ -181,8 +184,8 @@ end
 # ------------------------------------------------------------------------------
 # load the data
 print("Loading the data ... ")
-# data = load("../data/BedMachineGreenland_96_184_ds100.jld")
-data = load("../data/BedMachineGreenland_160_304_ds60.jld")
+data = load("../data/BedMachineGreenland_96_184_ds100.jld")
+# data = load("../data/BedMachineGreenland_160_304_ds60.jld")
 Hice, Mask, Zbed = Data.Array(data["Hice"]), Data.Array(data["Mask"]), Data.Array(data["Zbed"])
 xc, yc, dx, dy   = data["xc"], data["yc"], data["dx"], data["dy"]
 println("done.")
@@ -193,6 +196,8 @@ apply_smoothing!(Hice, Zbed, ns)
 
 # calculate mass balance coefficients for given spatial grid
 grad_b, z_ELA, b_max = mass_balance_constants(xc, yc)
+grad_b .= Data.Array(grad_b)
+z_ELA  .= Data.Array(z_ELA)
 
 # run the SIA flow model
 H, S, M, Vx, Vy = iceflow(abs(dx), abs(dy), Zbed, Hice, Mask, grad_b, z_ELA, b_max)
