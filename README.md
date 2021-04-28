@@ -4,7 +4,7 @@
 **[vEGU2021: SC4.6 Solving differential equations in parallel with Julia | Thu, 29 Apr, 16:00–17:00 (CEST)](https://meetingorganizer.copernicus.org/EGU21/session/38986)**
 
 👉 **Organisation notes:**
-- 💡 All material presented during the short course available on this repository **was just updated - be sure to fetch the latest versions!**
+- 💡 The short course material (available on this repository) **was just updated - fetch the latest versions!**
 - 👉 **Make sure to go through [Getting started](docs/getting-started.md) before the start of the course.**
 - ⚠️ Live participation to this short course requires [registration to EGU's main meeting](https://egu21.eu/register.html).
 - Due to the time-limited course schedule (60 min), an interactive overview will cover the course's [objectives](#objectives) replacing an extensive hands-on.
