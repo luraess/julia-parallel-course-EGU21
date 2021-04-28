@@ -5,23 +5,6 @@ using JLD, Plots, Printf, LinearAlgebra
 @views av_ya(A) = 0.5.*(A[:,1:end-1].+A[:,2:end])
 @views inn(A)   = A[2:end-1,2:end-1]
 
-@views function smooth!(A)
-    A[2:end-1,2:end-1] .= A[2:end-1,2:end-1] .+ 1.0./4.1.*(diff(diff(A[:,2:end-1], dims=1), dims=1) .+ diff(diff(A[2:end-1,:], dims=2), dims=2))
-    A[1,:]=A[2,:]; A[end,:]=A[end-1,:]; A[:,1]=A[:,2]; A[:,end]=A[:,end-1]
-    return
-end
-
-# Calculates the distributed mass-balance coefficients for a given spatial grid.
-function mass_balance_constants(xc, yc)
-    b_max    = 0.15            # max. Mass balance rate
-    lat_min, lat_max = 60, 80
-    Xc, Yc   = [Float32(x) for x=xc,y=yc], [Float32(y) for x=xc,y=yc]
-    Yc2      = Yc .- minimum(Yc); Yc2 .= Yc2/maximum(Yc2)
-    grad_b   = (1.3517 .- 0.014158.*(lat_min.+Yc2*(lat_max-lat_min)))./100.0.*0.91 # Mass Bal. gradient, from doi: 10.1017/jog.2016.75
-    z_ELA    = 1300.0 .- Yc2*300.0                                 # Educated guess for ELA altitude
-    return grad_b, z_ELA, b_max
-end
-
 @views function iceflow(dx, dy, Zbed, Hice, Mask, grad_b, z_ELA, b_max)
     println("Initialising ice flow model ... ")
     # physics
@@ -101,15 +84,21 @@ end
     # compute velocities
     Vx .= -D./(av(H) .+ epsi).*av_ya(dSdx)
     Vy .= -D./(av(H) .+ epsi).*av_xa(dSdy)
-    return H, S, M, Vx, Vy
+    # return as GeoArrays
+    return  as_geoarray(H, Zbed, name=:thickness),
+            as_geoarray(S, Zbed, name=:surface),
+            as_geoarray(M, Zbed, name=:smb),
+            as_geoarray(Vx, Zbed, name=:vel_x, staggerd=true),
+            as_geoarray(Vy, Zbed, name=:vel_y, staggerd=true)
 end
 # ------------------------------------------------------------------------------
+include("helpers.jl")
+
 # load the data
 print("Loading the data ... ")
-data = load("../data/BedMachineGreenland_96_184_ds100.jld")
-# data = load("../data/BedMachineGreenland_160_304_ds60.jld")
-Hice, Mask, Zbed = data["Hice"], data["Mask"], data["Zbed"]
-xc, yc, dx, dy   = data["xc"], data["yc"], data["dx"], data["dy"]
+Zbed, Hice, Mask, dx, dy, xc, yc = load_bedmachine_greenland(; nx=200)
+#Zbed, Hice, Mask, dx, dy, xc, yc = load_bedmachine_greenland(; nx=96)
+#out = load_bedmachine_greenland(; nx=96)
 println("done.")
 
 # apply some smoothing

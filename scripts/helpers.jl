@@ -11,6 +11,21 @@ Smooth data contained in a matrix with one time step (CFL) of diffusion.
     return
 end
 
+"""
+    mass_balance_constants(xc, yc)
+
+Calculate the distributed mass-balance coefficients for a given spatial grid.
+"""
+function mass_balance_constants(xc, yc)
+    b_max    = 0.15            # max. Mass balance rate
+    lat_min, lat_max = 60, 80
+    Xc, Yc   = [Float32(x) for x=xc,y=yc], [Float32(y) for x=xc,y=yc]
+    Yc2      = Yc .- minimum(Yc); Yc2 .= Yc2/maximum(Yc2)
+    grad_b   = (1.3517 .- 0.014158.*(lat_min.+Yc2*(lat_max-lat_min)))./100.0.*0.91 # Mass Bal. gradient, from doi: 10.1017/jog.2016.75
+    z_ELA    = 1300.0 .- Yc2*300.0                                 # Educated guess for ELA altitude
+    return grad_b, z_ELA, b_max
+end
+
 datadir = "../data"
 bm_file = joinpath(datadir, "BedMachineGreenland-2017-09-20.nc")
 
@@ -122,13 +137,14 @@ function load_bedmachine_greenland(;downscale=nothing, nx=96)
 
     if nx in [96, 160] # get from jld files in the repo
         data = if nx == 96
-            load("../data/BedMachineGreenland_96_184.jld") # ultra low res data
+            load("../data/BedMachineGreenland_96_184_ds100.jld") # ultra low res data
         else
-            load("../data/BedMachineGreenland_160_304.jld") # low res data
+            load("../data/BedMachineGreenland_160_304_ds60.jld") # low res data
         end
         Hice, Mask, Zbed = data["Hice"], data["Mask"], data["Zbed"]
         xc, yc, dx, dy   = data["xc"], data["yc"], data["dx"], data["dy"]
     else  # get from nc file
+        @show "nc file"
         if !(isfile(bm_file) && filesize(bm_file)==2249644927)
             println("""Downloading the Bedmachine Greenland dataset.  This may take a while (2GB in size).
                           Hit Ctrl+C to abort.
@@ -137,17 +153,38 @@ function load_bedmachine_greenland(;downscale=nothing, nx=96)
         end
 
         bms = NCDstack(bm_file)
-        Zbed = downscale_and_crop(bms[:bed], res)
-        Hice = downscale_and_crop(bms[:thickness], res)
-        Mask = downscale_and_crop(bms[:mask], res)
+        Zbed = missing2nan(downscale_and_crop(bms[:bed], res))
+        Hice = missing2nan(downscale_and_crop(bms[:thickness], res))
+        Mask = missing2nan(downscale_and_crop(bms[:mask], res))
         # mask: 0=ocean, 1=ice-free land, 2=grounded-ice, 3=floating-ice, 4=non-Greenland land
         Mask = (Mask.==1) .| (Mask.==2)
-        dx, dy = abs.(step.(dims(Zbed)))
+        dx, dy = step.(dims(Zbed))
+        xc, yc =  Zbed.dims[1].val, Zbed.dims[2].val
     end
 
-    return Zbed, Hice, Mask, dx, dy
+    return Zbed, Hice, Mask, dx, dy, xc, yc
 end
 
+"""
+    as_geoarray(A, template::AbstractGeoArray)
+
+Make a GeoArray with the data from `A` and the geo-info from `template`.
+
+Kwargs:
+- name: give it a name
+- staggered: uses a staggered grid, i.e. of size (nx-1,ny-1)
+"""
+function as_geoarray(A, template::AbstractGeoArray; name=nothing, staggerd=false)
+    @assert length(size(A))==2
+    dd = if staggerd
+        x, y = dims(template)
+        (X( 0.5*(val(x)[2:end] + val(x)[1:end-1]), mode=x.mode, metadata=x.metadata),
+         Y( 0.5*(val(y)[2:end] + val(y)[1:end-1]), mode=y.mode, metadata=y.metadata))
+    else
+        dims(template)
+    end
+    return GeoArray(A, dims=dd, name=name)
+end
 
 "Enumeration of ideal resolutions for different downscalings, nx, and ny"
 resolutions =
@@ -237,3 +274,15 @@ end
 "Apply downscaling and cropping returned from `get_resolution`."
 downscale_and_crop(A, res) = A[1 + floor(Int, res.cropx/2):res.ds:end - ceil(Int, res.cropx/2),
                                1 + floor(Int, res.cropy/2):res.ds:end - ceil(Int, res.cropy/2)]
+
+# Convert missing to NaN and also re-do eltype of array
+function missing2nan(ar::Array, T=Float32)
+    ar = convert(Matrix{Union{T,Missing}}, ar)
+    ar[ismissing.(ar)] .= NaN
+    return convert(Matrix{T}, ar)
+end
+function missing2nan(ar::AbstractGeoArray, T=Float32)
+    # missing2nan(ar::AbstractGeoArray, T=Float32) = replace_missing(ar, NaN)
+    data = missing2nan(ar.data)
+    return GeoArray(data, dims=ar.dims, name=ar.name)
+end
