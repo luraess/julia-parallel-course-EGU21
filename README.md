@@ -115,6 +115,7 @@ A short introduction to Julia will be given using the first numerical example of
 - index into an array with `[ ]` and starts at 1
 - vectorized function application do with the dot-notation, e.g. `sin.(x) ./ y` for vectors `x` and `y`
 - macros do funky stuff with your code (aka code-transformations) and call them with `@`, e.g. `@time sin(1)` prints the time it takes to evaluate `sin(1)`
+- for raster-data handling we use [GeoData.jl](https://github.com/rafaqz/GeoData.jl) (but other packages also exist)
 
 For more info see https://docs.julialang.org.
 
@@ -173,7 +174,7 @@ We will here report (1) for various implementations on various computer architec
 
 ## Part 2 - solving ice flow PDEs on GPUs
 
-### SIA equation
+### SIA equation applied to the Greenland Ice Sheet
 Let's move from the simple **1D linear diffusion** example to the shallow ice approximation (SIA) equation, a **2D nonlinear diffusion** equation for ice thickness _H_:
 
   dH/dt = ∇.(D ∇S) + M
@@ -195,6 +196,10 @@ with the nonlinear diffusion coefficient `D` with the power-law exponent `npow` 
 ```md
 D = a*H^(npow+2)*sqrt((dS/dx)^2 + (dS/dy)^2)^(npow-1)
 ```
+
+The topography data, bedrock elevation and ice thickness, is from the
+[BedMachine Greenland v3](https://sites.uci.edu/morlighem/dataproducts/bedmachine-greenland/) dataset (Morlighem et al., (2017)) and is loaded via the [GeoData.jl](https://github.com/rafaqz/GeoData.jl) package (see [`helpers.jl`](scripts/helpers.jl)).
+
 We implement climate forcing using a simple mass balance (accumulation and ablation) `M` formulation:
 ```md
 M  = min(grad_b*(S - z_ELA), b_max)
