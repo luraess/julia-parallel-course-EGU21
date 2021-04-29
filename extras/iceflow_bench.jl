@@ -1,3 +1,4 @@
+# Run a synthetic benchmark (Jarosch's 2013 benchmark)
 using Plots, Printf
 
 @views av(A)    = 0.25*(A[1:end-1,1:end-1].+A[2:end,1:end-1].+A[1:end-1,2:end].+A[2:end,2:end])
@@ -11,7 +12,7 @@ using Plots, Printf
     lx, ly   = 30e3, 30e3
     rho_i    = 910.0           # ice density
     g        = 9.81            # gravity acceleration
-    npow     = 3.0             # Glen's power law exponent 
+    npow     = 3.0             # Glen's power law exponent
     a0       = 1.5e-24         # Glen's law enhancement term
     # numerics
     nx, ny   = 100, 100        # numerical grid resolution
