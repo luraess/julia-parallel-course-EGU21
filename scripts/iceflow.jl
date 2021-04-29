@@ -68,7 +68,7 @@ using JLD, Plots, Printf, LinearAlgebra
         ResH  .= .-(diff(qHx, dims=1)/dx .+ diff(qHy, dims=2)/dy) .+ inn(M)
         dHdt  .= dHdt.*damp .+ ResH
         H[2:end-1,2:end-1] .= max.(0.0, inn(H) .+ dtau.*dHdt)
-        # apply mask
+        # apply mask (a very poor-man's calving law)
         H[Mask.==0] .= 0.0
         # update surface
         S     .= B .+ H
@@ -124,46 +124,48 @@ nx, ny = size(H)
 if do_visu
     !ispath("../output") && mkdir("../output")
 
-    H_v = fill(NaN, nx, ny)
-    S_v = fill(NaN, nx, ny)
-    M_v = fill(NaN, nx, ny)
-    V_v = fill(NaN, nx-2, ny-2)
+    H_v = copy(H); H_v[Mask.==0].=NaN
+    Hice_v = copy(Hice); Hice_v[Mask.==0].=NaN
+    S_v = copy(S); S_v[Mask.==0].=NaN
+    M_v = copy(M); M_v[Mask.==0].=NaN
+    V_v = sqrt.(Vx.^2 .+ Vy.^2)
 
     # outputs
-    FS  = 7
-    H_v.=H; H_v[Mask.==0].=NaN
-    S_v.=S; S_v[Mask.==0].=NaN
-    M_v.=M; M_v[Mask.==0].=NaN
-    V_v.=sqrt.(av(Vx).^2 .+ av(Vy).^2); V_v[inn(H).==0].=NaN
-    p1 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(S_v, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="Surface elev. [m]", titlefontsize=FS, titlefont="Courier")
-    p2 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H_v, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="Ice thickness [m]", titlefontsize=FS, titlefont="Courier")
-    p3 = heatmap(xc[2:end-1]./1e3, reverse(yc[2:end-1])./1e3, reverse(log10.(V_v), dims=2)', c=:batlow, aspect_ratio=1, xlims=(xc[2], xc[end-1])./1e3, ylims=(yc[end-1], yc[2])./1e3, clims=(0.1, 2.0), yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="log10(vel) [m/yr]", titlefontsize=FS, titlefont="Courier")
-    p4 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(M_v, dims=2)', c=:devon, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="Mass Bal. rate [m/yr]", titlefontsize=FS, titlefont="Courier")
-    # display(plot(p1, p2, p3, p4, size=(400,400)))
-    plot(p1, p2, p3, p4, size=(400,400), dpi=200) #background_color=:transparent, foreground_color=:white
+    fontsize  = 7
+    opts = (aspect_ratio=1, yaxis=font(fontsize, "Courier"), xaxis=font(fontsize, "Courier"),
+            ticks=nothing, framestyle=:box, titlefontsize=fontsize, titlefont="Courier", colorbar_title="",
+            xlabel="", ylabel="", xlims=(dims(H_v)[1][1],dims(H_v)[1][end]), ylims=(dims(H_v)[2][end],dims(H_v)[2][1]),
+            )
+    p1 = heatmap(S_v; c=:davos, title="Surface elev. [m]", opts...)
+    p2 = heatmap(H_v; c=:davos, title="Ice thickness [m]", opts...)
+    p3 = heatmap(log10.(V_v); clims=(0.1, 2.0), title="log10(vel) [m/yr]", opts...)
+    p4 = heatmap(M_v; c=:devon, title="Mass Bal. rate [m/yr]", opts...)
+    p = plot(p1, p2, p3, p4, size=(400,400), dpi=200) #background_color=:transparent, foreground_color=:white
+    ## uncomment if you want a pop-up plot pane showing:
+    # display(p)
     savefig("../output/iceflow_out1.png")
 
     # error
-    H_diff = Hice.-H; H_diff[Mask.==0] .= NaN
-    Hice[Mask.==0] .= NaN
-    H[Mask.==0]    .= NaN
-    FS = 7
-    p1 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(Hice, dims=2)'  , c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="H data [m]", titlefontsize=FS, titlefont="Courier")
-    p2 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H, dims=2)'     , c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="H model [m]", titlefontsize=FS, titlefont="Courier")
-    p3 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H_diff, dims=2)', c=:viridis, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="H (data-model) [m]", titlefontsize=FS, titlefont="Courier")
-    # display(plot(p1, p2, p3, layout=(1, 3), size=(500,160)))
-    plot(p1, p2, p3, layout=(1, 3), size=(500,160), dpi=200) #background_color=:transparent, foreground_color=:white
+    H_diff = Hice_v.-H_v
+    fontsize = 7
+    p1 = heatmap(Hice_v; c=:davos, title="H data [m]", opts...)
+    p2 = heatmap(H_v; c=:davos, title="H model [m]", opts...)
+    clim = max(abs.(extrema(H_diff[.!isnan.(H_diff)]))...)
+    p3 = heatmap(H_diff; title="H (data-model) [m]",  clims=(-clim,clim), seriescolor=:balance, opts...)
+    p = plot(p1, p2, p3, layout=(1, 3), size=(500,160), dpi=200) #background_color=:transparent, foreground_color=:white
+    ## uncomment if you want a pop-up plot pane showing:
+    # display(p)
     savefig("../output/iceflow_out2.png")
 end
 
 if do_save
-    save("../output/iceflow_$(nx)x$(ny).jld", "Hice", convert(Matrix{Float32}, Hice),
-                                              "Mask", convert(Matrix{Float32}, Mask),
-                                              "H"   , convert(Matrix{Float32}, H),
-                                              "S"   , convert(Matrix{Float32}, S),
-                                              "M"   , convert(Matrix{Float32}, M),
-                                              "Vx"  , convert(Matrix{Float32}, Vx),
-                                              "Vy"  , convert(Matrix{Float32}, Vy),
+    save("../output/iceflow_$(nx)x$(ny).jld", "Hice", Hice,
+                                              "Mask", Mask,
+                                              "H"   , H,
+                                              "S"   , S,
+                                              "M"   , M,
+                                              "Vx"  , Vx,
+                                              "Vy"  , Vy,
                                               "xc", xc, "yc", yc)
 end
 
