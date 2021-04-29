@@ -110,7 +110,7 @@ function download_bedmachine_greenland(; force=false, force_earthdata=false, ver
 end
 
 """
-    load_bedmachine_greenland(;downscale=nothing, nx=nothing)
+    load_data(;downscale=nothing, nx=nothing)
 
 Load the Bedmachine data into memory at a specific resolution.  The resolution can be
 chosen by setting either:
@@ -128,7 +128,7 @@ dimensions/downscaling maybe different.
 Return:
 - Zbed, Hice, Mask, dx, dy
 """
-function load_bedmachine_greenland(;downscale=nothing, nx=96, use_nc=false)
+function load_data(;downscale=nothing, nx=96, use_nc=false)
     if downscale!=nothing && nx!=96
         error("Only choose of the input augments `downscale` and `nx`")
     end
@@ -165,7 +165,7 @@ function load_bedmachine_greenland(;downscale=nothing, nx=96, use_nc=false)
         xc, yc =  Zbed.dims[1].val, Zbed.dims[2].val
     end
 
-    return Zbed, Hice, Mask, dx, dy, xc, yc
+    return Zbed, Hice, Mask, abs(dx), abs(dy), xc, yc
 end
 function _download_progress(total, now)
     # from https://github.com/timholy/ProgressMeter.jl/blob/45e562e708f70c6e805b7ce94e35e3fe8c889d50/src/ProgressMeter.jl#L590
@@ -173,10 +173,10 @@ function _download_progress(total, now)
     @printf("Download complete %1.2f%% \n", now/total *100)
 end
 
-## saving the two JLD files, run:
-# Zbed, Hice, Mask, dx, dy, xc, yc = load_bedmachine_greenland(; nx=96, use_nc=true)
+## to save the two JLD files, run:
+# Zbed, Hice, Mask, dx, dy, xc, yc = load_data(; nx=96, use_nc=true)
 # save("../data/BedMachineGreenland_$(size(Hice,1))_$(size(Hice,2)).jld", "Mask", Mask, "Hice", Hice, "Zbed", Zbed, "xc", xc, "yc", yc, "dx", dx, "dy", dy)
-# Zbed, Hice, Mask, dx, dy, xc, yc = load_bedmachine_greenland(; nx=160, use_nc=true)
+# Zbed, Hice, Mask, dx, dy, xc, yc = load_data(; nx=160, use_nc=true)
 # save("../data/BedMachineGreenland_$(size(Hice,1))_$(size(Hice,2)).jld", "Mask", Mask, "Hice", Hice, "Zbed", Zbed, "xc", xc, "yc", yc, "dx", dx, "dy", dy)
 
 

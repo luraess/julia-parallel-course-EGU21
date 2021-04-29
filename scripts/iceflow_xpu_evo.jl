@@ -211,7 +211,7 @@ include("helpers.jl")
 
 # load the data
 print("Loading the data ... ")
-Zbed, Hice, Mask, dx, dy, xc, yc = load_bedmachine_greenland(; nx=96) # nx=96,160 are included in the repo
+Zbed, Hice, Mask, dx, dy, xc, yc = load_data(; nx=96) # nx=96,160 are included in the repo
                                                                       # other numbers will trigger a 2GB download
 println("done.")
 
@@ -239,7 +239,7 @@ end
 grad_b, z_ELA, b_max = mass_balance_constants(xc, yc)
 
 # run the SIA flow model
-H, S, M, Vx, Vy = iceflow(abs(dx), abs(dy), Zbed, Hice, Mask, grad_b, z_ELA, b_max; do_visu)
+H, S, M, Vx, Vy = iceflow(dx, dy, Zbed, Hice, Mask, grad_b, z_ELA, b_max; do_visu)
 
 # output and save
 if do_visu gif(anim, "../output_evo/iceflow_evo_$(nx)x$(ny).gif", fps = 5) end
