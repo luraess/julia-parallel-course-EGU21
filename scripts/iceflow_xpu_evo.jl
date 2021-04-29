@@ -116,13 +116,13 @@ end
     nout     = 200             # error check frequency
     tolnl    = 1e-6            # nonlinear tolerance
     epsi     = 1e-4            # small number
-    damp     = 0.85            # convergence accelerator
+    damp     = 0.85            # convergence accelerator (this is a tuning parameter, dependent on e.g. grid resolution)
     dtausc   = 1.0/3.0         # iterative dtau scaling
     # derived physics
     a        = 2.0*a0/(npow+2)*(rho_i*g)^npow*s2y
     # derived numerics
     cfl      = max(dx^2,dy^2)/4.1
-    # array initialisation
+    # array initialization
     Hold     = @zeros(nx  , ny  )
     Err      = @zeros(nx  , ny  )
     dSdx     = @zeros(nx-1, ny  )
@@ -172,7 +172,10 @@ end
                 @parallel compute_Err2!(Err, H)
                 err = norm(Err)/length(Err)
                 @printf(" iter = %d, error = %1.2e \n", iter, err)
-                if isnan(err) error("NaNs") end # safeguard
+                if isnan(err)
+                    error("""NaNs encountered.  Try a combination of:
+                             decreasing `damp` and/or `dtausc`, more smoothing steps""")
+                end
             end
             iter += 1
         end
@@ -208,12 +211,12 @@ include("helpers.jl")
 
 # load the data
 print("Loading the data ... ")
-Zbed, Hice, Mask, dx, dy, xc, yc = load_bedmachine_greenland(; nx=200) #, use_nc=true)
+Zbed, Hice, Mask, dx, dy, xc, yc = load_bedmachine_greenland(; nx=96)
 println("done.")
 
 # apply some smoothing
 print("Applying some smoothing ... ")
-for is=1:2 # two smoothing steps
+for is=1:2 # two smoothing steps, maybe more are needed
     smooth!(Zbed)
     smooth!(Hice)
 end
@@ -243,13 +246,13 @@ if do_visu gif(anim, "../output_evo/iceflow_evo_$(nx)x$(ny).gif", fps = 5) end
 if do_save
     nx, ny = size(H)
     save("../output_evo/iceflow_xpu_evo_$(nx)x$(ny).jld", "Hice", Hice,
-                                              "Mask", Mask,
-                                              "H"   , H,
-                                              "S"   , S,
-                                              "M"   , M,
-                                              "Vx"  , Vx,
-                                              "Vy"  , Vy,
-                                              "xc", xc, "yc", yc)
+                                                          "Mask", Mask,
+                                                          "H"   , H,
+                                                          "S"   , S,
+                                                          "M"   , M,
+                                                          "Vx"  , Vx,
+                                                          "Vy"  , Vy,
+                                                          "xc", xc, "yc", yc)
 end
 
 println("... done.")

@@ -141,9 +141,9 @@ function load_bedmachine_greenland(;downscale=nothing, nx=96, use_nc=false)
 
     if !use_nc && nx in [96, 160] # get from jld files in the repo
         data = if nx == 96
-            load("../data/BedMachineGreenland_96_184_ds100.jld") # ultra low res data
+            load("../data/BedMachineGreenland_96_176.jld") # ultra low res data
         else
-            load("../data/BedMachineGreenland_160_304_ds60.jld") # low res data
+            load("../data/BedMachineGreenland_160_288.jld") # low res data
         end
         Hice, Mask, Zbed = data["Hice"], data["Mask"], data["Zbed"]
         xc, yc, dx, dy   = data["xc"], data["yc"], data["dx"], data["dy"]
@@ -167,6 +167,12 @@ function load_bedmachine_greenland(;downscale=nothing, nx=96, use_nc=false)
 
     return Zbed, Hice, Mask, dx, dy, xc, yc
 end
+## saving the two JLD files, run:
+# Zbed, Hice, Mask, dx, dy, xc, yc = load_bedmachine_greenland(; nx=96, use_nc=true)
+# save("../data/BedMachineGreenland_$(size(Hice,1))_$(size(Hice,2)).jld", "Mask", Mask, "Hice", Hice, "Zbed", Zbed, "xc", xc, "yc", yc, "dx", dx, "dy", dy)
+# Zbed, Hice, Mask, dx, dy, xc, yc = load_bedmachine_greenland(; nx=160, use_nc=true)
+# save("../data/BedMachineGreenland_$(size(Hice,1))_$(size(Hice,2)).jld", "Mask", Mask, "Hice", Hice, "Zbed", Zbed, "xc", xc, "yc", yc, "dx", dx, "dy", dy)
+
 
 """
     as_geoarray(A, template::AbstractGeoArray)

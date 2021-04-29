@@ -21,7 +21,7 @@ using JLD, Plots, Printf, LinearAlgebra
     nout     = 200             # error check frequency
     tolnl    = 1e-6            # nonlinear tolerance
     epsi     = 1e-4            # small number
-    damp     = 0.85            # convergence accelerator
+    damp     = 0.85            # convergence accelerator (this is a tuning parameter, dependent on e.g. grid resolution)
     dtausc   = 1.0/3.0         # iterative dtau scaling
     # derived physics
     a        = 2.0*a0/(npow+2)*(rho_i*g)^npow*s2y
@@ -77,7 +77,10 @@ using JLD, Plots, Printf, LinearAlgebra
             Err .= Err .- H
             err = norm(Err)/length(Err)
             @printf(" it = %d, error = %1.2e \n", it, err)
-            if isnan(err) error("NaNs") end # safeguard
+            if isnan(err)
+                error("""NaNs encountered.  Try a combination of:
+                         decreasing `damp` and/or `dtausc`, more smoothing steps""")
+            end
         end
         it += 1
     end
@@ -96,7 +99,7 @@ include("helpers.jl")
 
 # load the data
 print("Loading the data ... ")
-Zbed, Hice, Mask, dx, dy, xc, yc = load_bedmachine_greenland(; nx=200)
+Zbed, Hice, Mask, dx, dy, xc, yc = load_bedmachine_greenland(; nx=96)
 println("done.")
 
 # apply some smoothing
