@@ -6,8 +6,6 @@
 👉 **Organisation notes:**
 - 💡 The short course material (available on this repository) **was just updated - fetch the latest versions!**
 - 👉 **Make sure to go through [Getting started](docs/getting-started.md) before the start of the course.**
-- ⚠️ Live participation to this short course requires [registration to EGU's main meeting](https://egu21.eu/register.html).
-- Due to the time-limited course schedule (60 min), an interactive overview will cover the course's [objectives](#objectives) replacing an extensive hands-on.
 - Further interests in solving PDEs with Julia on GPUs❓
     - Sign-up (free) for a hands-on workshop at [JuliaCon2021](https://juliacon.org/2021/)
     - Check out this [online geo-HPC tutorial](https://github.com/luraess/geo-hpc-course)
