@@ -1,9 +1,11 @@
+# Shallow ice approximation (SIA) implicit solver for Greenland (steady state)
 using JLD, Plots, Printf, LinearAlgebra
 
-@views av(A)    = 0.25*(A[1:end-1,1:end-1].+A[2:end,1:end-1].+A[1:end-1,2:end].+A[2:end,2:end])
-@views av_xa(A) = 0.5.*(A[1:end-1,:].+A[2:end,:])
-@views av_ya(A) = 0.5.*(A[:,1:end-1].+A[:,2:end])
-@views inn(A)   = A[2:end-1,2:end-1]
+# finite difference stencil operation support functions
+@views av(A)    = 0.25*(A[1:end-1,1:end-1].+A[2:end,1:end-1].+A[1:end-1,2:end].+A[2:end,2:end]) # average
+@views av_xa(A) = 0.5.*(A[1:end-1,:].+A[2:end,:]) # average x-dir
+@views av_ya(A) = 0.5.*(A[:,1:end-1].+A[:,2:end]) # average y-dir
+@views inn(A)   = A[2:end-1,2:end-1] # inner points
 
 @views function iceflow(dx, dy, Zbed, Hice, Mask, grad_b, z_ELA, b_max)
     println("Initialising ice flow model ... ")
@@ -100,7 +102,7 @@ include("helpers.jl")
 # load the data
 print("Loading the data ... ")
 Zbed, Hice, Mask, dx, dy, xc, yc = load_data(; nx=96) # nx=96,160 are included in the repo
-                                                                      # other numbers will trigger a 2GB download
+                                                      # other numbers will trigger a 2GB download
 println("done.")
 
 # apply some smoothing
@@ -121,7 +123,7 @@ H, S, M, Vx, Vy = iceflow(dx, dy, Zbed, Hice, Mask, grad_b, z_ELA, b_max)
 do_visu = true
 do_save = true
 
-# visu and save
+# visualization and save
 nx, ny = size(H)
 if do_visu
     !ispath("../output") && mkdir("../output")
@@ -136,8 +138,7 @@ if do_visu
     fontsize  = 7
     opts = (aspect_ratio=1, yaxis=font(fontsize, "Courier"), xaxis=font(fontsize, "Courier"),
             ticks=nothing, framestyle=:box, titlefontsize=fontsize, titlefont="Courier", colorbar_title="",
-            xlabel="", ylabel="", xlims=(dims(H_v)[1][1],dims(H_v)[1][end]), ylims=(dims(H_v)[2][end],dims(H_v)[2][1]),
-            )
+            xlabel="", ylabel="", xlims=(dims(H_v)[1][1],dims(H_v)[1][end]), ylims=(dims(H_v)[2][end],dims(H_v)[2][1]) )
     p1 = heatmap(S_v; c=:davos, title="Surface elev. [m]", opts...)
     p2 = heatmap(H_v; c=:davos, title="Ice thickness [m]", opts...)
     p3 = heatmap(log10.(V_v); clims=(0.1, 2.0), title="log10(vel) [m/yr]", opts...)

@@ -1,4 +1,5 @@
-const USE_GPU = false
+# Solver better capabale of running high-resolution simulations, using a few more tricks.
+const USE_GPU = true
 using ParallelStencil
 using ParallelStencil.FiniteDifferences2D
 @static if USE_GPU
@@ -43,7 +44,7 @@ end
 end
 
 @parallel function compute_D!(D, H, dSdx, dSdy, a, npow)
-    @all(D) = a*@av(H)^(npow+2) * (@av_ya(dSdx)*@av_ya(dSdx) + @av_xa(dSdy)*@av_xa(dSdy))
+    @all(D) = a*@av(H)^(npow+2) * sqrt(@av_ya(dSdx)*@av_ya(dSdx) + @av_xa(dSdy)*@av_xa(dSdy))^(npow-1)
     return
 end
 
@@ -129,9 +130,9 @@ end
     S       .= B .+ H
     println(" starting iteration loop:")
     # iteration loop
-    iter = 1; err = 2*tolnl; err2 = err; err0 = err
-    while err2>tolnl && iter<itMax
-        @parallel compute_Err1!(Err, H) 
+    iter = 1; err = 2*tolnl
+    while err>tolnl && iter<itMax
+        @parallel compute_Err1!(Err, H)
         @parallel compute_M_dS!(M, dSdx, dSdy, S, z_ELA, grad_b, b_max, dx, dy)
         @parallel compute_D!(D, H, dSdx, dSdy, a, npow)
         @parallel compute_flux!(qHx, qHy, D, S, dx, dy)
@@ -145,13 +146,14 @@ end
         @parallel compute_H!(H, dHdt, dtau)
         @parallel compute_Mask_S!(H, S, B, Mask)
         # error check
-        if mod(iter, nout)==0 || iter==1
+        if mod(iter, nout)==0
             @parallel compute_Err2!(Err, H)
-            err  = sum(abs.(Err))/length(Err)
-            if iter==1  err0=err; @printf(" iter = %d, Init err = %1.2e \n", iter, err0)  end
-            err2 = sum(abs.(Err))/length(Err)/err0
-            @printf(" iter = %d, error = %1.2e \n", iter, err2)
-            if isnan(err) error("NaNs") end # safeguard
+            err = norm(Err)/length(Err)
+            @printf(" iter = %d, error = %1.2e \n", iter, err)
+            if isnan(err)
+                error("""NaNs encountered.  Try a combination of:
+                             decreasing `damp` and/or `dtausc`, more smoothing steps""")
+            end
         end
         iter += 1
     end

@@ -1,4 +1,6 @@
-const USE_GPU = false
+# Shallow ice approximation (SIA) implicit solver for Greenland (steady state)
+# Runs on both CPU (threaded) and GPU (Nvidia Cuda)
+const USE_GPU = false # switch here to use GPU
 using ParallelStencil
 using ParallelStencil.FiniteDifferences2D
 @static if USE_GPU
@@ -8,7 +10,7 @@ else
 end
 using JLD, Plots, Printf, LinearAlgebra
 
-# CPU functions
+# CPU functions: finite difference stencil operation support functions
 @views av(A)  = 0.25*(A[1:end-1,1:end-1].+A[2:end,1:end-1].+A[1:end-1,2:end].+A[2:end,2:end])
 @views inn(A) = A[2:end-1,2:end-1]
 
@@ -94,7 +96,7 @@ end
     tolnl    = 1e-6            # nonlinear tolerance
     epsi     = 1e-4            # small number
     damp     = 0.85            # convergence accelerator (this is a tuning parameter, dependent on e.g. grid resolution)
-    dtausc   = 1.0/3.0         # iterative dtau scaling
+    dtausc   = 1.0/3.0         # iterative dtau scaling (this is a tuning parameter, dependent on e.g. grid resolution)
     # derived physics
     a        = 2.0*a0/(npow+2)*(rho_i*g)^npow*s2y
     # derived numerics
@@ -157,7 +159,7 @@ include("helpers.jl")
 # load the data
 print("Loading the data ... ")
 Zbed, Hice, Mask, dx, dy, xc, yc = load_data(; nx=96) # nx=96,160 are included in the repo
-                                                                      # other numbers will trigger a 2GB download
+                                                      # other numbers will trigger a 2GB download
 println("done.")
 
 # apply some smoothing
@@ -178,7 +180,7 @@ H, S, M, Vx, Vy = iceflow(dx, dy, Zbed, Hice, Mask, grad_b, z_ELA, b_max)
 do_visu = true
 do_save = true
 
-# visu and save
+# visualization and save
 nx, ny = size(H)
 if do_visu
     !ispath("../output") && mkdir("../output")
@@ -193,8 +195,7 @@ if do_visu
     fontsize  = 7
     opts = (aspect_ratio=1, yaxis=font(fontsize, "Courier"), xaxis=font(fontsize, "Courier"),
             ticks=nothing, framestyle=:box, titlefontsize=fontsize, titlefont="Courier", colorbar_title="",
-            xlabel="", ylabel="", xlims=(dims(H_v)[1][1],dims(H_v)[1][end]), ylims=(dims(H_v)[2][end],dims(H_v)[2][1]),
-            )
+            xlabel="", ylabel="", xlims=(dims(H_v)[1][1],dims(H_v)[1][end]), ylims=(dims(H_v)[2][end],dims(H_v)[2][1]) )
     p1 = heatmap(S_v; c=:davos, title="Surface elev. [m]", opts...)
     p2 = heatmap(H_v; c=:davos, title="Ice thickness [m]", opts...)
     p3 = heatmap(log10.(V_v); clims=(0.1, 2.0), title="log10(vel) [m/yr]", opts...)

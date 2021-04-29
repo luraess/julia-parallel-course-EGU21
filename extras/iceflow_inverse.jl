@@ -1,3 +1,5 @@
+# Inverting for the mass-balance coefficients: b_max
+error("This is not currently running...")
 using  JLD, Plots, Printf, LinearAlgebra
 
 @views av(A)    = 0.25*(A[1:end-1,1:end-1].+A[2:end,1:end-1].+A[1:end-1,2:end].+A[2:end,2:end])
@@ -5,29 +7,23 @@ using  JLD, Plots, Printf, LinearAlgebra
 @views av_ya(A) = 0.5.*(A[:,1:end-1].+A[:,2:end])
 @views inn(A)   = A[2:end-1,2:end-1]
 
-@views function smooth!(A)
-    A[2:end-1,2:end-1] .= A[2:end-1,2:end-1] .+ 1.0./4.1.*(diff(diff(A[:,2:end-1], dims=1), dims=1) .+ diff(diff(A[2:end-1,:], dims=2), dims=2))
-    A[1,:]=A[2,:]; A[end,:]=A[end-1,:]; A[:,1]=A[:,2]; A[:,end]=A[:,end-1]
-    return
-end
-
-@views function iceflow_inverse(dx, dy, Zbed, Hice, Mask; do_visu=false)
-    print("Starting ice flow model ... ")
+@views function iceflow(dx, dy, Zbed, Hice, Mask, grad_b, z_ELA, b_max)
+    println("Initialising ice flow model ... ")
     # physics
     s2y      = 3600*24*365.25  # seconds to years
     rho_i    = 910.0           # ice density
     g        = 9.81            # gravity acceleration
-    npow     = 3.0             # Glen's power law exponent 
+    npow     = 3.0             # Glen's power law exponent
     a0       = 1.5e-24         # Glen's law enhancement term
-    b_max    = 0.15            # max. Mass balance rate
     # numerics
-    nx, ny   = size(Zbed,1), size(Zbed,2)
+    @assert (dx>0 && dy>0) "dx and dy need to be positive"
+    nx, ny   = size(Zbed,1), size(Zbed,2) # numerical grid resolution
     @assert (nx, ny) == size(Zbed) == size(Hice) == size(Mask) "Sizes don't match"
     itMax    = 1e5             # number of iteration (max)
     nout     = 200             # error check frequency
     tolnl    = 1e-6            # nonlinear tolerance
     epsi     = 1e-4            # small number
-    damp     = 0.8             # convergence accelerator
+    damp     = 0.85            # convergence accelerator (this is a tuning parameter, dependent on e.g. grid resolution)
     dtausc   = 1.0/3.0         # iterative dtau scaling
     # inversion
     tol_inv  = 1e-4            # inversion tolerance
@@ -45,7 +41,7 @@ end
     xv, yv   = 0.5*(xc[1:end-1].+xc[2:end]), 0.5*(yc[1:end-1].+yc[2:end])
     (Xc,Yc)  = ([x for x=xc,y=yc], [y for x=xc,y=yc])
     cfl      = max(dx^2,dy^2)/4.1
-    # array initialisation
+    # array initialization
     Err      = zeros(nx  , ny  )
     dSdx     = zeros(nx-1, ny  )
     dSdy     = zeros(nx  , ny-1)
@@ -64,6 +60,7 @@ end
     Gam      = zeros(nx  , ny  )
     # initial condition
     S        = zeros(nx  , ny  )
+    # initial conditions
     B       .= Zbed
     H       .= Hice
     Yc2      = Yc .- minimum(Yc); Yc2 .= Yc2./maximum(Yc2)
@@ -148,26 +145,32 @@ end
     # compute velocities
     Vx .= -D./(av(H) .+ epsi).*av_ya(dSdx)
     Vy .= -D./(av(H) .+ epsi).*av_xa(dSdy)
-    return H, S, M, Vx, Vy
+    # return as GeoArrays
+    return  as_geoarray(H,  Zbed, name=:thickness),
+            as_geoarray(S,  Zbed, name=:surface),
+            as_geoarray(M,  Zbed, name=:smb),
+            as_geoarray(Vx, Zbed, name=:vel_x, staggerd=true),
+            as_geoarray(Vy, Zbed, name=:vel_y, staggerd=true)
 end
-
 # ------------------------------------------------------------------------------
+include("../scripts/helpers.jl")
+
 # load the data
 print("Loading the data ... ")
-# data = load("../data/BedMachineGreenland_96_184_ds100.jld")
-data = load("../data/BedMachineGreenland_160_304_ds60.jld")
-Hice, Mask, Zbed = data["Hice"], data["Mask"], data["Zbed"]
-xc, yc, dx, dy   = data["xc"], data["yc"], data["dx"], data["dy"]
+Zbed, Hice, Mask, dx, dy, xc, yc = load_data(; nx=96) # nx=96,160 are included in the repo
+                                                                      # other numbers will trigger a 2GB download
 println("done.")
 
 # apply some smoothing
 print("Applying some smoothing ... ")
-ns = 2
-for is=1:ns
+for is=1:2 # two smoothing steps
     smooth!(Zbed)
     smooth!(Hice)
 end
 println("done.")
+
+# calculate mass balance coefficients for given spatial grid
+grad_b, z_ELA, b_max = mass_balance_constants(xc, yc)
 
 # handle output
 do_visu = true
@@ -183,7 +186,7 @@ if do_visu
 end
 
 # run the inversion SIA flow model
-H, S, M, Vx, Vy = iceflow_inverse(dx, dy, Zbed, Hice, Mask; do_visu)
+H, S, M, Vx, Vy = iceflow_inverse(dx, dy, Zbed, Hice, Mask, grad_b, z_ELA, b_max; do_visu)
 
 # visualisation
 if do_visu

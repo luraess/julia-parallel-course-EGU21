@@ -108,6 +108,11 @@ function download_bedmachine_greenland(; force=false, force_earthdata=false, ver
         $(joinpath(@__DIR__, "../data")).
         """)
 end
+function _download_progress(total, now)
+    # from https://github.com/timholy/ProgressMeter.jl/blob/45e562e708f70c6e805b7ce94e35e3fe8c889d50/src/ProgressMeter.jl#L590
+    print("\r\u1b[K\u1b[A") # clears the line
+    @printf("Download complete %1.2f%% \n", now/total *100)
+end
 
 """
     load_data(;downscale=nothing, nx=nothing)
@@ -167,12 +172,6 @@ function load_data(;downscale=nothing, nx=96, use_nc=false)
 
     return Zbed, Hice, Mask, abs(dx), abs(dy), xc, yc
 end
-function _download_progress(total, now)
-    # from https://github.com/timholy/ProgressMeter.jl/blob/45e562e708f70c6e805b7ce94e35e3fe8c889d50/src/ProgressMeter.jl#L590
-    print("\r\u1b[K\u1b[A") # clears the line
-    @printf("Download complete %1.2f%% \n", now/total *100)
-end
-
 ## to save the two JLD files, run:
 # Zbed, Hice, Mask, dx, dy, xc, yc = load_data(; nx=96, use_nc=true)
 # save("../data/BedMachineGreenland_$(size(Hice,1))_$(size(Hice,2)).jld", "Mask", Mask, "Hice", Hice, "Zbed", Zbed, "xc", xc, "yc", yc, "dx", dx, "dy", dy)
