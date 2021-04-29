@@ -115,6 +115,7 @@ end
     S        = @zeros(nx  , ny  )
     grad_b   = Data.Array(grad_b)
     z_ELA    = Data.Array(z_ELA)
+    Mask     = Data.Array(Mask)
     # initial conditions
     B        = Data.Array(Zbed)
     H        = Data.Array(Hice)
@@ -137,7 +138,7 @@ end
             @printf(" it = %d, error = %1.2e \n", it, err)
             if isnan(err)
                 error("""NaNs encountered.  Try a combination of:
-                         decreasing `damp` and/or `dtausc`, more smoothing steps""")
+                             decreasing `damp` and/or `dtausc`, more smoothing steps""")
             end
         end
         it += 1
@@ -155,7 +156,8 @@ include("helpers.jl")
 
 # load the data
 print("Loading the data ... ")
-Zbed, Hice, Mask, dx, dy, xc, yc = load_bedmachine_greenland(; nx=96)
+Zbed, Hice, Mask, dx, dy, xc, yc = load_bedmachine_greenland(; nx=96) # nx=96,160 are included in the repo
+                                                                      # other numbers will trigger a 2GB download
 println("done.")
 
 # apply some smoothing

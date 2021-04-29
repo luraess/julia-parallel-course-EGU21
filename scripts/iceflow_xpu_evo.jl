@@ -174,7 +174,7 @@ end
                 @printf(" iter = %d, error = %1.2e \n", iter, err)
                 if isnan(err)
                     error("""NaNs encountered.  Try a combination of:
-                             decreasing `damp` and/or `dtausc`, more smoothing steps""")
+                                 decreasing `damp` and/or `dtausc`, more smoothing steps""")
                 end
             end
             iter += 1
@@ -211,7 +211,8 @@ include("helpers.jl")
 
 # load the data
 print("Loading the data ... ")
-Zbed, Hice, Mask, dx, dy, xc, yc = load_bedmachine_greenland(; nx=96)
+Zbed, Hice, Mask, dx, dy, xc, yc = load_bedmachine_greenland(; nx=96) # nx=96,160 are included in the repo
+                                                                      # other numbers will trigger a 2GB download
 println("done.")
 
 # apply some smoothing
