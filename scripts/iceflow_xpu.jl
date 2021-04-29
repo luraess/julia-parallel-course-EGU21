@@ -122,8 +122,8 @@ end
     S       .= B .+ H
     println(" starting iteration loop:")
     # iteration loop
-    it = 1; err = 2*tolnl
-    while err>tolnl && it<itMax
+    iter = 1; err = 2*tolnl
+    while err>tolnl && iter<itMax
         @parallel compute_Err1!(Err, H)
         @parallel compute_M_dS!(M, dSdx, dSdy, S, z_ELA, grad_b, b_max, dx, dy)
         @parallel compute_D!(D, H, dSdx, dSdy, a, npow)
@@ -132,24 +132,24 @@ end
         @parallel compute_H!(H, dHdt, dtau)
         @parallel compute_Mask_S!(H, S, B, Mask)
         # error check
-        if mod(it, nout)==0
+        if mod(iter, nout)==0
             @parallel compute_Err2!(Err, H)
             err = norm(Err)/length(Err)
-            @printf(" it = %d, error = %1.2e \n", it, err)
+            @printf(" iter = %d, error = %1.2e \n", iter, err)
             if isnan(err)
                 error("""NaNs encountered.  Try a combination of:
                              decreasing `damp` and/or `dtausc`, more smoothing steps""")
             end
         end
-        it += 1
+        iter += 1
     end
     @parallel compute_Vel!(Vx, Vy, D, H, dSdx, dSdy, epsi)
     # return as GeoArrays
-    return  as_geoarray(H,  Zbed, name=:thickness),
-            as_geoarray(S,  Zbed, name=:surface),
-            as_geoarray(M,  Zbed, name=:smb),
-            as_geoarray(Vx, Zbed, name=:vel_x, staggerd=true),
-            as_geoarray(Vy, Zbed, name=:vel_y, staggerd=true)
+    return  as_geoarray(Array(H),  Zbed, name=:thickness),
+            as_geoarray(Array(S),  Zbed, name=:surface),
+            as_geoarray(Array(M),  Zbed, name=:smb),
+            as_geoarray(Array(Vx), Zbed, name=:vel_x, staggerd=true),
+            as_geoarray(Array(Vy), Zbed, name=:vel_y, staggerd=true)
 end
 # ------------------------------------------------------------------------------
 include("helpers.jl")

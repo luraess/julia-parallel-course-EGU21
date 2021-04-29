@@ -50,8 +50,8 @@ using JLD, Plots, Printf, LinearAlgebra
     S       .= B .+ H
     # iteration loop
     println(" starting iteration loop:")
-    it = 1; err = 2*tolnl
-    while err>tolnl && it<itMax
+    iter = 1; err = 2*tolnl
+    while err>tolnl && iter<itMax
         Err   .= H
         # mass balance
         M     .= min.(grad_b.*(S .- z_ELA), b_max)
@@ -73,16 +73,16 @@ using JLD, Plots, Printf, LinearAlgebra
         # update surface
         S     .= B .+ H
         # error check
-        if mod(it, nout)==0
+        if mod(iter, nout)==0
             Err .= Err .- H
             err = norm(Err)/length(Err)
-            @printf(" it = %d, error = %1.2e \n", it, err)
+            @printf(" iter = %d, error = %1.2e \n", iter, err)
             if isnan(err)
                 error("""NaNs encountered.  Try a combination of:
                              decreasing `damp` and/or `dtausc`, more smoothing steps""")
             end
         end
-        it += 1
+        iter += 1
     end
     # compute velocities
     Vx .= -D./(av(H) .+ epsi).*av_ya(dSdx)

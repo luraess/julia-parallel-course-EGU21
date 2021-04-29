@@ -139,10 +139,10 @@ end
     S        = @zeros(nx  , ny  )
     grad_b   = Data.Array(grad_b)
     z_ELA    = Data.Array(z_ELA)
+    Mask     = Data.Array(Mask)
     # initial conditions
     B        = Data.Array(Zbed)
     H        = Data.Array(Hice)
-    Mask     = Data.Array(Mask)
     S       .= B .+ H
     ELA      = 0.0
     # iteration loop
@@ -200,11 +200,11 @@ end
         it += 1
     end
     # return as GeoArrays
-    return  as_geoarray(H,  Zbed, name=:thickness),
-            as_geoarray(S,  Zbed, name=:surface),
-            as_geoarray(M,  Zbed, name=:smb),
-            as_geoarray(Vx, Zbed, name=:vel_x, staggerd=true),
-            as_geoarray(Vy, Zbed, name=:vel_y, staggerd=true)
+    return  as_geoarray(Array(H),  Zbed, name=:thickness),
+            as_geoarray(Array(S),  Zbed, name=:surface),
+            as_geoarray(Array(M),  Zbed, name=:smb),
+            as_geoarray(Array(Vx), Zbed, name=:vel_x, staggerd=true),
+            as_geoarray(Array(Vy), Zbed, name=:vel_y, staggerd=true)
 end
 # ------------------------------------------------------------------------------
 include("helpers.jl")
