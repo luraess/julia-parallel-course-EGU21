@@ -116,6 +116,10 @@ Load the Bedmachine data into memory at a specific resolution.  The resolution c
 chosen by setting either:
 - the downscaling factor, between 1 and 329, or
 - nx, between 10208 and 32 [default=96]
+  - for nx=96 and 160 there are JLD files included in the repo
+
+Further keyword args:
+- use_nc: load from the nc-file even for resolutions nx=96 or 160
 
 Note that this will automatically produce a dataset with x-grid
 divisible by 32 and y-grid by 8 (as suitable for the GPU), and thus the exact
@@ -124,7 +128,7 @@ dimensions/downscaling maybe different.
 Return:
 - Zbed, Hice, Mask, dx, dy
 """
-function load_bedmachine_greenland(;downscale=nothing, nx=96)
+function load_bedmachine_greenland(;downscale=nothing, nx=96, use_nc=false)
     if downscale!=nothing && nx!=96
         error("Only choose of the input augments `downscale` and `nx`")
     end
@@ -135,7 +139,7 @@ function load_bedmachine_greenland(;downscale=nothing, nx=96)
     res = get_resolution(;ds=downscale, nx=nx)
     nx = res.nx32
 
-    if nx in [96, 160] # get from jld files in the repo
+    if !use_nc && nx in [96, 160] # get from jld files in the repo
         data = if nx == 96
             load("../data/BedMachineGreenland_96_184_ds100.jld") # ultra low res data
         else
@@ -144,7 +148,6 @@ function load_bedmachine_greenland(;downscale=nothing, nx=96)
         Hice, Mask, Zbed = data["Hice"], data["Mask"], data["Zbed"]
         xc, yc, dx, dy   = data["xc"], data["yc"], data["dx"], data["dy"]
     else  # get from nc file
-        @show "nc file"
         if !(isfile(bm_file) && filesize(bm_file)==2249644927)
             println("""Downloading the Bedmachine Greenland dataset.  This may take a while (2GB in size).
                           Hit Ctrl+C to abort.

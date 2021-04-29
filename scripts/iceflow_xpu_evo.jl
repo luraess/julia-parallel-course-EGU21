@@ -12,23 +12,6 @@ using JLD, Plots, Printf, LinearAlgebra
 @views av(A)  = 0.25*(A[1:end-1,1:end-1].+A[2:end,1:end-1].+A[1:end-1,2:end].+A[2:end,2:end])
 @views inn(A) = A[2:end-1,2:end-1]
 
-# Calculates the distributed mass-balance coefficients for a given spatial grid.
-function mass_balance_constants(xc, yc)
-    b_max    = 0.15            # max. Mass balance rate
-    lat_min, lat_max = 60, 80
-    Xc, Yc   = [Float32(x) for x=xc,y=yc], [Float32(y) for x=xc,y=yc]
-    Yc2      = Yc .- minimum(Yc); Yc2 .= Yc2/maximum(Yc2)
-    grad_b   = (1.3517 .- 0.014158.*(lat_min.+Yc2*(lat_max-lat_min)))./100.0.*0.91 # Mass Bal. gradient, from doi: 10.1017/jog.2016.75
-    z_ELA    = 1300.0 .- Yc2*300.0                                 # Educated guess for ELA altitude
-    return grad_b, z_ELA, b_max
-end
-
-@views function smooth!(A)
-    A[2:end-1,2:end-1] .= A[2:end-1,2:end-1] .+ 1.0./4.1.*(diff(diff(A[:,2:end-1], dims=1), dims=1) .+ diff(diff(A[2:end-1,:], dims=2), dims=2))
-    A[1,:]=A[2,:]; A[end,:]=A[end-1,:]; A[:,1]=A[:,2]; A[:,end]=A[:,end-1]
-    return
-end
-
 # GPU function
 @parallel_indices (iy) function bc_x!(A::Data.Array)
     A[1  , iy] = A[2    , iy]
@@ -102,6 +85,20 @@ end
 
 @views function iceflow(dx, dy, Zbed, Hice, Mask, grad_b, z_ELA, b_max; do_visu=false)
     println("Initialising ice flow model ... ")
+    # setup for plotting
+    if do_visu
+        H_v = copy(Hice); H_v .= NaN
+        Hice_v = copy(Hice); Hice_v .= NaN
+        S_v = copy(Hice); S_v .= NaN
+        M_v = copy(Hice); M_v .= NaN
+        V_v = as_geoarray(Array(Hice)[1:end-1,1:end-1], Zbed, name=:vel, staggerd=true); V_v .= NaN
+        Ma = copy(Mask)
+        fontsize  = 7
+        opts = (aspect_ratio=1, yaxis=font(fontsize, "Courier"), xaxis=font(fontsize, "Courier"),
+                ticks=nothing, framestyle=:box, titlefontsize=fontsize, titlefont="Courier", colorbar_title="",
+                xlabel="", ylabel="", xlims=(dims(H_v)[1][1],dims(H_v)[1][end]), ylims=(dims(H_v)[2][end],dims(H_v)[2][1]),
+                )
+    end
     # physics
     s2y      = 3600*24*365.25  # seconds to years
     rho_i    = 910.0           # ice density
@@ -139,27 +136,16 @@ end
     Vx       = @zeros(nx-1, ny-1)
     Vy       = @zeros(nx-1, ny-1)
     M        = @zeros(nx  , ny  )
-    B        = @zeros(nx  , ny  )
-    H        = @zeros(nx  , ny  )
     S        = @zeros(nx  , ny  )
     grad_b   = Data.Array(grad_b)
     z_ELA    = Data.Array(z_ELA)
     # initial conditions
-    B       .= Zbed
-    H       .= Hice
+    B        = Data.Array(Zbed)
+    H        = Data.Array(Hice)
     Mask     = Data.Array(Mask)
     S       .= B .+ H
     ELA      = 0.0
-    if do_visu
-        lx, ly   = nx*dx, ny*dy
-        xc, yc   = LinRange(dx/2, lx-dx/2, nx), LinRange(ly-dy/2, dy/2, ny)
-        FS = 7
-        H_v = fill(NaN, nx, ny)
-        S_v = fill(NaN, nx, ny)
-        M_v = fill(NaN, nx, ny)
-        V_v = fill(NaN, nx-2, ny-2)
-        Ma  = Array(Mask)
-    end
+    # iteration loop
     println(" starting time loop:")
     t = 0.0; it = 0
     while t<ttot
@@ -192,31 +178,37 @@ end
         end
         @parallel compute_Vel!(Vx, Vy, D, H, dSdx, dSdy, epsi)
         if (it>0)  t += dt  end
-        # visualisation
+        # visualization
         if do_visu
             H_v .= Array(H); H_v[Ma.==0] .= NaN
             S_v .= Array(S); S_v[Ma.==0] .= NaN
             M_v .= Array(M); M_v[Ma.==0] .= NaN
-            V_v .= sqrt.(av(Array(Vx)).^2 .+ av(Array(Vy)).^2); V_v[inn(Array(H)).==0] .= NaN
-            p1 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(S_v, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="Surface elev. [m]", titlefontsize=FS, titlefont="Courier")
-            p2 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(H_v, dims=2)', c=:davos, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="$(round(t,sigdigits=2)) yrs, Ice thick. [m]", titlefontsize=FS, titlefont="Courier")
-            p3 = heatmap(xc[2:end-1]./1e3, reverse(yc[2:end-1])./1e3, reverse(log10.(V_v), dims=2)', c=:batlow, aspect_ratio=1, xlims=(xc[2], xc[end-1])./1e3, ylims=(yc[end-1], yc[2])./1e3, clims=(0.1, 2.0), yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="log10(vel) [m/yr]", titlefontsize=FS, titlefont="Courier")
-            p4 = heatmap(xc./1e3, reverse(yc)./1e3, reverse(M_v, dims=2)', c=:devon, aspect_ratio=1, xlims=(xc[1], xc[end])./1e3, ylims=(yc[end], yc[1])./1e3, yaxis=font(FS, "Courier"), ticks=nothing, framestyle=:box, title="Mass Bal. rate [m/yr]", titlefontsize=FS, titlefont="Courier")
-            # display(plot(p1, p2, p3, p4, size=(400,400)))
-            plot(p1, p2, p3, p4, size=(400,400), dpi=200); frame(anim) #background_color=:transparent, foreground_color=:white
+            V_v .= sqrt.(Array(Vx).^2 .+ Array(Vy).^2); V_v[H_v[1:end-1,1:end-1].==0] .= NaN
+
+            p1 = heatmap(S_v; c=:davos, title="Surface elev. [m]", opts...)
+            p2 = heatmap(H_v; c=:davos, title="Ice thickness [m]", opts...)
+            p3 = heatmap(log10.(V_v); clims=(0.1, 2.0), title="log10(vel) [m/yr]", opts...)
+            p4 = heatmap(M_v; c=:devon, title="Mass Bal. rate [m/yr]", opts...)
+            p = plot(p1, p2, p3, p4, size=(400,400), dpi=200); frame(anim) #background_color=:transparent, foreground_color=:white
+            ## uncomment if you want a pop-up plot pane showing:
+            # display(p)
             savefig("../output_evo/iceflow_out1_xpu_evo_$(nx)x$(ny)_$(it).png")
         end
         it += 1
     end
-    return Array(H), Array(S), Array(M), Array(Vx), Array(Vy)
+    # return as GeoArrays
+    return  as_geoarray(H,  Zbed, name=:thickness),
+            as_geoarray(S,  Zbed, name=:surface),
+            as_geoarray(M,  Zbed, name=:smb),
+            as_geoarray(Vx, Zbed, name=:vel_x, staggerd=true),
+            as_geoarray(Vy, Zbed, name=:vel_y, staggerd=true)
 end
 # ------------------------------------------------------------------------------
+include("helpers.jl")
+
 # load the data
 print("Loading the data ... ")
-# data = load("../data/BedMachineGreenland_96_184_ds100.jld")
-data = load("../data/BedMachineGreenland_160_304_ds60.jld")
-Hice, Mask, Zbed = data["Hice"], data["Mask"], data["Zbed"]
-xc, yc, dx, dy   = data["xc"], data["yc"], data["dx"], data["dy"]
+Zbed, Hice, Mask, dx, dy, xc, yc = load_bedmachine_greenland(; nx=200) #, use_nc=true)
 println("done.")
 
 # apply some smoothing
@@ -249,14 +241,15 @@ H, S, M, Vx, Vy = iceflow(abs(dx), abs(dy), Zbed, Hice, Mask, grad_b, z_ELA, b_m
 if do_visu gif(anim, "../output_evo/iceflow_evo_$(nx)x$(ny).gif", fps = 5) end
 
 if do_save
-    save("../output_evo/iceflow_xpu_evo_$(nx)x$(ny).jld", "Hice", convert(Matrix{Float32}, Hice),
-                                                          "Mask", convert(Matrix{Float32}, Mask),
-                                                          "H"   , convert(Matrix{Float32}, H),
-                                                          "S"   , convert(Matrix{Float32}, S),
-                                                          "M"   , convert(Matrix{Float32}, M),
-                                                          "Vx"  , convert(Matrix{Float32}, Vx),
-                                                          "Vy"  , convert(Matrix{Float32}, Vy),
-                                                          "xc", xc, "yc", yc)
+    nx, ny = size(H)
+    save("../output_evo/iceflow_xpu_evo_$(nx)x$(ny).jld", "Hice", Hice,
+                                              "Mask", Mask,
+                                              "H"   , H,
+                                              "S"   , S,
+                                              "M"   , M,
+                                              "Vx"  , Vx,
+                                              "Vy"  , Vy,
+                                              "xc", xc, "yc", yc)
 end
 
 println("... done.")

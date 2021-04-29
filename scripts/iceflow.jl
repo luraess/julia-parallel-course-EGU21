@@ -27,7 +27,7 @@ using JLD, Plots, Printf, LinearAlgebra
     a        = 2.0*a0/(npow+2)*(rho_i*g)^npow*s2y
     # derived numerics
     cfl      = max(dx^2,dy^2)/4.1
-    # array initialisation
+    # array initialization
     Err      = zeros(nx  , ny  )
     dSdx     = zeros(nx-1, ny  )
     dSdy     = zeros(nx  , ny-1)
@@ -48,8 +48,8 @@ using JLD, Plots, Printf, LinearAlgebra
     B       .= Zbed
     H       .= Hice
     S       .= B .+ H
-    println(" starting iteration loop:")
     # iteration loop
+    println(" starting iteration loop:")
     it = 1; err = 2*tolnl
     while err>tolnl && it<itMax
         Err   .= H
@@ -85,9 +85,9 @@ using JLD, Plots, Printf, LinearAlgebra
     Vx .= -D./(av(H) .+ epsi).*av_ya(dSdx)
     Vy .= -D./(av(H) .+ epsi).*av_xa(dSdy)
     # return as GeoArrays
-    return  as_geoarray(H, Zbed, name=:thickness),
-            as_geoarray(S, Zbed, name=:surface),
-            as_geoarray(M, Zbed, name=:smb),
+    return  as_geoarray(H,  Zbed, name=:thickness),
+            as_geoarray(S,  Zbed, name=:surface),
+            as_geoarray(M,  Zbed, name=:smb),
             as_geoarray(Vx, Zbed, name=:vel_x, staggerd=true),
             as_geoarray(Vy, Zbed, name=:vel_y, staggerd=true)
 end
@@ -97,8 +97,6 @@ include("helpers.jl")
 # load the data
 print("Loading the data ... ")
 Zbed, Hice, Mask, dx, dy, xc, yc = load_bedmachine_greenland(; nx=200)
-#Zbed, Hice, Mask, dx, dy, xc, yc = load_bedmachine_greenland(; nx=96)
-#out = load_bedmachine_greenland(; nx=96)
 println("done.")
 
 # apply some smoothing
