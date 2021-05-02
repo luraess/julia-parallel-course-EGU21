@@ -101,3 +101,6 @@ We will use the GPU acceleration in the [second part](https://github.com/luraess
 
 [Julia REPL]: https://docs.julialang.org/en/v1/stdlib/REPL/
 [Base.Threads]: https://docs.julialang.org/en/v1/base/multi-threading/
+[Julia]: https://julialang.org
+[CUDA.jl]: https://github.com/JuliaGPU/CUDA.jl
+[JuliaGPU]: https://juliagpu.org
