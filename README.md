@@ -354,7 +354,7 @@ We can finally use our XPU ice flow solver to simulate the evolution of Greenlan
 1. Compute the steady-state ice thickness for current climate forcing (mass balance function as described in [SIA equation](#sia-equation) section)
 2. Apply a time-dependent linear increase of the ELA (the equilibrium line where accumulation = ablation) of 1m/yr over the next 2500yrs. We here assume that an increase in annual mean temperature of 0.6°C is equivalent to a 100m shift of the ELA, thus 1m/yr represents 0.3°C per 50yrs. The [`iceflow_xpu_evo.jl`](scripts/iceflow_xpu_evo.jl) code implements this climate evolution model and produces the following predictions for the Greenland ice cap evolution:
 
-![](docs/iceflow_evo_160x304.gif)
+![](docs/iceflow_evo_160x288.gif)
 
 > Note that our climate scenario may reflect some extreme warming over the next 2500yrs.
 
