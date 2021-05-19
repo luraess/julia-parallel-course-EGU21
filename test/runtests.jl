@@ -34,7 +34,8 @@ end
 
 
 ## Test the scripts
-# (note, this cannot be run in a test-set as the include acts in global scope)
+# note: this cannot be run in a test-set as the include acts in global scope
+# note: all XPU tests relying on ParallelStencil.jl must have same dims and backend to succeed (else requires a reset)
 
 do_visu, do_save = false, false # disable plotting & saving
 
