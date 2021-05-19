@@ -1,4 +1,4 @@
-using Downloads, GeoData, NCDatasets, JLD
+using Downloads, GeoData, NCDatasets, JLD, Printf
 
 """
     smooth!(A)
@@ -26,7 +26,7 @@ function mass_balance_constants(xc, yc)
     return grad_b, z_ELA, b_max
 end
 
-datadir = "../data"
+datadir = joinpath(@__DIR__, "../data")
 bm_file = joinpath(datadir, "BedMachineGreenland-2017-09-20.nc")
 
 """
@@ -146,9 +146,9 @@ function load_data(;downscale=nothing, nx=96, use_nc=false)
 
     if !use_nc && nx in [96, 160] # get from jld files in the repo
         data = if nx == 96
-            load("../data/BedMachineGreenland_96_176.jld") # ultra low res data
+            load(joinpath(datadir, "BedMachineGreenland_96_176.jld")) # ultra low res data
         else
-            load("../data/BedMachineGreenland_160_288.jld") # low res data
+            load(joinpath(datadir, "BedMachineGreenland_160_288.jld")) # low res data
         end
         Hice, Mask, Zbed = data["Hice"], data["Mask"], data["Zbed"]
         xc, yc, dx, dy   = data["xc"], data["yc"], data["dx"], data["dy"]

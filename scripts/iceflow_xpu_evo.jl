@@ -1,6 +1,11 @@
 # Time dependent shallow ice approximation (SIA) implicit solver for Greenland.
 # Runs on both CPU (threaded) and GPU (Nvidia Cuda)
+
 const USE_GPU = false # switch here to use GPU
+# enable plotting & saving by default
+if !@isdefined do_visu; do_visu = true end
+if !@isdefined do_save; do_save = true end
+
 using ParallelStencil
 using ParallelStencil.FiniteDifferences2D
 @static if USE_GPU
@@ -208,7 +213,7 @@ end
             as_geoarray(Array(Vy), Zbed, name=:vel_y, staggerd=true)
 end
 # ------------------------------------------------------------------------------
-include("helpers.jl")
+include(joinpath(@__DIR__, "helpers.jl"))
 
 # load the data
 print("Loading the data ... ")
@@ -224,10 +229,6 @@ for is=1:2 # two smoothing steps, maybe more are needed
 end
 println("done.")
 
-# handle output
-do_visu = true
-do_save = true
-
 nx, ny = size(Hice)
 if do_visu
     ENV["GKSwstype"]="nul"
@@ -240,7 +241,7 @@ end
 grad_b, z_ELA, b_max = mass_balance_constants(xc, yc)
 
 # run the SIA flow model
-H, S, M, Vx, Vy = iceflow(dx, dy, Zbed, Hice, Mask, grad_b, z_ELA, b_max; do_visu)
+H, S, M, Vx, Vy = iceflow(dx, dy, Zbed, Hice, Mask, grad_b, z_ELA, b_max; do_visu=do_visu)
 
 # output and save
 if do_visu gif(anim, "../output_evo/iceflow_evo_$(nx)x$(ny).gif", fps = 5) end

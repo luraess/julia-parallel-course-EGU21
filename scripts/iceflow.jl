@@ -1,5 +1,10 @@
 # Shallow ice approximation (SIA) implicit solver for Greenland (steady state)
+
 using JLD, Plots, Printf, LinearAlgebra
+
+# enable plotting & saving by default
+if !@isdefined do_visu; do_visu = true end
+if !@isdefined do_save; do_save = true end
 
 # finite difference stencil operation support functions
 @views av(A)    = 0.25*(A[1:end-1,1:end-1].+A[2:end,1:end-1].+A[1:end-1,2:end].+A[2:end,2:end]) # average
@@ -97,7 +102,7 @@ using JLD, Plots, Printf, LinearAlgebra
             as_geoarray(Vy, Zbed, name=:vel_y, staggerd=true)
 end
 # ------------------------------------------------------------------------------
-include("helpers.jl")
+include(joinpath(@__DIR__, "helpers.jl"))
 
 # load the data
 print("Loading the data ... ")
@@ -119,9 +124,6 @@ grad_b, z_ELA, b_max = mass_balance_constants(xc, yc)
 # run the SIA flow model
 H, S, M, Vx, Vy = iceflow(dx, dy, Zbed, Hice, Mask, grad_b, z_ELA, b_max)
 
-# handle output
-do_visu = true
-do_save = true
 
 # visualization and save
 nx, ny = size(H)
