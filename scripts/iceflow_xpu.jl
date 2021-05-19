@@ -1,6 +1,11 @@
 # Shallow ice approximation (SIA) implicit solver for Greenland (steady state)
 # Runs on both CPU (threaded) and GPU (Nvidia Cuda)
+
 const USE_GPU = false # switch here to use GPU
+# enable plotting & saving by default
+if !@isdefined do_visu; do_visu = true end
+if !@isdefined do_save; do_save = true end
+
 using ParallelStencil
 using ParallelStencil.FiniteDifferences2D
 @static if USE_GPU
@@ -175,10 +180,6 @@ grad_b, z_ELA, b_max = mass_balance_constants(xc, yc)
 
 # run the SIA flow model
 H, S, M, Vx, Vy = iceflow(dx, dy, Zbed, Hice, Mask, grad_b, z_ELA, b_max)
-
-# handle output
-do_visu = true
-do_save = true
 
 # visualization and save
 nx, ny = size(H)

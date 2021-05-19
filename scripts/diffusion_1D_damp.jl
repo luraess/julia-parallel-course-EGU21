@@ -1,6 +1,9 @@
 using Plots, Printf, LinearAlgebra
 
-@views function diffusion_1D()
+# enable plotting by default
+if !@isdefined do_visu; do_visu = true end
+
+@views function diffusion_1D(; do_visu=true)
     # Physics
     lx     = 10.0       # domain size
     D      = 1.0        # diffusion coefficient
@@ -41,9 +44,11 @@ using Plots, Printf, LinearAlgebra
     # Analytic solution
     Hana = 1/sqrt(4*(ttot+1/4)) * exp.(-(xc.-lx/2).^2 /(4*(ttot+1/4)))
     @printf("Total time = %1.2f, time steps = %d, iterations tot = %d, error vs analytic = %1.2e \n", round(ttot, sigdigits=2), it, ittot, norm(H-Hana))
-    # Visualise
-    plot(xc, H0, linewidth=3); display(plot!(xc, H, legend=false, framestyle=:box, linewidth=3, xlabel="lx", ylabel="H", title="damped diffusion (nt=$it, iters=$ittot)"))
-    return
+    # Visualize
+    if do_visu
+        plot(xc, H0, linewidth=3); display(plot!(xc, H, legend=false, framestyle=:box, linewidth=3, xlabel="lx", ylabel="H", title="damped diffusion (nt=$it, iters=$ittot)"))
+    end
+    return xc, H0
 end
 
-diffusion_1D()
+diffusion_1D(; do_visu=do_visu);
