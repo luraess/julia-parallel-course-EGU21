@@ -102,7 +102,7 @@ if !@isdefined do_save; do_save = true end
             as_geoarray(Vy, Zbed, name=:vel_y, staggerd=true)
 end
 # ------------------------------------------------------------------------------
-include("helpers.jl")
+include(joindir(@__DIR__, "helpers.jl"))
 
 # load the data
 print("Loading the data ... ")

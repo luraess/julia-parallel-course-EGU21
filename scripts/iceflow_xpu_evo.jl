@@ -213,7 +213,7 @@ end
             as_geoarray(Array(Vy), Zbed, name=:vel_y, staggerd=true)
 end
 # ------------------------------------------------------------------------------
-include("helpers.jl")
+include(joindir(@__DIR__, "helpers.jl"))
 
 # load the data
 print("Loading the data ... ")
