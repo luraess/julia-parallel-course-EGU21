@@ -1,6 +1,8 @@
 
 # Julia parallel course EGU21
 
+![example workflow](https://github.com/luraess/julia-parallel-course-EGU21/actions/workflows/ci.yml/badge.svg)
+
 **[vEGU2021: SC4.6 Solving differential equations in parallel with Julia | Thu, 29 Apr, 16:00–17:00 (CEST)](https://meetingorganizer.copernicus.org/EGU21/session/38986)**
 
 👉 **Organisation notes:**
