@@ -185,7 +185,7 @@ surface mass-balance _M_, and non-linear diffusion coefficient\
   D = a Hⁿ⁺² √(∇S.∇S)ⁿ⁻¹\
 where _n_ is Glen's n (take =3) and _a_ is the ice flow factor (1.5e-24 Pa⁻ⁿ s⁻¹).
 
-Writting the equation in pseudo-code:
+Writing the equation in pseudo-code:
 ```md
 qHx   = -D*dS/dx                  (2a)
 qHy   = -D*dS/dy                  (2b)
