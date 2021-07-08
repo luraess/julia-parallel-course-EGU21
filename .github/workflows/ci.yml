@@ -11,7 +11,7 @@ jobs:
       matrix:
         version:
           - '1.6'
-          - 'nightly'
+#          - 'nightly' # commented as failing on JLD for now
         os:
           - ubuntu-latest
           - macOS-latest
